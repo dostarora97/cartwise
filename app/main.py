@@ -6,6 +6,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.logging import setup_logging
+from app.middleware.error_handler import register_error_handlers
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.routes import auth, meal_plans, menu_items, orders, users
 
@@ -33,6 +34,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Error handlers
+register_error_handlers(app)
 
 # Routers — all under /api/v1
 app.include_router(auth.router, prefix="/api/v1")
