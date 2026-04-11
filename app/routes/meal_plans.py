@@ -23,6 +23,11 @@ async def _get_or_create_plan(session, user_id: uuid.UUID) -> MealPlan:
         plan = MealPlan(user_id=user_id)
         session.add(plan)
         await session.flush()
+        # Reload with items eagerly loaded
+        result = await session.execute(
+            select(MealPlan).where(MealPlan.id == plan.id).options(selectinload(MealPlan.items))
+        )
+        plan = result.scalar_one()
 
     return plan
 
