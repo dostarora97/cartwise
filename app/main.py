@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
-from app.routes import auth, meal_plans, menu_items, users
+from app.routes import auth, meal_plans, menu_items, orders, users
 
 
 @asynccontextmanager
@@ -35,6 +35,7 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(menu_items.router, prefix="/api/v1")
 app.include_router(meal_plans.router, prefix="/api/v1")
+app.include_router(orders.router, prefix="/api/v1")
 
 
 @app.get("/healthz")
