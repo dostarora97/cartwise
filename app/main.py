@@ -5,11 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
+from app.logging import setup_logging
+from app.middleware.request_logging import RequestLoggingMiddleware
 from app.routes import auth, meal_plans, menu_items, orders, users
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    setup_logging()
     yield
 
 
@@ -20,7 +23,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Middleware
+# Middleware (order matters — outermost first)
+app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
 app.add_middleware(
     CORSMiddleware,
