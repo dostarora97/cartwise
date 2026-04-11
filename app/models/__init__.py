@@ -10,4 +10,6 @@ class Base(AsyncAttrs, DeclarativeBase):
 from app.models.meal_plan import MealPlan as MealPlan  # noqa: E402
 from app.models.meal_plan import MealPlanItem as MealPlanItem  # noqa: E402
 from app.models.menu_item import MenuItem as MenuItem  # noqa: E402
+from app.models.order import Order as Order  # noqa: E402
+from app.models.order import OrderParticipant as OrderParticipant  # noqa: E402
 from app.models.user import User as User  # noqa: E402
