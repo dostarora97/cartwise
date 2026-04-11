@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 
@@ -10,7 +10,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 
 def create_access_token(user_id: uuid.UUID) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {
         "sub": str(user_id),
         "exp": expire,
@@ -25,5 +25,5 @@ def decode_access_token(token: str) -> uuid.UUID | None:
         if user_id is None:
             return None
         return uuid.UUID(user_id)
-    except (jwt.InvalidTokenError, ValueError):
+    except jwt.InvalidTokenError, ValueError:
         return None

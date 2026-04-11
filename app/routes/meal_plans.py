@@ -15,9 +15,7 @@ router = APIRouter(prefix="/meal-plans", tags=["meal-plans"])
 
 async def _get_or_create_plan(session, user_id: uuid.UUID) -> MealPlan:
     result = await session.execute(
-        select(MealPlan)
-        .where(MealPlan.user_id == user_id)
-        .options(selectinload(MealPlan.items))
+        select(MealPlan).where(MealPlan.user_id == user_id).options(selectinload(MealPlan.items))
     )
     plan = result.scalar_one_or_none()
 
@@ -58,9 +56,7 @@ async def set_my_meal_plan(
 
     # Reload with items
     result = await session.execute(
-        select(MealPlan)
-        .where(MealPlan.id == plan.id)
-        .options(selectinload(MealPlan.items))
+        select(MealPlan).where(MealPlan.id == plan.id).options(selectinload(MealPlan.items))
     )
     return result.scalar_one()
 
@@ -87,9 +83,7 @@ async def add_item_to_meal_plan(
     await session.commit()
 
     result = await session.execute(
-        select(MealPlan)
-        .where(MealPlan.id == plan.id)
-        .options(selectinload(MealPlan.items))
+        select(MealPlan).where(MealPlan.id == plan.id).options(selectinload(MealPlan.items))
     )
     return result.scalar_one()
 
@@ -106,8 +100,6 @@ async def remove_item_from_meal_plan(
     await session.commit()
 
     result = await session.execute(
-        select(MealPlan)
-        .where(MealPlan.id == plan.id)
-        .options(selectinload(MealPlan.items))
+        select(MealPlan).where(MealPlan.id == plan.id).options(selectinload(MealPlan.items))
     )
     return result.scalar_one()

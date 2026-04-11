@@ -13,9 +13,7 @@ from app.models import Base
 class MealPlan(Base):
     __tablename__ = "meal_plans"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), unique=True
     )
@@ -32,9 +30,7 @@ class MealPlan(Base):
 
 class MealPlanItem(Base):
     __tablename__ = "meal_plan_items"
-    __table_args__ = (
-        UniqueConstraint("meal_plan_id", "menu_item_id"),
-    )
+    __table_args__ = (UniqueConstraint("meal_plan_id", "menu_item_id"),)
 
     meal_plan_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("meal_plans.id", ondelete="CASCADE"), primary_key=True

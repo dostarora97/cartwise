@@ -1,10 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
 
 from app.auth.dependencies import CurrentUser
 from app.auth.jwt import create_access_token
