@@ -25,5 +25,5 @@ def decode_access_token(token: str) -> uuid.UUID | None:
         if user_id is None:
             return None
         return uuid.UUID(user_id)
-    except jwt.InvalidTokenError, ValueError:
+    except (jwt.InvalidTokenError, ValueError):
         return None
