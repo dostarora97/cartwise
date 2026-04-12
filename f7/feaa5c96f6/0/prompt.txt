@@ -1,0 +1,5 @@
+i hope this integration test does not affect supabase in any way, right ?
+
+---
+
+can you also check and make the integration even more extensive, full coverage, all flows, also have prequiresite checks, like ollama is running, etc, etc.
