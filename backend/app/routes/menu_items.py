@@ -19,8 +19,7 @@ async def create_menu_item(
 ):
     item = MenuItem(
         name=data.name,
-        recipe=data.recipe,
-        ingredients=data.ingredients,
+        body=data.body,
         created_by=current_user.id,
         updated_by=current_user.id,
     )
@@ -72,29 +71,6 @@ async def update_menu_item(
     return item
 
 
-@router.post("/{item_id}/fork", response_model=MenuItemResponse, status_code=201)
-async def fork_menu_item(
-    item_id: uuid.UUID,
-    session: SessionDep,
-    current_user: CurrentUser,
-):
-    source = await session.get(MenuItem, item_id)
-    if not source:
-        raise HTTPException(status_code=404, detail="Menu item not found")
-
-    forked = MenuItem(
-        name=source.name,
-        recipe=source.recipe,
-        ingredients=source.ingredients,
-        created_by=current_user.id,
-        updated_by=current_user.id,
-    )
-    session.add(forked)
-    await session.commit()
-    await session.refresh(forked)
-    return forked
-
-
 @router.patch("/{item_id}/archive", response_model=MenuItemResponse)
 async def archive_menu_item(
     item_id: uuid.UUID,
@@ -106,6 +82,23 @@ async def archive_menu_item(
         raise HTTPException(status_code=404, detail="Menu item not found")
 
     item.status = "archived"
+    item.updated_by = current_user.id
+    await session.commit()
+    await session.refresh(item)
+    return item
+
+
+@router.patch("/{item_id}/unarchive", response_model=MenuItemResponse)
+async def unarchive_menu_item(
+    item_id: uuid.UUID,
+    session: SessionDep,
+    current_user: CurrentUser,
+):
+    item = await session.get(MenuItem, item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+
+    item.status = "active"
     item.updated_by = current_user.id
     await session.commit()
     await session.refresh(item)

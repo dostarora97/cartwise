@@ -120,8 +120,8 @@ async def test_classify_progress_callback():
 
 async def test_correlate_matches_upcs():
     menu_items = [
-        {"id": "mi-1", "name": "Chicken Curry", "ingredients": "chicken, onion, spices"},
-        {"id": "mi-2", "name": "Salad", "ingredients": "cucumber, tomato"},
+        {"id": "mi-1", "name": "Chicken Curry", "body": "chicken, onion, spices"},
+        {"id": "mi-2", "name": "Salad", "body": "cucumber, tomato"},
     ]
     grocery_items = [
         {"upc": "AAA", "description": "Chicken Breast"},
@@ -145,7 +145,7 @@ async def test_correlate_matches_upcs():
 
 
 async def test_correlate_filters_invalid_upcs():
-    menu_items = [{"id": "mi-1", "name": "Test", "ingredients": "stuff"}]
+    menu_items = [{"id": "mi-1", "name": "Test", "body": "stuff"}]
     grocery_items = [{"upc": "AAA", "description": "Real Item"}]
 
     mock_generate = AsyncMock(return_value={"matched_upcs": ["AAA", "FAKE-UPC"]})
@@ -157,7 +157,7 @@ async def test_correlate_filters_invalid_upcs():
 
 
 async def test_correlate_no_matches():
-    menu_items = [{"id": "mi-1", "name": "Exotic", "ingredients": "truffle, saffron"}]
+    menu_items = [{"id": "mi-1", "name": "Exotic", "body": "truffle, saffron"}]
     grocery_items = [{"upc": "AAA", "description": "Onion"}]
 
     mock_generate = AsyncMock(return_value={"matched_upcs": []})

@@ -25,7 +25,7 @@ FastAPI (/api/v1/...)
   │
   ├─ /auth/me          → validate JWT, find/create user
   ├─ /users            → CRUD
-  ├─ /menu-items       → CRUD + fork + archive
+  ├─ /menu-items       → CRUD + archive/unarchive
   ├─ /meal-plans       → get/set/add/remove per user
   └─ /orders           → upload PDF → pipeline → splits
        │
@@ -36,7 +36,7 @@ FastAPI (/api/v1/...)
        │
        ├─ 2. _snapshot_meal_plans() → freeze participants' plans at this moment
        │     builds: members = {user_id: [menu_item_ids]}
-       │             menu_items = [{id, name, ingredients}]
+       │             menu_items = [{id, name, body}]
        │
        ├─ 3. extract(pdf_path)      → pdfplumber (sync, via asyncio.to_thread)
        │     parses invoice tables, extracts line items
@@ -47,7 +47,7 @@ FastAPI (/api/v1/...)
        │     returns: {summary: {item_total, fee_total, grand_total}, items: [...]}
        │
        ├─ 5. correlate(menu_items, grocery_items) → LiteLLM → LLM
-       │     for each MenuItem: send name+ingredients + all GroceryItems
+       │     for each MenuItem: send name+body + all GroceryItems
        │     LLM returns matched UPCs
        │     returns: {menu_item_id: [upc, ...]}
        │
@@ -102,9 +102,8 @@ Each group = one split transaction. This is the minimum number of transactions.
 │ email        │◄────│ updated_by (FK)  │
 │ name         │     │ id (UUID PK)     │
 │ phone        │     │ name             │
-│ avatar_url   │     │ recipe (text/md) │
-│ oauth_provider│    │ ingredients (text)│
-│ oauth_id     │     │ status           │
+│ avatar_url   │     │ body (text/md)   │
+│ oauth_provider│    │ status           │
 │ is_active    │     │ created_at       │
 │ created_at   │     │ updated_at       │
 │ updated_at   │     └──────────────────┘
