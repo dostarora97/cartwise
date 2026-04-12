@@ -1,0 +1,95 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "4b08643853c3",
+  "session_id": "7a92bfbe-350a-40ec-8838-7a5f26fbf795",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-12T04:09:38.493705Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "app/services/splitwise.py",
+    "pyproject.toml",
+    "settings.toml"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "d12a288696aa",
+  "token_usage": {
+    "input_tokens": 7654,
+    "cache_creation_tokens": 7933546,
+    "cache_read_tokens": 416487206,
+    "output_tokens": 334151,
+    "api_call_count": 1162
+  },
+  "session_metrics": {
+    "turn_count": 16
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-12T04:09:33.903381Z",
+    "agent_lines": 110,
+    "agent_removed": 0,
+    "human_added": 420,
+    "human_modified": 76,
+    "human_removed": 0,
+    "total_committed": 606,
+    "total_lines_changed": 606,
+    "agent_percentage": 18.151815181518153,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 17,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "dynatrace-managed-mcp.log": 17
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 33,
+      "user_lines_removed": 0,
+      "agent_lines_added": 17,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 14,
+        "dynatrace-managed-mcp.log": 19
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 40,
+      "user_lines_removed": 0,
+      "agent_lines_added": 60,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 21,
+        "dynatrace-managed-mcp.log": 19
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 43,
+      "user_lines_removed": 0,
+      "agent_lines_added": 18938,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 24,
+        "dynatrace-managed-mcp.log": 19
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 43,
+      "user_lines_removed": 0,
+      "agent_lines_added": 19123,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 24,
+        "dynatrace-managed-mcp.log": 19
+      }
+    }
+  ]
+}

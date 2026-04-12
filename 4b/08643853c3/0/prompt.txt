@@ -1,0 +1,68 @@
+alright i've started this in a new CWD now. hehe
+
+---
+
+the original is still available at: /Users/I533118/personal/code/splitwise/backend
+do you want to pickup anything or any file and bring it here.
+
+---
+
+yes run the full setup
+
+---
+
+can we run the intergration tests as well
+
+---
+
+now the next plan is to use the splitwise API to complete the loop.
+the splitwise API is present at: /Users/I533118/personal/code/splitwise/splitwise-api.md
+and you can read that. we probabaly won't need to use many endpoints, rather just a very few.
+this is so that we can go from invoice to splitwise invocations.
+also i see this screenshot in my splitwise account at: "https://secure.splitwise.com/apps/new": [Image #1]
+now think. let's discuss.
+
+---
+
+okay i have got some api key and OAuth details, where shall i save them put them in which file ?
+
+---
+
+can i add any comments in toml ?
+
+---
+
+okay i have added some changes in .secrets.toml below:
+```
+----
+
+# Splitwise API keys and OAuth details for “MealSplit”
+```
+i think you can read the file and fix the things around
+
+---
+
+okay i have added some changes in .secrets.toml below:
+```
+----
+
+# Splitwise API keys and OAuth details for “MealSplit”
+```
+i think you can read the file and fix the things around
+
+---
+
+here are the screenshots:
+[Image #3] [Image #4]
+
+---
+
+done i've updated it in the .secrets.toml can you please check and verify, you can read the file
+
+---
+
+done i've updated it in the .secrets.toml can you please check and verify, you can read the file
+
+---
+
+go ahead a write a python script, and in the mean time let me try to find some mock data for testing with some user.
