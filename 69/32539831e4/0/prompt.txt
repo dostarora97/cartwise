@@ -1,0 +1,15 @@
+where can i see the swagger for this and how ?
+
+---
+
+explain to me how all this works ?
+
+---
+
+specifically how all the APIs and used for ?
+
+---
+
+can we try testing the API ?
+i would suggest stop the running server, rather run it using `run-logged` and then test it in loca full end to end flow.
+let me know if there any any gaps, are goal should be able to test everything in local ene to end.
