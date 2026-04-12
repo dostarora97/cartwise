@@ -36,7 +36,7 @@ async def _snapshot_meal_plans(
 
     Returns:
         members: {user_id_str: [menu_item_id_str, ...]}
-        menu_items: [{id, name, ingredients}, ...]
+        menu_items: [{id, name, body}, ...]
     """
     members: dict[str, list[str]] = {}
     seen_menu_item_ids: set[uuid.UUID] = set()
@@ -66,7 +66,7 @@ async def _snapshot_meal_plans(
                         {
                             "id": str(mi.id),
                             "name": mi.name,
-                            "ingredients": mi.ingredients,
+                            "body": mi.body,
                         }
                     )
 

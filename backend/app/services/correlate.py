@@ -1,18 +1,19 @@
 """
 MenuItem ↔ GroceryItem Correlator
 
-For each MenuItem, sends its name + ingredients alongside the full list of
-GroceryItems to the LLM, which returns the matched UPCs. This builds the
-bipartite adjacency used by the split service.
+For each MenuItem, sends its name + body (recipe and ingredient details)
+alongside the full list of GroceryItems to the LLM, which returns the
+matched UPCs. This builds the bipartite adjacency used by the split service.
 """
 
 from app.ai.client import generate
 
 SYSTEM_PROMPT = (
-    "You match a menu item's ingredients to grocery items from an invoice. "
-    "Given a menu item (name + ingredients) and a list of grocery items (description + UPC), "
+    "You match a menu item to grocery items from an invoice. "
+    "Given a menu item (name + body containing recipe and ingredient details) "
+    "and a list of grocery items (description + UPC), "
     "return the UPCs of grocery items that would be used to prepare this menu item. "
-    "Only match items that are clearly ingredients for the dish. "
+    "Only match items that are clearly needed for the dish. "
     "If no grocery items match, return an empty list."
 )
 
@@ -35,13 +36,13 @@ def _build_grocery_list_text(grocery_items: list[dict]) -> str:
 
 async def _correlate_menu_item(
     menu_item_name: str,
-    menu_item_ingredients: str,
+    menu_item_body: str,
     grocery_list_text: str,
 ) -> list[str]:
-    """Ask LLM to match one MenuItem's ingredients to GroceryItem UPCs."""
+    """Ask LLM to match one MenuItem to GroceryItem UPCs."""
     prompt = (
         f"Menu Item: {menu_item_name}\n"
-        f"Ingredients: {menu_item_ingredients}\n\n"
+        f"Menu Item Details:\n{menu_item_body}\n\n"
         f"Available Grocery Items:\n{grocery_list_text}\n\n"
         f"Which grocery items (by UPC) are used to prepare this menu item?"
     )
@@ -61,7 +62,7 @@ async def correlate(
     """Build uses mapping: menu_item_id → [upc, ...].
 
     Args:
-        menu_items: List of dicts with "id", "name", "ingredients" keys.
+        menu_items: List of dicts with "id", "name", "body" keys.
         grocery_items: List of dicts with "upc", "description" keys
                        (items only, not fees).
 
@@ -75,7 +76,7 @@ async def correlate(
     for item in menu_items:
         matched = await _correlate_menu_item(
             menu_item_name=item["name"],
-            menu_item_ingredients=item["ingredients"],
+            menu_item_body=item["body"],
             grocery_list_text=grocery_list_text,
         )
         uses[str(item["id"])] = [upc for upc in matched if upc in valid_upcs]

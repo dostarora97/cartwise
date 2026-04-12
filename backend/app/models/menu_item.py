@@ -15,8 +15,7 @@ class MenuItem(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(255))
-    recipe: Mapped[str] = mapped_column(Text)
-    ingredients: Mapped[str] = mapped_column(Text)
+    body: Mapped[str] = mapped_column(Text)
     created_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
     updated_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
     status: Mapped[str] = mapped_column(String(20), default="active")

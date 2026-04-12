@@ -8,7 +8,7 @@ from httpx import AsyncClient
 async def _create_item(client: AsyncClient, auth_headers: dict, name: str = "Item") -> str:
     resp = await client.post(
         "/api/v1/menu-items/",
-        json={"name": name, "recipe": "r", "ingredients": "i"},
+        json={"name": name, "body": "test body"},
         headers=auth_headers,
     )
     return resp.json()["id"]

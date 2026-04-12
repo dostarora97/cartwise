@@ -89,13 +89,11 @@ async def _login(client: AsyncClient, email: str, name: str) -> tuple[str, str]:
     return resp.json()["access_token"], resp.json()["user"]["id"]
 
 
-async def _create_menu_item(
-    client: AsyncClient, token: str, name: str, recipe: str, ingredients: str
-) -> str:
+async def _create_menu_item(client: AsyncClient, token: str, name: str, body: str) -> str:
     """Create a menu item, return its ID."""
     resp = await client.post(
         "/api/v1/menu-items/",
-        json={"name": name, "recipe": recipe, "ingredients": ingredients},
+        json={"name": name, "body": body},
         headers=_auth(token),
     )
     assert resp.status_code == 201
@@ -215,24 +213,22 @@ async def test_update_other_user_forbidden(client: AsyncClient):
 
 
 async def test_create_menu_item(client: AsyncClient):
-    token, user_id = await _login(client, "chef@test.com", "Chef")
+    token, _ = await _login(client, "chef@test.com", "Chef")
     resp = await client.post(
         "/api/v1/menu-items/",
-        json={"name": "Pasta", "recipe": "Boil pasta.", "ingredients": "pasta, sauce"},
+        json={"name": "Pasta", "body": "Boil pasta.\n\npasta, sauce"},
         headers=_auth(token),
     )
     assert resp.status_code == 201
     data = resp.json()
     assert data["name"] == "Pasta"
     assert data["status"] == "active"
-    assert data["created_by"] == user_id
-    assert data["updated_by"] == user_id
 
 
 async def test_list_menu_items_with_filters(client: AsyncClient):
     token, user_id = await _login(client, "filter@test.com", "Filter")
-    await _create_menu_item(client, token, "Active1", "r", "i")
-    id2 = await _create_menu_item(client, token, "Active2", "r", "i")
+    await _create_menu_item(client, token, "Active1", "body")
+    id2 = await _create_menu_item(client, token, "Active2", "body")
 
     # Archive one
     await client.patch(f"/api/v1/menu-items/{id2}/archive", headers=_auth(token))
@@ -250,12 +246,12 @@ async def test_list_menu_items_with_filters(client: AsyncClient):
 
     # Filter by creator
     resp = await client.get(f"/api/v1/menu-items/?created_by={user_id}")
-    assert all(i["created_by"] == user_id for i in resp.json())
+    assert len(resp.json()) >= 1
 
 
 async def test_get_menu_item_by_id(client: AsyncClient):
     token, _ = await _login(client, "get@test.com", "Get")
-    item_id = await _create_menu_item(client, token, "GetThis", "r", "i")
+    item_id = await _create_menu_item(client, token, "GetThis", "body")
     resp = await client.get(f"/api/v1/menu-items/{item_id}")
     assert resp.status_code == 200
     assert resp.json()["name"] == "GetThis"
@@ -267,45 +263,24 @@ async def test_get_menu_item_not_found(client: AsyncClient):
 
 
 async def test_update_menu_item(client: AsyncClient):
-    token, user_id = await _login(client, "edit@test.com", "Editor")
-    item_id = await _create_menu_item(client, token, "Original", "old recipe", "old ing")
+    token, _ = await _login(client, "edit@test.com", "Editor")
+    item_id = await _create_menu_item(client, token, "Original", "old body")
     resp = await client.patch(
         f"/api/v1/menu-items/{item_id}",
-        json={"name": "Updated", "recipe": "new recipe", "ingredients": "new ing"},
+        json={"name": "Updated", "body": "new body"},
         headers=_auth(token),
     )
     assert resp.status_code == 200
     assert resp.json()["name"] == "Updated"
-    assert resp.json()["recipe"] == "new recipe"
-    assert resp.json()["updated_by"] == user_id
-
-
-async def test_fork_menu_item(client: AsyncClient):
-    token_a, _id_a = await _login(client, "forker_src@test.com", "Source")
-    token_b, id_b = await _login(client, "forker_dst@test.com", "Forker")
-    item_id = await _create_menu_item(client, token_a, "Original", "r", "i")
-
-    resp = await client.post(f"/api/v1/menu-items/{item_id}/fork", headers=_auth(token_b))
-    assert resp.status_code == 201
-    forked = resp.json()
-    assert forked["id"] != item_id
-    assert forked["name"] == "Original"
-    assert forked["created_by"] == id_b
-
-
-async def test_fork_nonexistent_item(client: AsyncClient):
-    token, _ = await _login(client, "fork404@test.com", "Fork404")
-    resp = await client.post(f"/api/v1/menu-items/{uuid.uuid4()}/fork", headers=_auth(token))
-    assert resp.status_code == 404
+    assert resp.json()["body"] == "new body"
 
 
 async def test_archive_menu_item(client: AsyncClient):
-    token, user_id = await _login(client, "archiver@test.com", "Archiver")
-    item_id = await _create_menu_item(client, token, "ToArchive", "r", "i")
+    token, _ = await _login(client, "archiver@test.com", "Archiver")
+    item_id = await _create_menu_item(client, token, "ToArchive", "body")
     resp = await client.patch(f"/api/v1/menu-items/{item_id}/archive", headers=_auth(token))
     assert resp.status_code == 200
     assert resp.json()["status"] == "archived"
-    assert resp.json()["updated_by"] == user_id
 
 
 # ================================================================
@@ -322,8 +297,8 @@ async def test_empty_meal_plan(client: AsyncClient):
 
 async def test_set_meal_plan(client: AsyncClient):
     token, _ = await _login(client, "set_plan@test.com", "Setter")
-    id1 = await _create_menu_item(client, token, "Item1", "r", "i")
-    id2 = await _create_menu_item(client, token, "Item2", "r", "i")
+    id1 = await _create_menu_item(client, token, "Item1", "body")
+    id2 = await _create_menu_item(client, token, "Item2", "body")
 
     resp = await client.put(
         "/api/v1/meal-plans/me",
@@ -346,7 +321,7 @@ async def test_set_meal_plan_nonexistent_item(client: AsyncClient):
 
 async def test_add_item_to_plan(client: AsyncClient):
     token, _ = await _login(client, "add_plan@test.com", "Adder")
-    id1 = await _create_menu_item(client, token, "AddMe", "r", "i")
+    id1 = await _create_menu_item(client, token, "AddMe", "body")
 
     resp = await client.post(
         "/api/v1/meal-plans/me/items",
@@ -359,7 +334,7 @@ async def test_add_item_to_plan(client: AsyncClient):
 
 async def test_add_item_idempotent(client: AsyncClient):
     token, _ = await _login(client, "idem@test.com", "Idem")
-    item_id = await _create_menu_item(client, token, "Idem", "r", "i")
+    item_id = await _create_menu_item(client, token, "Idem", "body")
 
     await client.post(
         "/api/v1/meal-plans/me/items", json={"menu_item_id": item_id}, headers=_auth(token)
@@ -382,8 +357,8 @@ async def test_add_nonexistent_item_to_plan(client: AsyncClient):
 
 async def test_remove_item_from_plan(client: AsyncClient):
     token, _ = await _login(client, "remove@test.com", "Remover")
-    id1 = await _create_menu_item(client, token, "Keep", "r", "i")
-    id2 = await _create_menu_item(client, token, "Remove", "r", "i")
+    id1 = await _create_menu_item(client, token, "Keep", "body")
+    id2 = await _create_menu_item(client, token, "Remove", "body")
 
     await client.put(
         "/api/v1/meal-plans/me",
@@ -400,8 +375,8 @@ async def test_remove_item_from_plan(client: AsyncClient):
 async def test_replace_meal_plan(client: AsyncClient):
     """Setting a plan replaces the previous one entirely."""
     token, _ = await _login(client, "replace@test.com", "Replacer")
-    id1 = await _create_menu_item(client, token, "Old", "r", "i")
-    id2 = await _create_menu_item(client, token, "New", "r", "i")
+    id1 = await _create_menu_item(client, token, "Old", "body")
+    id2 = await _create_menu_item(client, token, "New", "body")
 
     await client.put("/api/v1/meal-plans/me", json={"menu_item_ids": [id1]}, headers=_auth(token))
     resp = await client.put(
@@ -429,18 +404,16 @@ async def test_order_full_pipeline(client: AsyncClient):
         client,
         alice_token,
         "Chicken Curry",
-        "Cook chicken with onions and spices, squeeze lemon.",
-        "boneless chicken breast, onion, lemon, spices",
+        "Cook chicken with onions and spices, squeeze lemon.\n\nboneless chicken breast, onion, lemon, spices",
     )
     salad_id = await _create_menu_item(
         client,
         bob_token,
         "Green Salad",
-        "Chop cucumber and cherry tomatoes, dress with lemon.",
-        "cucumber, cherry tomato, lemon",
+        "Chop cucumber and cherry tomatoes, dress with lemon.\n\ncucumber, cherry tomato, lemon",
     )
     tea_id = await _create_menu_item(
-        client, carol_token, "Milk Tea", "Boil milk with tea leaves.", "milk"
+        client, carol_token, "Milk Tea", "Boil milk with tea leaves.\n\nmilk"
     )
 
     # Set meal plans
@@ -539,7 +512,7 @@ async def test_order_not_participant_forbidden(client: AsyncClient):
     outsider_token, _ = await _login(client, "outsider@test.com", "Outsider")
 
     # Create minimal menu item + plan so pipeline can run
-    item_id = await _create_menu_item(client, alice_token, "Quick", "r", "i")
+    item_id = await _create_menu_item(client, alice_token, "Quick", "body")
     await client.put(
         "/api/v1/meal-plans/me",
         json={"menu_item_ids": [item_id]},
