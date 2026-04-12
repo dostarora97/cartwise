@@ -17,8 +17,16 @@ SUPABASE_JWT_SECRET = ""
 # Database — actual connection string in .secrets.toml
 DATABASE_URL = ""
 
+# Splitwise — actual values in .secrets.toml (gitignored)
+# SPLITWISE_ENABLED must be explicitly true to allow API calls
+SPLITWISE_ENABLED = false
+SPLITWISE_API_KEY = ""
+SPLITWISE_CONSUMER_KEY = ""
+SPLITWISE_CONSUMER_SECRET = ""
+
 [development]
 DEBUG = true
+SPLITWISE_ENABLED = true
 
 [testing]
 DEBUG = true

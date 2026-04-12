@@ -39,3 +39,4 @@ storage/
 
 # uv
 .python-version
+.playground/

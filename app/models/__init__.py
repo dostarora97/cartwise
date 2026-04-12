@@ -12,4 +12,5 @@ from app.models.meal_plan import MealPlanItem as MealPlanItem  # noqa: E402
 from app.models.menu_item import MenuItem as MenuItem  # noqa: E402
 from app.models.order import Order as Order  # noqa: E402
 from app.models.order import OrderParticipant as OrderParticipant  # noqa: E402
+from app.models.splitwise_audit import SplitwiseAuditLog as SplitwiseAuditLog  # noqa: E402
 from app.models.user import User as User  # noqa: E402
