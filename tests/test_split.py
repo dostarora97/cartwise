@@ -56,21 +56,27 @@ async def test_compute_splits_groups_by_member_set():
     assert solo["amount"] == 50.0
 
 
-async def test_compute_splits_ignores_unmatched_items():
+async def test_compute_splits_unmatched_items_go_to_payer():
+    """Unmatched items are assigned to the payer, not dropped."""
     classified = {
         "items": [
             {"upc": "AAA", "description": "Matched", "total": 30.0, "category": "item"},
             {"upc": "ZZZ", "description": "Unmatched", "total": 20.0, "category": "item"},
         ],
     }
-    members = {"user-1": ["menu-a"]}
+    members = {"user-1": ["menu-a"], "user-2": []}
     uses = {"menu-a": ["AAA"]}
 
     result = compute_splits(classified, members, uses, "user-1")
 
-    all_upcs = [g["upc"] for s in result["splits"] for g in s["groceryItems"]]
-    assert "AAA" in all_upcs
-    assert "ZZZ" not in all_upcs
+    splits_by_members = {tuple(s["splitEquallyAmong"]): s for s in result["splits"]}
+
+    # Matched item goes to user-1
+    assert splits_by_members[("user-1",)]["amount"] == 50.0  # 30 matched + 20 unmatched
+    # Both items land on user-1 (matched via menu, unmatched as payer)
+    upcs = [g["upc"] for g in splits_by_members[("user-1",)]["groceryItems"]]
+    assert "AAA" in upcs
+    assert "ZZZ" in upcs
 
 
 async def test_compute_splits_single_member():
@@ -90,8 +96,8 @@ async def test_compute_splits_single_member():
     assert result["splits"][0]["splitEquallyAmong"] == ["solo"]
 
 
-async def test_compute_splits_fees_only():
-    """When no items match, only fee splits remain."""
+async def test_compute_splits_unmatched_plus_fees():
+    """Unmatched items go to payer, fees go to everyone."""
     classified = {
         "items": [
             {"upc": "A", "description": "Unmatched", "total": 100.0, "category": "item"},
@@ -103,9 +109,17 @@ async def test_compute_splits_fees_only():
 
     result = compute_splits(classified, members, uses, "u1")
 
-    assert len(result["splits"]) == 1
-    assert result["splits"][0]["amount"] == 5.0
-    assert sorted(result["splits"][0]["splitEquallyAmong"]) == ["u1", "u2"]
+    splits_by_members = {tuple(s["splitEquallyAmong"]): s for s in result["splits"]}
+
+    # Unmatched item → payer only
+    assert splits_by_members[("u1",)]["amount"] == 100.0
+
+    # Fee → everyone
+    assert splits_by_members[("u1", "u2")]["amount"] == 5.0
+
+    # Total equals invoice
+    total = sum(s["amount"] for s in result["splits"])
+    assert total == 105.0
 
 
 async def test_compute_splits_empty_items():
@@ -182,3 +196,63 @@ async def test_compute_splits_rounding():
 
     result = compute_splits(classified, members, uses, "u1")
     assert result["splits"][0]["amount"] == 31.0
+
+
+# --- Total invariant: sum of splits == sum of all classified items ---
+
+
+async def test_total_invariant_all_matched():
+    """When all items match, split total equals invoice total."""
+    classified = {
+        "items": [
+            {"upc": "A", "description": "X", "total": 50.0, "category": "item"},
+            {"upc": "B", "description": "Y", "total": 30.0, "category": "item"},
+            {"upc": "-", "description": "Fee", "total": 10.0, "category": "fee"},
+        ],
+    }
+    members = {"u1": ["m1"], "u2": ["m2"]}
+    uses = {"m1": ["A"], "m2": ["B"]}
+
+    result = compute_splits(classified, members, uses, "u1")
+
+    invoice_total = sum(i["total"] for i in classified["items"])
+    split_total = sum(s["amount"] for s in result["splits"])
+    assert split_total == invoice_total  # 90 == 90
+
+
+async def test_total_invariant_some_unmatched():
+    """Unmatched items go to payer, so total still balances."""
+    classified = {
+        "items": [
+            {"upc": "A", "description": "Matched", "total": 40.0, "category": "item"},
+            {"upc": "X", "description": "Unmatched1", "total": 25.0, "category": "item"},
+            {"upc": "Y", "description": "Unmatched2", "total": 15.0, "category": "item"},
+            {"upc": "-", "description": "Fee", "total": 8.0, "category": "fee"},
+        ],
+    }
+    members = {"payer": ["m1"], "other": []}
+    uses = {"m1": ["A"]}
+
+    result = compute_splits(classified, members, uses, "payer")
+
+    invoice_total = sum(i["total"] for i in classified["items"])
+    split_total = sum(s["amount"] for s in result["splits"])
+    assert split_total == invoice_total  # 88 == 88
+
+
+async def test_total_invariant_nothing_matched():
+    """When nothing matches, all items go to payer, fees to everyone."""
+    classified = {
+        "items": [
+            {"upc": "A", "description": "Item", "total": 100.0, "category": "item"},
+            {"upc": "-", "description": "Fee", "total": 5.0, "category": "fee"},
+        ],
+    }
+    members = {"payer": [], "other": []}
+    uses = {}
+
+    result = compute_splits(classified, members, uses, "payer")
+
+    invoice_total = sum(i["total"] for i in classified["items"])
+    split_total = sum(s["amount"] for s in result["splits"])
+    assert split_total == invoice_total  # 105 == 105

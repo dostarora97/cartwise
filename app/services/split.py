@@ -54,7 +54,8 @@ def compute_splits(
         Dict with "paidBy" and "splits" keys.
 
     Items with category "fee" are always split among all members.
-    Items with no member mapping (miscellaneous) are ignored.
+    Items with no member mapping are assigned to the payer only,
+    ensuring the total of all splits equals the invoice total.
     """
     all_members = sorted(members.keys())
     grocery_to_members = build_grocery_to_members(members, uses)
@@ -67,9 +68,7 @@ def compute_splits(
             neighbor_set = frozenset(all_members)
         else:
             matched = grocery_to_members.get(grocery_item["upc"])
-            if not matched:
-                continue
-            neighbor_set = frozenset(matched)
+            neighbor_set = frozenset(matched) if matched else frozenset({paid_by})
 
         groups[neighbor_set].append(grocery_item)
 
