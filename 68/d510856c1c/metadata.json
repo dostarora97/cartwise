@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "68d510856c1c",
+  "strategy": "manual-commit",
+  "branch": "refactor/monorepo-structure",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "uv.lock"
+  ],
+  "sessions": [
+    {
+      "metadata": "/68/d510856c1c/0/metadata.json",
+      "transcript": "/68/d510856c1c/0/full.jsonl",
+      "content_hash": "/68/d510856c1c/0/content_hash.txt",
+      "prompt": "/68/d510856c1c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 7721,
+    "cache_creation_tokens": 8694050,
+    "cache_read_tokens": 458865751,
+    "output_tokens": 350795,
+    "api_call_count": 1221
+  }
+}
