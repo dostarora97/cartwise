@@ -23,7 +23,7 @@ from app.services.classify import classify
 from app.services.correlate import correlate
 from app.services.extract import extract
 from app.services.split import compute_splits
-from app.services.storage import save_upload
+from app.services.storage import download_to_temp, save_upload
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -111,15 +111,17 @@ async def create_order(
         session.add(OrderParticipant(order_id=order.id, user_id=pid))
     await session.flush()
 
-    # Save PDF
+    # Save PDF to storage
     content = await file.read()
-    pdf_path = await asyncio.to_thread(save_upload, content, order.id)
+    storage_path = await asyncio.to_thread(save_upload, content, order.id)
 
     # Snapshot meal plans
     members, menu_items = await _snapshot_meal_plans(session, parsed_ids)
 
     # Pipeline: extract → classify → correlate → split
-    extracted = await asyncio.to_thread(extract, pdf_path)
+    # download_to_temp gives pdfplumber a local file even when using Supabase Storage
+    local_pdf = await asyncio.to_thread(download_to_temp, storage_path)
+    extracted = await asyncio.to_thread(extract, local_pdf)
     classified = await classify(extracted)
 
     # Get only "item" category grocery items for correlation
