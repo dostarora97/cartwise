@@ -22,8 +22,11 @@ MEALSPLIT_ENV=development uv run alembic upgrade head
 # Start server
 MEALSPLIT_ENV=development uv run uvicorn app.main:app --reload --port 8000
 
-# Run tests
-uv run pytest -v
+# Run tests (unit — no Ollama needed)
+uv run pytest --ignore=tests/test_integration.py -v
+
+# Run tests (integration — needs Ollama + qwen2.5:3b)
+uv run pytest tests/test_integration.py -v -s
 
 # Lint
 uv run ruff check . && uv run ruff format --check .
