@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "17837d33cd2f",
+  "strategy": "manual-commit",
+  "branch": "feat/order-lifecycle-splits-table",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "REQUIREMENTS.md",
+    "backend/app/routes/menu_items.py",
+    "backend/app/routes/orders.py",
+    "backend/pyproject.toml",
+    "backend/tests/test_integration.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/17/837d33cd2f/0/metadata.json",
+      "transcript": "/17/837d33cd2f/0/full.jsonl",
+      "content_hash": "/17/837d33cd2f/0/content_hash.txt",
+      "prompt": "/17/837d33cd2f/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12972,
+    "cache_creation_tokens": 23924423,
+    "cache_read_tokens": 787479400,
+    "output_tokens": 563752,
+    "api_call_count": 1884
+  }
+}
