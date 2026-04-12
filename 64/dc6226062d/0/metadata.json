@@ -3,38 +3,49 @@
   "checkpoint_id": "64dc6226062d",
   "session_id": "7a92bfbe-350a-40ec-8838-7a5f26fbf795",
   "strategy": "manual-commit",
-  "created_at": "2026-04-12T04:43:48.063354Z",
+  "created_at": "2026-04-12T04:55:00.245818Z",
   "branch": "refactor/monorepo-structure",
   "checkpoints_count": 0,
   "files_touched": [
-    "backend/pyproject.toml",
-    ".pre-commit-config.yaml"
+    "CONTRIBUTING.md"
   ],
   "agent": "Claude Code",
   "model": "",
-  "turn_id": "d2736e7fe5b4",
-  "checkpoint_transcript_start": 4228,
-  "transcript_lines_at_start": 4228,
+  "turn_id": "3daaba3ba6d6",
+  "checkpoint_transcript_start": 4286,
+  "transcript_lines_at_start": 4286,
   "token_usage": {
-    "input_tokens": 8,
-    "cache_creation_tokens": 5604,
-    "cache_read_tokens": 6082664,
-    "output_tokens": 1782,
-    "api_call_count": 8
+    "input_tokens": 24,
+    "cache_creation_tokens": 6895,
+    "cache_read_tokens": 15466500,
+    "output_tokens": 3534,
+    "api_call_count": 20
   },
   "session_metrics": {
-    "turn_count": 20
+    "turn_count": 22
   },
   "initial_attribution": {
-    "calculated_at": "2026-04-12T04:43:43.184254Z",
+    "calculated_at": "2026-04-12T04:54:55.367949Z",
     "agent_lines": 4,
     "agent_removed": 5,
-    "human_added": 7259,
+    "human_added": 7311,
     "human_modified": 0,
     "human_removed": 0,
-    "total_committed": 7263,
-    "total_lines_changed": 14569,
-    "agent_percentage": 0.061775001715972264,
+    "total_committed": 7315,
+    "total_lines_changed": 14612,
+    "agent_percentage": 0.061593211059403234,
     "metric_version": 2
-  }
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 46,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 46
+      }
+    }
+  ]
 }
