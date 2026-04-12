@@ -1,0 +1,10 @@
+try pushing some commits, lets try with pr and see if entire catches it.
+also do note that if there is any other a better entire configuration to be enabled ?
+
+---
+
+please don't go on a new branch because entire session are checked to the branch, so please return to main branch, lets actually make a commit on main branch and then commit it. for the mean time we can disable preventing commits on main branch
+
+---
+
+don't yet revert protection until told. make some another small change and commit and push
