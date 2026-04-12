@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 # Force testing environment before importing app
 os.environ["MEALSPLIT_ENV"] = "testing"
 
-from app.auth.jwt import create_access_token
+from app.auth.jwt import create_test_token
 from app.config import settings
 from app.database import get_session
 from app.main import app
@@ -68,6 +68,6 @@ async def test_user(session: AsyncSession) -> User:
 
 @pytest.fixture
 def auth_headers(test_user: User) -> dict[str, str]:
-    """Create auth headers with a valid JWT for the test user."""
-    token = create_access_token(test_user.id)
+    """Create auth headers with a Supabase-style JWT for the test user."""
+    token = create_test_token(test_user.oauth_id, test_user.email)
     return {"Authorization": f"Bearer {token}"}

@@ -7,6 +7,6 @@ settings = Dynaconf(
     env_switcher="MEALSPLIT_ENV",
     validators=[
         Validator("DATABASE_URL", must_exist=True),
-        Validator("SECRET_KEY", must_exist=True),
+        Validator("SUPABASE_URL", must_exist=True),
     ],
 )

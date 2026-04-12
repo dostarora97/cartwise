@@ -2,7 +2,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import settings
 from app.logging import setup_logging
@@ -18,7 +17,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Splitwise Backend",
+    title="MealSplit Backend",
     description="Grocery cost splitting with meal planning",
     version="0.1.0",
     lifespan=lifespan,
@@ -26,10 +25,9 @@ app = FastAPI(
 
 # Middleware (order matters — outermost first)
 app.add_middleware(RequestLoggingMiddleware)
-app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
