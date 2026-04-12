@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Force testing environment before importing app
-os.environ["MEALSPLIT_ENV"] = "testing"
+os.environ["CARTWISE_ENV"] = "testing"
 
 from app.auth.jwt import create_test_token
 from app.config import settings

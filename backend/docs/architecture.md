@@ -2,7 +2,7 @@
 
 ## Overview
 
-MealSplit is a grocery cost splitting backend. Users create menu items (recipes),
+CartWise is a grocery cost splitting backend. Users create menu items (recipes),
 build meal plans, and when someone buys groceries, the system automatically
 determines which grocery items each person uses and splits the cost accordingly.
 
@@ -198,12 +198,12 @@ settings.toml          committed — structure, defaults, non-secret values
      +
 .secrets.toml          gitignored — credentials per environment
      +
-MEALSPLIT_* env vars   highest priority — CI and production overrides
+CARTWISE_* env vars   highest priority — CI and production overrides
      =
 Dynaconf settings     app/config.py → settings.DATABASE_URL, settings.AI_MODEL, etc.
 ```
 
-**Profiles** are switched via `MEALSPLIT_ENV`:
+**Profiles** are switched via `CARTWISE_ENV`:
 - `development` — local Docker Postgres, debug mode, dev JWT secret
 - `testing` — test Postgres on port 5433, test JWT secret, Ollama on localhost
 - `production` — Supabase Postgres, real JWT secret, cloud LLM

@@ -39,4 +39,9 @@ storage/
 
 # uv
 .python-version
+
+# Playground
 .playground/
+
+# Logs
+*.log
