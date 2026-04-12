@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "077afce8f5f3",
+  "session_id": "7a92bfbe-350a-40ec-8838-7a5f26fbf795",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-12T04:18:54.165683Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "3f8e3238d1f7",
+  "token_usage": {
+    "input_tokens": 7687,
+    "cache_creation_tokens": 7946340,
+    "cache_read_tokens": 435979983,
+    "output_tokens": 342299,
+    "api_call_count": 1189
+  },
+  "session_metrics": {
+    "turn_count": 19
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 63,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 27,
+        "dynatrace-managed-mcp.log": 36
+      }
+    }
+  ]
+}
