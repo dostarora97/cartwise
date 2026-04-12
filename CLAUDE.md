@@ -49,7 +49,7 @@ MEALSPLIT_ENV=development uv run alembic upgrade head
 
 ## Conventions
 
-- Async everywhere (FastAPI, SQLAlchemy, httpx). Sync code via `asyncio.to_thread()`.
+- Async everywhere (FastAPI, SQLAlchemy, LiteLLM). Sync code (pdfplumber) via `asyncio.to_thread()`.
 - SQLAlchemy 2.0 style: `Mapped[]`, `mapped_column()`, `from __future__ import annotations`.
 - Pydantic v2: `ConfigDict(from_attributes=True)`, separate Create/Update/Response schemas.
 - Config via Dynaconf: `settings.toml` (committed) + `.secrets.toml` (gitignored).
