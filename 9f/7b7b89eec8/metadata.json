@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "9f7b7b89eec8",
+  "strategy": "manual-commit",
+  "branch": "feat/onboarding-splitwise-id",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/9f/7b7b89eec8/0/metadata.json",
+      "transcript": "/9f/7b7b89eec8/0/full.jsonl",
+      "content_hash": "/9f/7b7b89eec8/0/content_hash.txt",
+      "prompt": "/9f/7b7b89eec8/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12634,
+    "cache_creation_tokens": 23860409,
+    "cache_read_tokens": 757709766,
+    "output_tokens": 532112,
+    "api_call_count": 1790
+  }
+}
