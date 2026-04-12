@@ -1,0 +1,129 @@
+alright i've started this in a new CWD now. hehe
+
+---
+
+the original is still available at: /Users/I533118/personal/code/splitwise/backend
+do you want to pickup anything or any file and bring it here.
+
+---
+
+yes run the full setup
+
+---
+
+can we run the intergration tests as well
+
+---
+
+now the next plan is to use the splitwise API to complete the loop.
+the splitwise API is present at: /Users/I533118/personal/code/splitwise/splitwise-api.md
+and you can read that. we probabaly won't need to use many endpoints, rather just a very few.
+this is so that we can go from invoice to splitwise invocations.
+also i see this screenshot in my splitwise account at: "https://secure.splitwise.com/apps/new": [Image #1]
+now think. let's discuss.
+
+---
+
+okay i have got some api key and OAuth details, where shall i save them put them in which file ?
+
+---
+
+can i add any comments in toml ?
+
+---
+
+okay i have added some changes in .secrets.toml below:
+```
+----
+
+# Splitwise API keys and OAuth details for “MealSplit”
+```
+i think you can read the file and fix the things around
+
+---
+
+okay i have added some changes in .secrets.toml below:
+```
+----
+
+# Splitwise API keys and OAuth details for “MealSplit”
+```
+i think you can read the file and fix the things around
+
+---
+
+here are the screenshots:
+[Image #3] [Image #4]
+
+---
+
+done i've updated it in the .secrets.toml can you please check and verify, you can read the file
+
+---
+
+done i've updated it in the .secrets.toml can you please check and verify, you can read the file
+
+---
+
+go ahead a write a python script, and in the mean time let me try to find some mock data for testing with some user.
+
+---
+
+but shouldn't you be using `equal_group_split` ? because we made it that we that in each unique group the GroceryItems total is split equally
+
+---
+
+Okay do you see any of my friend called tawqeer munshi ? can you create an expense for him where i paid and split was equal ( he is not in any group), create an expense of 100 inr.
+i just wanto test and check.
+let me know exactly what you are doing and before doing it.
+
+---
+
+sure go ahead.
+
+---
+
+i see it. go ahead and delete it.
+
+---
+
+alright here is the thing.
+we need to first of all have a control to disable and enable the splitwise interface, because we don't accidental api calls.
+second each and every api call to splitwise should be fully auditable and persisted in the databse.
+i think we should capture the full request payload and the response and persist it, and persist it in such a way that each thing is transactional, such that if failure occurs anywhere we know for sure.
+what do you think ? think of ideas.
+
+---
+
+sure go ahead and build this.
+
+---
+
+can you try it again and see if the autdit log is working ? is there a way to try ?
+for local please create a mock postgres connected splitwise that has a ledger system.
+you might keep it for testing only just the limited functionality that is expected from client.
+on local we will use the local splitwise's url and only in prod we will the actual url.
+do you think we can support this mock service through the audit log itself acting as the ledger ?
+any other better ideas ?
+
+---
+
+no instead of SPLITWISE_MODE we will use a different url itself keepin all the logic same, and this url another service would be running.
+
+---
+
+sure go ahead, through for this we should use something like : `http://localhost:8001/api/splitwise/v3.0` or on same port `http://localhost:8000/api/splitwise/v3.0`, you decide, and do we need other tables for it, or does audit log suffices and becomes a virtual ledger ?
+
+---
+
+alright here is the thing: now we are reaching a big overhaul again we need to make space in our repo for ui and backend both and this will be a monorepo.
+so what we are going to do is to make both ui and backend exist as siblings. so what will you do is right now create a PR with changes as:
+1. create a new directory: backend and ui
+2. move all the relevant files and folders in backend, and keep the folders that need to exist at github repo root here only
+3. keep the ui folder empty
+---
+we are going to do this with a PR just to see how this affects and behaves.
+then we are going to merge once everything is fine, we might even end up adding various new things and workflows.
+i know the github repo name is `mealsplit-backend`, but we will change it to `mealsplit`
+----
+but thourouhly think throuhh this, think of each and every scenario, all the pitfals, all the footguns, and then lets do it, feel free to ask questions
