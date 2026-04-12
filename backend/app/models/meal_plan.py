@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, Integer, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,7 +24,7 @@ class MealPlan(Base):
     # Relationships
     user: Mapped[User] = relationship(back_populates="meal_plan")
     items: Mapped[list[MealPlanItem]] = relationship(
-        back_populates="meal_plan", cascade="all, delete-orphan"
+        back_populates="meal_plan", cascade="all, delete-orphan", order_by="MealPlanItem.rank"
     )
 
 
@@ -38,6 +38,7 @@ class MealPlanItem(Base):
     menu_item_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("menu_items.id"), primary_key=True
     )
+    rank: Mapped[int] = mapped_column(Integer, default=0)
 
     # Relationships
     meal_plan: Mapped[MealPlan] = relationship(back_populates="items")

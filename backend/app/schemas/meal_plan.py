@@ -3,6 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.schemas.menu_item import MenuItemResponse
+
 
 class MealPlanSet(BaseModel):
     menu_item_ids: list[uuid.UUID]
@@ -13,9 +15,8 @@ class MealPlanAddItem(BaseModel):
 
 
 class MealPlanItemResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    menu_item_id: uuid.UUID
+    rank: int
+    menu_item: MenuItemResponse
 
 
 class MealPlanResponse(BaseModel):
