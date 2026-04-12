@@ -4,14 +4,16 @@
 
 ```bash
 # Prerequisites: Python 3.14, Docker, uv, mise (optional)
-git clone https://github.com/dostarora97/mealsplit-backend.git && cd mealsplit-backend
+git clone https://github.com/dostarora97/cartwise.git && cd cartwise
+
+# Backend setup
+cd backend
 
 # Install dependencies
 uv sync
 
-# Install git hooks
-uv run pre-commit install
-uv run pre-commit install --hook-type commit-msg
+# Install git hooks (must run after uv sync, from repo root)
+cd .. && uv run --project backend pre-commit install && uv run --project backend pre-commit install --hook-type commit-msg && cd backend
 
 # Start PostgreSQL
 docker compose up -d postgres postgres-test
@@ -20,7 +22,7 @@ docker compose up -d postgres postgres-test
 cp .secrets.toml.example .secrets.toml
 
 # Run migrations
-MEALSPLIT_ENV=development uv run alembic upgrade head
+CARTWISE_ENV=development uv run alembic upgrade head
 
 # Verify everything works
 uv run pytest --ignore=tests/test_integration.py -v
@@ -30,7 +32,8 @@ uv run ruff check .
 ## Development server
 
 ```bash
-MEALSPLIT_ENV=development uv run uvicorn app.main:app --reload --port 8000
+cd backend
+CARTWISE_ENV=development uv run uvicorn app.main:app --reload --port 8000
 ```
 
 Swagger UI: http://localhost:8000/docs
@@ -38,6 +41,8 @@ Swagger UI: http://localhost:8000/docs
 ## Running tests
 
 ```bash
+cd backend
+
 # Unit tests (fast, no Ollama needed)
 uv run pytest --ignore=tests/test_integration.py -v
 
@@ -63,9 +68,8 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`, `build
 
 - Branch from `main`
 - CI (lint + test) must pass
-- Coverage must stay above 84%
 - Follow the PR template
 
 ## Architecture
 
-See [docs/architecture.md](docs/architecture.md) for the full system design.
+See [backend/docs/architecture.md](backend/docs/architecture.md) for the full system design.

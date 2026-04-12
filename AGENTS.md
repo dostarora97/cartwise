@@ -4,9 +4,9 @@
 
 | Service | How to start | Port |
 |---|---|---|
-| FastAPI dev server | `MEALSPLIT_ENV=development uv run uvicorn app.main:app --reload --port 8000` | 8000 |
-| PostgreSQL (dev) | `sudo docker compose up -d postgres` | 5432 |
-| PostgreSQL (test) | `sudo docker compose up -d postgres-test` | 5433 |
+| FastAPI dev server | `cd backend && CARTWISE_ENV=development uv run uvicorn app.main:app --reload --port 8000` | 8000 |
+| PostgreSQL (dev) | `cd backend && sudo docker compose up -d postgres` | 5432 |
+| PostgreSQL (test) | `cd backend && sudo docker compose up -d postgres-test` | 5433 |
 
 ### Prerequisites (already installed in snapshot)
 
@@ -17,10 +17,10 @@
 ### Startup sequence
 
 1. Start Docker daemon: `sudo dockerd &>/tmp/dockerd.log &` (wait ~3s)
-2. Start PostgreSQL containers: `cd /workspace && sudo docker compose up -d postgres postgres-test`
+2. Start PostgreSQL containers: `cd /workspace/backend && sudo docker compose up -d postgres postgres-test`
 3. Wait for healthy: `sudo docker compose ps` (both should show "healthy")
-4. Run migrations: `MEALSPLIT_ENV=development uv run alembic upgrade head`
-5. Start dev server: `MEALSPLIT_ENV=development uv run uvicorn app.main:app --reload --port 8000`
+4. Run migrations: `cd /workspace/backend && CARTWISE_ENV=development uv run alembic upgrade head`
+5. Start dev server: `cd /workspace/backend && CARTWISE_ENV=development uv run uvicorn app.main:app --reload --port 8000`
 6. Swagger UI at http://localhost:8000/docs
 
 ### Key caveats

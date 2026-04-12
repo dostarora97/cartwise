@@ -9,6 +9,9 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
@@ -18,13 +21,16 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     services:
       postgres:
         image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: mealsplit_test
+          POSTGRES_DB: cartwise_test
         ports:
           - 5433:5432
         options: >-
@@ -33,11 +39,11 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      MEALSPLIT_ENV: testing
-      MEALSPLIT_DATABASE_URL: "postgresql+asyncpg://postgres:postgres@localhost:5433/mealsplit_test"
-      MEALSPLIT_SUPABASE_URL: "http://test"
-      MEALSPLIT_SUPABASE_ANON_KEY: "test-key"
-      MEALSPLIT_SUPABASE_JWT_SECRET: "ci-test-jwt-secret-at-least-32-characters-long"
+      CARTWISE_ENV: testing
+      CARTWISE_DATABASE_URL: "postgresql+asyncpg://postgres:postgres@localhost:5433/cartwise_test"
+      CARTWISE_SUPABASE_URL: "http://test"
+      CARTWISE_SUPABASE_ANON_KEY: "test-key"
+      CARTWISE_SUPABASE_JWT_SECRET: "ci-test-jwt-secret-at-least-32-characters-long"
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
@@ -50,6 +56,6 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v5
         with:
-          files: coverage.xml
+          files: backend/coverage.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}

@@ -41,7 +41,7 @@ def _check_postgres():
     async def _try():
         try:
             conn = await asyncpg.connect(
-                "postgresql://postgres:postgres@localhost:5433/mealsplit_test"
+                "postgresql://postgres:postgres@localhost:5433/cartwise_test"
             )
             await conn.close()
             return True

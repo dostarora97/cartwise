@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="MealSplit Backend",
+    title="CartWise Backend",
     description="Grocery cost splitting with meal planning",
     version="0.1.0",
     lifespan=lifespan,

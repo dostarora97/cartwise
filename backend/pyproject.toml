@@ -1,7 +1,7 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "MealSplit — grocery cost splitting with meal planning"
+description = "CartWise — grocery cost splitting with meal planning"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
