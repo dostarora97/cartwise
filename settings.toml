@@ -21,5 +21,6 @@ DATABASE_URL = ""
 DEBUG = true
 
 [testing]
+DEBUG = true
 
 [production]
