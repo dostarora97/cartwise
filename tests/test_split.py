@@ -184,18 +184,22 @@ async def test_compute_splits_three_way_different_groups():
 
 
 async def test_compute_splits_rounding():
-    """Amounts are rounded to 2 decimal places."""
+    """Amounts are rounded to 2 decimal places.
+
+    Use totals whose binary float sum is not exactly the mathematical sum
+    (e.g. 10.1 + 20.2 != 30.3 in IEEE-754) so the test fails if rounding is removed.
+    """
     classified = {
         "items": [
-            {"upc": "A", "description": "X", "total": 10.333, "category": "item"},
-            {"upc": "B", "description": "Y", "total": 20.667, "category": "item"},
+            {"upc": "A", "description": "X", "total": 10.1, "category": "item"},
+            {"upc": "B", "description": "Y", "total": 20.2, "category": "item"},
         ],
     }
     members = {"u1": ["m1"]}
     uses = {"m1": ["A", "B"]}
 
     result = compute_splits(classified, members, uses, "u1")
-    assert result["splits"][0]["amount"] == 31.0
+    assert result["splits"][0]["amount"] == 30.3
 
 
 # --- Total invariant: sum of splits == sum of all classified items ---
