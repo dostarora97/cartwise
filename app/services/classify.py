@@ -31,7 +31,7 @@ CLASSIFY_SCHEMA = {
 async def _classify_row(client: httpx.AsyncClient, row: dict) -> str:
     """Call Ollama to classify a single row. Returns 'item' or 'fee'."""
     response = await client.post(
-        f"{settings.ollama_base_url}/api/generate",
+        f"{settings.AI_BASE_URL}/api/generate",
         json={
             "model": MODEL,
             "system": SYSTEM_PROMPT,

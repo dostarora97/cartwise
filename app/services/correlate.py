@@ -57,7 +57,7 @@ async def _correlate_menu_item(
     )
 
     response = await client.post(
-        f"{settings.ollama_base_url}/api/generate",
+        f"{settings.AI_BASE_URL}/api/generate",
         json={
             "model": MODEL,
             "system": SYSTEM_PROMPT,

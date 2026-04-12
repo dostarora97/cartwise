@@ -1,0 +1,27 @@
+[default]
+DEBUG = false
+CORS_ORIGINS = ["http://localhost:3000"]
+STORAGE_DIR = "./storage"
+
+# AI
+AI_PROVIDER = "ollama"
+AI_MODEL = "qwen2.5:3b"
+AI_BASE_URL = "http://localhost:11434"
+AI_API_KEY = ""
+
+# Auth (overridden in .secrets.toml per environment)
+GOOGLE_CLIENT_ID = ""
+GOOGLE_CLIENT_SECRET = ""
+GITHUB_CLIENT_ID = ""
+GITHUB_CLIENT_SECRET = ""
+
+[development]
+DEBUG = true
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/splitwise"
+
+[testing]
+DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5433/splitwise_test"
+SECRET_KEY = "test-secret-key-not-for-production"
+
+[production]
+CORS_ORIGINS = []

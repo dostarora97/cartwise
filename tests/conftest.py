@@ -1,17 +1,21 @@
+import os
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+# Force testing environment before importing app
+os.environ["MEALSPLIT_ENV"] = "testing"
+
 from app.auth.jwt import create_access_token
+from app.config import settings
 from app.database import get_session
 from app.main import app
 from app.models import Base
 from app.models.user import User
 
-TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5433/splitwise_test"
-
-engine = create_async_engine(TEST_DATABASE_URL, echo=False, poolclass=pool.NullPool)
+engine = create_async_engine(settings.DATABASE_URL, echo=False, poolclass=pool.NullPool)
 test_async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
