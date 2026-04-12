@@ -2,17 +2,13 @@
 Blinkit Invoice Row Classifier
 
 Classifies each extracted grocery item as "item" (product) or "fee"
-(order-level charge) using Ollama via async httpx.
+(order-level charge) using the configured LLM via LiteLLM.
 """
 
 import json
 from collections.abc import Callable
 
-import httpx
-
-from app.config import settings
-
-MODEL = "qwen2.5:3b"
+from app.ai.client import generate
 
 SYSTEM_PROMPT = (
     "You classify rows from a Blinkit grocery invoice. "
@@ -28,21 +24,14 @@ CLASSIFY_SCHEMA = {
 }
 
 
-async def _classify_row(client: httpx.AsyncClient, row: dict) -> str:
-    """Call Ollama to classify a single row. Returns 'item' or 'fee'."""
-    response = await client.post(
-        f"{settings.AI_BASE_URL}/api/generate",
-        json={
-            "model": MODEL,
-            "system": SYSTEM_PROMPT,
-            "prompt": f"Classify: {json.dumps(row)}",
-            "format": CLASSIFY_SCHEMA,
-            "stream": False,
-        },
-        timeout=30.0,
+async def _classify_row(row: dict) -> str:
+    """Classify a single row. Returns 'item' or 'fee'."""
+    result = await generate(
+        system=SYSTEM_PROMPT,
+        prompt=f"Classify: {json.dumps(row)}",
+        schema=CLASSIFY_SCHEMA,
     )
-    response.raise_for_status()
-    return json.loads(response.json()["response"])["category"]
+    return result["category"]
 
 
 async def classify(
@@ -62,12 +51,11 @@ async def classify(
     all_rows = [row for invoice in extracted["invoices"] for row in invoice["items"]]
 
     classified_rows = []
-    async with httpx.AsyncClient() as client:
-        for i, row in enumerate(all_rows, 1):
-            category = await _classify_row(client, row)
-            classified_rows.append({**row, "category": category})
-            if on_progress:
-                on_progress(i, len(all_rows), category, row["description"])
+    for i, row in enumerate(all_rows, 1):
+        category = await _classify_row(row)
+        classified_rows.append({**row, "category": category})
+        if on_progress:
+            on_progress(i, len(all_rows), category, row["description"])
 
     item_total = round(sum(r["total"] for r in classified_rows if r["category"] == "item"), 2)
     fee_total = round(sum(r["total"] for r in classified_rows if r["category"] == "fee"), 2)

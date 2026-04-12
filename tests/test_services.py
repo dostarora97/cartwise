@@ -1,30 +1,9 @@
-"""Tests for classify and correlate services with mocked Ollama."""
+"""Tests for classify and correlate services with mocked AI client."""
 
-import json
 from unittest.mock import AsyncMock, patch
-
-import httpx
 
 from app.services.classify import classify
 from app.services.correlate import correlate
-
-
-def _mock_ollama_classify(category: str):
-    """Create a mock response for classify."""
-    return httpx.Response(
-        200,
-        json={"response": json.dumps({"category": category})},
-        request=httpx.Request("POST", "http://mock"),
-    )
-
-
-def _mock_ollama_correlate(upcs: list[str]):
-    """Create a mock response for correlate."""
-    return httpx.Response(
-        200,
-        json={"response": json.dumps({"matched_upcs": upcs})},
-        request=httpx.Request("POST", "http://mock"),
-    )
 
 
 async def test_classify_items_and_fees():
@@ -55,18 +34,14 @@ async def test_classify_items_and_fees():
         ]
     }
 
-    responses = [
-        _mock_ollama_classify("item"),
-        _mock_ollama_classify("fee"),
-    ]
+    mock_generate = AsyncMock(
+        side_effect=[
+            {"category": "item"},
+            {"category": "fee"},
+        ]
+    )
 
-    with patch("app.services.classify.httpx.AsyncClient") as mock_client_cls:
-        mock_client = AsyncMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=False)
-        mock_client.post = AsyncMock(side_effect=responses)
-        mock_client_cls.return_value = mock_client
-
+    with patch("app.services.classify.generate", mock_generate):
         result = await classify(extracted)
 
     assert result["summary"]["item_total"] == 100.0
@@ -74,6 +49,7 @@ async def test_classify_items_and_fees():
     assert len(result["items"]) == 2
     assert result["items"][0]["category"] == "item"
     assert result["items"][1]["category"] == "fee"
+    assert mock_generate.call_count == 2
 
 
 async def test_correlate_matches_upcs():
@@ -87,22 +63,19 @@ async def test_correlate_matches_upcs():
         {"upc": "CCC", "description": "Cucumber"},
     ]
 
-    responses = [
-        _mock_ollama_correlate(["AAA", "BBB"]),  # Chicken Curry matches
-        _mock_ollama_correlate(["CCC"]),  # Salad matches
-    ]
+    mock_generate = AsyncMock(
+        side_effect=[
+            {"matched_upcs": ["AAA", "BBB"]},
+            {"matched_upcs": ["CCC"]},
+        ]
+    )
 
-    with patch("app.services.correlate.httpx.AsyncClient") as mock_client_cls:
-        mock_client = AsyncMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=False)
-        mock_client.post = AsyncMock(side_effect=responses)
-        mock_client_cls.return_value = mock_client
-
+    with patch("app.services.correlate.generate", mock_generate):
         uses = await correlate(menu_items, grocery_items)
 
     assert uses["mi-1"] == ["AAA", "BBB"]
     assert uses["mi-2"] == ["CCC"]
+    assert mock_generate.call_count == 2
 
 
 async def test_correlate_filters_invalid_upcs():
@@ -110,17 +83,9 @@ async def test_correlate_filters_invalid_upcs():
     menu_items = [{"id": "mi-1", "name": "Test", "ingredients": "stuff"}]
     grocery_items = [{"upc": "AAA", "description": "Real Item"}]
 
-    responses = [
-        _mock_ollama_correlate(["AAA", "FAKE-UPC"]),  # FAKE-UPC doesn't exist
-    ]
+    mock_generate = AsyncMock(return_value={"matched_upcs": ["AAA", "FAKE-UPC"]})
 
-    with patch("app.services.correlate.httpx.AsyncClient") as mock_client_cls:
-        mock_client = AsyncMock()
-        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
-        mock_client.__aexit__ = AsyncMock(return_value=False)
-        mock_client.post = AsyncMock(side_effect=responses)
-        mock_client_cls.return_value = mock_client
-
+    with patch("app.services.correlate.generate", mock_generate):
         uses = await correlate(menu_items, grocery_items)
 
     assert uses["mi-1"] == ["AAA"]  # FAKE-UPC filtered out
