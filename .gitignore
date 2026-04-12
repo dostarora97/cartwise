@@ -29,6 +29,11 @@ Thumbs.db
 # Database
 *.db
 
+# Coverage
+coverage.xml
+htmlcov/
+.coverage
+
 # Storage
 storage/
 
