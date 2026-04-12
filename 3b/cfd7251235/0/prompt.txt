@@ -1,0 +1,4 @@
+take a look at my other github repo: https://github.com/dostarora97/html2md
+this repo was of course for a different purpose, but i had set it up quite properly so that it had various things in it.
+can you check and see what we can take inspiration and what can we do in this project.
+maybe you can clone it in $TPP/workspace/claude_code/playground and have a look at its tree
