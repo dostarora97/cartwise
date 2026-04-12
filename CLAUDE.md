@@ -11,7 +11,6 @@ Start here to understand the project:
 
 - @docs/architecture.md — data flow, DB schema, auth, AI layer, config, design decisions
 - @CONTRIBUTING.md — prerequisites, quick start, workflow
-- @PLAN.md (in parent dir) — phased modernisation plan with learnings
 
 ## Key files
 
