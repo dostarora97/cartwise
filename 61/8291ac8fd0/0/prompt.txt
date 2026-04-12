@@ -337,3 +337,7 @@ describe to me what do you think how shall we split ?
 
 can you put this in another file called phases.md
 at each point we will express out intent in requirements.txt and then break it down and apply into phases, and after completion update requirements and phases accordingly
+
+---
+
+work on phase 1
