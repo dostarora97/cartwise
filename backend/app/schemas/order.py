@@ -14,6 +14,17 @@ class OrderParticipantResponse(BaseModel):
     user_id: uuid.UUID
 
 
+class SplitResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    amount: float
+    grocery_items: list[dict]
+    member_ids: list[str]
+    status: str
+    splitwise_expense_id: int | None
+
+
 class OrderResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -25,3 +36,17 @@ class OrderResponse(BaseModel):
     result: dict | None
     created_at: datetime
     participants: list[OrderParticipantResponse]
+    splits: list[SplitResponse]
+
+
+class SplitAssignment(BaseModel):
+    """One grocery item's member assignment for the edit-splits endpoint."""
+
+    upc: str
+    member_ids: list[str]
+
+
+class EditSplitsRequest(BaseModel):
+    """Request body for PUT /orders/{id}/splits."""
+
+    assignments: list[SplitAssignment]

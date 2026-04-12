@@ -2,9 +2,11 @@ import uuid
 
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.auth.dependencies import CurrentUser
 from app.database import SessionDep
+from app.models.meal_plan import MealPlan
 from app.models.menu_item import MenuItem
 from app.schemas.menu_item import MenuItemCreate, MenuItemResponse, MenuItemUpdate
 
@@ -83,6 +85,17 @@ async def archive_menu_item(
 
     item.status = "archived"
     item.updated_by = current_user.id
+
+    # Auto-remove from user's meal plan if present
+    result = await session.execute(
+        select(MealPlan)
+        .where(MealPlan.user_id == current_user.id)
+        .options(selectinload(MealPlan.items))
+    )
+    plan = result.scalar_one_or_none()
+    if plan:
+        plan.items = [i for i in plan.items if i.menu_item_id != item_id]
+
     await session.commit()
     await session.refresh(item)
     return item
