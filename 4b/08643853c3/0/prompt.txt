@@ -66,3 +66,33 @@ done i've updated it in the .secrets.toml can you please check and verify, you c
 ---
 
 go ahead a write a python script, and in the mean time let me try to find some mock data for testing with some user.
+
+---
+
+but shouldn't you be using `equal_group_split` ? because we made it that we that in each unique group the GroceryItems total is split equally
+
+---
+
+Okay do you see any of my friend called tawqeer munshi ? can you create an expense for him where i paid and split was equal ( he is not in any group), create an expense of 100 inr.
+i just wanto test and check.
+let me know exactly what you are doing and before doing it.
+
+---
+
+sure go ahead.
+
+---
+
+i see it. go ahead and delete it.
+
+---
+
+alright here is the thing.
+we need to first of all have a control to disable and enable the splitwise interface, because we don't accidental api calls.
+second each and every api call to splitwise should be fully auditable and persisted in the databse.
+i think we should capture the full request payload and the response and persist it, and persist it in such a way that each thing is transactional, such that if failure occurs anywhere we know for sure.
+what do you think ? think of ideas.
+
+---
+
+sure go ahead and build this.
