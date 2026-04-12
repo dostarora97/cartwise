@@ -400,3 +400,18 @@ what will you update and how wll this work,tell me step-by-step
 ---
 
 okay go ahead, any code changes ?
+
+---
+
+pr merged go to next phase
+
+---
+
+i don't understand the question and the problem, explain to me easily
+
+---
+
+there are two things:
+Approve is the user saying trigger the splitwise apis, so the user must edit all they can before that. so aprove is the final btn.
+so the backedn present to a certain splits data to the user, stating that it things it should be split like this, user can change it and say that not it should be in some different way and send back a reques to the backend - in all this of course the splits should be valid to the originating invoice such that it keeps the prices and calculation solid.
+once the splits are finalsed the user "aproves" to trigger splitwise apis on these splits
