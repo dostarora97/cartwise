@@ -24,7 +24,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: splitwise_test
+          POSTGRES_DB: mealsplit_test
         ports:
           - 5433:5432
         options: >-
@@ -35,7 +35,7 @@ jobs:
     env:
       MEALSPLIT_ENV: testing
       # Dynaconf reads MEALSPLIT_* env vars as overrides
-      MEALSPLIT_DATABASE_URL: "postgresql+asyncpg://postgres:postgres@localhost:5433/splitwise_test"
+      MEALSPLIT_DATABASE_URL: "postgresql+asyncpg://postgres:postgres@localhost:5433/mealsplit_test"
       MEALSPLIT_SUPABASE_URL: "http://test"
       MEALSPLIT_SUPABASE_ANON_KEY: "test-key"
       MEALSPLIT_SUPABASE_JWT_SECRET: "ci-test-jwt-secret-at-least-32-characters-long"

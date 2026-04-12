@@ -1,7 +1,7 @@
 """
-Blinkit Invoice PDF Extractor
+Invoice PDF Extractor
 
-Deterministic extraction of line items from Blinkit invoice PDFs.
+Deterministic extraction of line items from grocery invoice PDFs.
 No classification, no heuristics — just reads the table structure.
 
 This module is sync (pdfplumber is sync). Call via asyncio.to_thread()
@@ -99,7 +99,7 @@ def _parse_invoice_total(raw: str | None) -> float | None:
 
 
 def extract(pdf_path: str) -> dict:
-    """Extract all invoice line items from a Blinkit PDF.
+    """Extract all invoice line items from a grocery invoice PDF.
 
     This is a sync function. In async context, call via:
         result = await asyncio.to_thread(extract, pdf_path)

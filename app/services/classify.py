@@ -1,5 +1,5 @@
 """
-Blinkit Invoice Row Classifier
+Invoice Row Classifier
 
 Classifies each extracted grocery item as "item" (product) or "fee"
 (order-level charge) using the configured LLM via LiteLLM.
@@ -11,7 +11,7 @@ from collections.abc import Callable
 from app.ai.client import generate
 
 SYSTEM_PROMPT = (
-    "You classify rows from a Blinkit grocery invoice. "
+    "You classify rows from a grocery invoice. "
     'Each row is either an "item" (a product someone purchased) '
     'or a "fee" (an order-level charge like delivery, handling, packing, or service fees). '
     "Respond with the category only."

@@ -2,7 +2,7 @@
 Grocery Cost Splitter
 
 Given a classified invoice, member→menu-item mappings, and menu-item→grocery-item
-usage relationships, produces the minimum set of Splitwise invocations needed.
+usage relationships, produces the minimum set of split invocations needed.
 
 Each invocation is a unique group of members who equally share the cost of
 one or more grocery items. The grouping is derived from the bipartite graph
@@ -73,7 +73,7 @@ def compute_splits(
 
         groups[neighbor_set].append(grocery_item)
 
-    # Each unique neighbor set = one Splitwise invocation
+    # Each unique neighbor set = one split invocation
     splits = []
     for member_set, grocery_items in groups.items():
         amount = round(sum(g["total"] for g in grocery_items), 2)

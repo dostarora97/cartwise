@@ -9,7 +9,7 @@ bipartite adjacency used by the split service.
 from app.ai.client import generate
 
 SYSTEM_PROMPT = (
-    "You match a menu item's ingredients to grocery items from a Blinkit invoice. "
+    "You match a menu item's ingredients to grocery items from an invoice. "
     "Given a menu item (name + ingredients) and a list of grocery items (description + UPC), "
     "return the UPCs of grocery items that would be used to prepare this menu item. "
     "Only match items that are clearly ingredients for the dish. "
