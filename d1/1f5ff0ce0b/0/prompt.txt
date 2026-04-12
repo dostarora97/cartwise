@@ -1,0 +1,37 @@
+btw you can even use chrome-devtools mcp.
+though make sure that nowhere in this you actually connect to the actual splitwise if and when you're running backend.
+
+---
+
+done
+
+---
+
+I just ran in another terminal: `❯ run-logged --label chrome-remote-debugging -- zsh -c 'killall "Google Chrome" 2>/dev/null; sleep 1; /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 &'
+📝 Logging to: /Users/I533118/.logs/chrome-remote-debugging_ts-20260412-161340_pid-76316.log
+🔗 Latest:     /Users/I533118/.logs/chrome-remote-debugging_ts-latest.log
+=== run-logged ===
+Command:  zsh -c killall "Google Chrome" 2>/dev/null; sleep 1; /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222 &
+Date:     2026-04-12 16:13:40
+PWD:      /Users/I533118/personal/code/splitwise
+User:     I533118
+PID:      76316
+Symlink:  /Users/I533118/.logs/chrome-remote-debugging_ts-latest.log
+==================`
+
+---
+
+i think with the mcp you can try to open the page directly through mcp and it should connect
+
+---
+
+how about you read this issue using gh cli: https://github.com/ChromeDevTools/chrome-devtools-mcp/issues/914
+
+---
+
+Alright here is what we want:
+- First make all the UI in this a bit modern with modern fonts, which as sans-serif.
+User uploads the invoice, then press process button, it processes, and comes back with the list of split data that will be essentially used as request payload for the (mock) splitwise service, then user has the option to either say ok, reject, or edit.
+Latwe we will talk about how reject, or edit, will work and loon in their UI UX, for now these could be button.
+You can run the backend (everything mock mke sure), connect the UI url with backend, test e2e with a invoice that you have - if you need an invoice do let me know, and also from the invoice details, you can think of three friends and there MenuItems that must have caused to order the GroceryItems from invoice, then test the flow uptil where the user sees the splits (maybe just directly even display the JSON in the UI for now), and then press ok, and that goes the (mock) splitwise.
+you can run these things with `run-logged` so that you can track there logs as well in background running.
