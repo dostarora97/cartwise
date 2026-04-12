@@ -20,7 +20,7 @@ import httpx
 import pytest
 from httpx import AsyncClient
 
-INVOICE_PDF = Path(__file__).parent.parent.parent / "data" / "ORD95806394221" / "invoice.pdf"
+INVOICE_PDF = Path(__file__).parent / "fixtures" / "test_invoice.pdf"
 
 
 def _auth(token: str) -> dict:
