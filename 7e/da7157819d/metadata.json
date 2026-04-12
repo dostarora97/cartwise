@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "7eda7157819d",
+  "strategy": "manual-commit",
+  "branch": "feat/meal-plan-ordering",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "backend/tests/test_meal_plans.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/7e/da7157819d/0/metadata.json",
+      "transcript": "/7e/da7157819d/0/full.jsonl",
+      "content_hash": "/7e/da7157819d/0/content_hash.txt",
+      "prompt": "/7e/da7157819d/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 12024,
+    "cache_creation_tokens": 23574018,
+    "cache_read_tokens": 739191232,
+    "output_tokens": 507967,
+    "api_call_count": 1717
+  }
+}
