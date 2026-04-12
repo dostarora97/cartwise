@@ -64,20 +64,27 @@ async def _reload_plan(session, plan_id: uuid.UUID) -> MealPlan:
     return result.scalar_one()
 
 
-@router.get("/me", response_model=MealPlanResponse)
-async def get_my_meal_plan(session: SessionDep, current_user: CurrentUser):
-    plan = await _get_or_create_plan(session, current_user.id)
+def _check_ownership(user_id: uuid.UUID, current_user_id: uuid.UUID) -> None:
+    if user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Cannot modify another user's meal plan")
+
+
+@router.get("/{user_id}", response_model=MealPlanResponse)
+async def get_meal_plan(user_id: uuid.UUID, session: SessionDep):
+    plan = await _get_or_create_plan(session, user_id)
     await session.commit()
     return _plan_response(plan)
 
 
-@router.put("/me", response_model=MealPlanResponse)
-async def set_my_meal_plan(
+@router.put("/{user_id}", response_model=MealPlanResponse)
+async def set_meal_plan(
+    user_id: uuid.UUID,
     data: MealPlanSet,
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    plan = await _get_or_create_plan(session, current_user.id)
+    _check_ownership(user_id, current_user.id)
+    plan = await _get_or_create_plan(session, user_id)
 
     plan.items.clear()
 
@@ -92,13 +99,15 @@ async def set_my_meal_plan(
     return _plan_response(plan)
 
 
-@router.post("/me/items", response_model=MealPlanResponse)
+@router.post("/{user_id}/items", response_model=MealPlanResponse)
 async def add_item_to_meal_plan(
+    user_id: uuid.UUID,
     data: MealPlanAddItem,
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    plan = await _get_or_create_plan(session, current_user.id)
+    _check_ownership(user_id, current_user.id)
+    plan = await _get_or_create_plan(session, user_id)
 
     existing = [i for i in plan.items if i.menu_item_id == data.menu_item_id]
     if existing:
@@ -116,13 +125,15 @@ async def add_item_to_meal_plan(
     return _plan_response(plan)
 
 
-@router.delete("/me/items/{menu_item_id}", response_model=MealPlanResponse)
+@router.delete("/{user_id}/items/{menu_item_id}", response_model=MealPlanResponse)
 async def remove_item_from_meal_plan(
+    user_id: uuid.UUID,
     menu_item_id: uuid.UUID,
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    plan = await _get_or_create_plan(session, current_user.id)
+    _check_ownership(user_id, current_user.id)
+    plan = await _get_or_create_plan(session, user_id)
 
     plan.items = [i for i in plan.items if i.menu_item_id != menu_item_id]
     await session.commit()

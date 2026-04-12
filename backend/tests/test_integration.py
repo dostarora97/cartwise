@@ -289,19 +289,19 @@ async def test_archive_menu_item(client: AsyncClient):
 
 
 async def test_empty_meal_plan(client: AsyncClient):
-    token, _ = await _login(client, "empty_plan@test.com", "Empty")
-    resp = await client.get("/api/v1/meal-plans/me", headers=_auth(token))
+    _, user_id = await _login(client, "empty_plan@test.com", "Empty")
+    resp = await client.get(f"/api/v1/meal-plans/{user_id}")
     assert resp.status_code == 200
     assert resp.json()["items"] == []
 
 
 async def test_set_meal_plan(client: AsyncClient):
-    token, _ = await _login(client, "set_plan@test.com", "Setter")
+    token, user_id = await _login(client, "set_plan@test.com", "Setter")
     id1 = await _create_menu_item(client, token, "Item1", "body")
     id2 = await _create_menu_item(client, token, "Item2", "body")
 
     resp = await client.put(
-        "/api/v1/meal-plans/me",
+        f"/api/v1/meal-plans/{user_id}",
         json={"menu_item_ids": [id1, id2]},
         headers=_auth(token),
     )
@@ -310,9 +310,9 @@ async def test_set_meal_plan(client: AsyncClient):
 
 
 async def test_set_meal_plan_nonexistent_item(client: AsyncClient):
-    token, _ = await _login(client, "bad_plan@test.com", "BadPlan")
+    token, user_id = await _login(client, "bad_plan@test.com", "BadPlan")
     resp = await client.put(
-        "/api/v1/meal-plans/me",
+        f"/api/v1/meal-plans/{user_id}",
         json={"menu_item_ids": [str(uuid.uuid4())]},
         headers=_auth(token),
     )
@@ -320,11 +320,11 @@ async def test_set_meal_plan_nonexistent_item(client: AsyncClient):
 
 
 async def test_add_item_to_plan(client: AsyncClient):
-    token, _ = await _login(client, "add_plan@test.com", "Adder")
+    token, user_id = await _login(client, "add_plan@test.com", "Adder")
     id1 = await _create_menu_item(client, token, "AddMe", "body")
 
     resp = await client.post(
-        "/api/v1/meal-plans/me/items",
+        f"/api/v1/meal-plans/{user_id}/items",
         json={"menu_item_id": id1},
         headers=_auth(token),
     )
@@ -333,22 +333,26 @@ async def test_add_item_to_plan(client: AsyncClient):
 
 
 async def test_add_item_idempotent(client: AsyncClient):
-    token, _ = await _login(client, "idem@test.com", "Idem")
+    token, user_id = await _login(client, "idem@test.com", "Idem")
     item_id = await _create_menu_item(client, token, "Idem", "body")
 
     await client.post(
-        "/api/v1/meal-plans/me/items", json={"menu_item_id": item_id}, headers=_auth(token)
+        f"/api/v1/meal-plans/{user_id}/items",
+        json={"menu_item_id": item_id},
+        headers=_auth(token),
     )
     resp = await client.post(
-        "/api/v1/meal-plans/me/items", json={"menu_item_id": item_id}, headers=_auth(token)
+        f"/api/v1/meal-plans/{user_id}/items",
+        json={"menu_item_id": item_id},
+        headers=_auth(token),
     )
     assert len(resp.json()["items"]) == 1  # Not duplicated
 
 
 async def test_add_nonexistent_item_to_plan(client: AsyncClient):
-    token, _ = await _login(client, "add404@test.com", "Add404")
+    token, user_id = await _login(client, "add404@test.com", "Add404")
     resp = await client.post(
-        "/api/v1/meal-plans/me/items",
+        f"/api/v1/meal-plans/{user_id}/items",
         json={"menu_item_id": str(uuid.uuid4())},
         headers=_auth(token),
     )
@@ -356,33 +360,39 @@ async def test_add_nonexistent_item_to_plan(client: AsyncClient):
 
 
 async def test_remove_item_from_plan(client: AsyncClient):
-    token, _ = await _login(client, "remove@test.com", "Remover")
+    token, user_id = await _login(client, "remove@test.com", "Remover")
     id1 = await _create_menu_item(client, token, "Keep", "body")
     id2 = await _create_menu_item(client, token, "Remove", "body")
 
     await client.put(
-        "/api/v1/meal-plans/me",
+        f"/api/v1/meal-plans/{user_id}",
         json={"menu_item_ids": [id1, id2]},
         headers=_auth(token),
     )
-    resp = await client.delete(f"/api/v1/meal-plans/me/items/{id2}", headers=_auth(token))
+    resp = await client.delete(f"/api/v1/meal-plans/{user_id}/items/{id2}", headers=_auth(token))
     assert resp.status_code == 200
-    item_ids = [i["menu_item_id"] for i in resp.json()["items"]]
+    item_ids = [i["menu_item"]["id"] for i in resp.json()["items"]]
     assert id1 in item_ids
     assert id2 not in item_ids
 
 
 async def test_replace_meal_plan(client: AsyncClient):
     """Setting a plan replaces the previous one entirely."""
-    token, _ = await _login(client, "replace@test.com", "Replacer")
+    token, user_id = await _login(client, "replace@test.com", "Replacer")
     id1 = await _create_menu_item(client, token, "Old", "body")
     id2 = await _create_menu_item(client, token, "New", "body")
 
-    await client.put("/api/v1/meal-plans/me", json={"menu_item_ids": [id1]}, headers=_auth(token))
-    resp = await client.put(
-        "/api/v1/meal-plans/me", json={"menu_item_ids": [id2]}, headers=_auth(token)
+    await client.put(
+        f"/api/v1/meal-plans/{user_id}",
+        json={"menu_item_ids": [id1]},
+        headers=_auth(token),
     )
-    item_ids = [i["menu_item_id"] for i in resp.json()["items"]]
+    resp = await client.put(
+        f"/api/v1/meal-plans/{user_id}",
+        json={"menu_item_ids": [id2]},
+        headers=_auth(token),
+    )
+    item_ids = [i["menu_item"]["id"] for i in resp.json()["items"]]
     assert id2 in item_ids
     assert id1 not in item_ids
 
@@ -418,17 +428,17 @@ async def test_order_full_pipeline(client: AsyncClient):
 
     # Set meal plans
     await client.put(
-        "/api/v1/meal-plans/me",
+        f"/api/v1/meal-plans/{alice_id}",
         json={"menu_item_ids": [chicken_id, salad_id]},
         headers=_auth(alice_token),
     )
     await client.put(
-        "/api/v1/meal-plans/me",
+        f"/api/v1/meal-plans/{bob_id}",
         json={"menu_item_ids": [salad_id]},
         headers=_auth(bob_token),
     )
     await client.put(
-        "/api/v1/meal-plans/me",
+        f"/api/v1/meal-plans/{carol_id}",
         json={"menu_item_ids": [tea_id]},
         headers=_auth(carol_token),
     )
@@ -514,12 +524,12 @@ async def test_order_not_participant_forbidden(client: AsyncClient):
     # Create minimal menu item + plan so pipeline can run
     item_id = await _create_menu_item(client, alice_token, "Quick", "body")
     await client.put(
-        "/api/v1/meal-plans/me",
+        f"/api/v1/meal-plans/{alice_id}",
         json={"menu_item_ids": [item_id]},
         headers=_auth(alice_token),
     )
     await client.put(
-        "/api/v1/meal-plans/me",
+        f"/api/v1/meal-plans/{bob_id}",
         json={"menu_item_ids": [item_id]},
         headers=_auth(bob_token),
     )
