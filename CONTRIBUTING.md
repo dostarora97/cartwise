@@ -43,6 +43,9 @@ uv run pytest --ignore=tests/test_integration.py -v
 
 # Integration tests (requires Ollama with qwen2.5:3b)
 uv run pytest tests/test_integration.py -v -s
+
+# With coverage report
+uv run pytest --ignore=tests/test_integration.py --cov=app --cov-report=term-missing
 ```
 
 ## Commit messages
