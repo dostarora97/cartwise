@@ -9,25 +9,66 @@ for testing without a frontend.
 """
 
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from sqlalchemy import select
 
-from app.auth.dependencies import CurrentUser
-from app.auth.jwt import create_test_token
+from app.auth.dependencies import CurrentUser, security
+from app.auth.jwt import create_test_token, decode_supabase_jwt
 from app.config import settings
 from app.database import SessionDep
 from app.models.user import User
-from app.schemas.user import UserResponse
+from app.schemas.user import OnboardRequest, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: CurrentUser):
-    """Get the current authenticated user."""
+    """Get the current authenticated user.
+
+    Returns 404 if the user hasn't completed onboarding yet.
+    """
     return current_user
+
+
+@router.post("/onboard", response_model=UserResponse, status_code=201)
+async def onboard(
+    data: OnboardRequest,
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
+    session: SessionDep,
+):
+    """Complete onboarding — creates the user record in the DB.
+
+    Requires a valid Supabase JWT. The user must NOT already exist.
+    OAuth claims (email, avatar, provider) come from the JWT.
+    Name, phone, and splitwise_user_id come from the request body.
+    """
+    supabase_user = decode_supabase_jwt(credentials.credentials)
+    if supabase_user is None:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    # Check user doesn't already exist
+    result = await session.execute(select(User).where(User.oauth_id == supabase_user.auth_id))
+    if result.scalar_one_or_none() is not None:
+        raise HTTPException(status_code=409, detail="User already onboarded")
+
+    user = User(
+        email=supabase_user.email,
+        name=data.name,
+        phone=data.phone,
+        avatar_url=supabase_user.avatar_url,
+        oauth_provider=supabase_user.provider,
+        oauth_id=supabase_user.auth_id,
+        splitwise_user_id=data.splitwise_user_id,
+    )
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user
 
 
 # --- Dev-only endpoints (DEBUG=true) ---

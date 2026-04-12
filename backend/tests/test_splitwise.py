@@ -40,7 +40,6 @@ def test_build_expense_payload_two_members():
         cost=100.0,
         payer_sw_id=1,
         member_sw_ids=[1, 2],
-        currency_code="INR",
     )
 
     assert payload["cost"] == "100.00"

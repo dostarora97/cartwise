@@ -55,7 +55,6 @@ def _build_expense_payload(
     cost: float,
     payer_sw_id: int,
     member_sw_ids: list[int],
-    currency_code: str = "INR",
     group_id: int = 0,
     details: str | None = None,
 ) -> dict:
@@ -71,7 +70,7 @@ def _build_expense_payload(
     payload = {
         "cost": f"{cost:.2f}",
         "description": description,
-        "currency_code": currency_code,
+        "currency_code": "INR",
         "group_id": group_id,
     }
 
@@ -120,7 +119,6 @@ async def create_expense_audited(
     payer_sw_id: int,
     member_sw_ids: list[int],
     order_id: uuid.UUID | None = None,
-    currency_code: str = "INR",
     group_id: int = 0,
     details: str | None = None,
 ) -> SplitwiseAuditLog:
@@ -135,7 +133,6 @@ async def create_expense_audited(
         cost=cost,
         payer_sw_id=payer_sw_id,
         member_sw_ids=member_sw_ids,
-        currency_code=currency_code,
         group_id=group_id,
         details=details,
     )
@@ -246,7 +243,6 @@ async def push_splits_audited(
     split_result: dict,
     member_id_to_sw_id: dict[str, int],
     payer_sw_id: int,
-    currency_code: str = "INR",
     group_id: int = 0,
 ) -> list[SplitwiseAuditLog]:
     """Push all split groups to Splitwise with per-expense auditing.
@@ -257,7 +253,6 @@ async def push_splits_audited(
         split_result: Output of compute_splits().
         member_id_to_sw_id: Map of our member ID → Splitwise user ID.
         payer_sw_id: Splitwise user ID of the payer.
-        currency_code: Currency (default INR).
         group_id: Splitwise group ID (0 for non-group).
 
     Returns:
@@ -291,7 +286,6 @@ async def push_splits_audited(
             payer_sw_id=payer_sw_id,
             member_sw_ids=sw_ids,
             order_id=order_id,
-            currency_code=currency_code,
             group_id=group_id,
             details=details,
         )

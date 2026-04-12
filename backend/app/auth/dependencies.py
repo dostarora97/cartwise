@@ -1,7 +1,8 @@
 """
 Auth dependencies for FastAPI route protection.
 
-Validates Supabase JWT, finds or creates the user in our database.
+Validates Supabase JWT and looks up the user in our database.
+Users must complete onboarding (POST /auth/onboard) before they exist in the DB.
 """
 
 from typing import Annotated
@@ -22,7 +23,11 @@ async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> User:
-    """Validate Supabase JWT and find-or-create user in our DB."""
+    """Validate Supabase JWT and find user in our DB.
+
+    Returns 401 if the token is invalid.
+    Returns 404 if the user hasn't completed onboarding yet.
+    """
     supabase_user = decode_supabase_jwt(credentials.credentials)
     if supabase_user is None:
         raise HTTPException(
@@ -30,22 +35,14 @@ async def get_current_user(
             detail="Invalid or expired token",
         )
 
-    # Find user by oauth_id (Supabase Auth UUID)
     result = await session.execute(select(User).where(User.oauth_id == supabase_user.auth_id))
     user = result.scalar_one_or_none()
 
     if user is None:
-        # First login — create user from Supabase JWT claims
-        user = User(
-            email=supabase_user.email,
-            name=supabase_user.name,
-            avatar_url=supabase_user.avatar_url,
-            oauth_provider=supabase_user.provider,
-            oauth_id=supabase_user.auth_id,
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found — complete onboarding first",
         )
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
 
     if not user.is_active:
         raise HTTPException(
