@@ -1,0 +1,44 @@
+done branch merged
+
+---
+
+Now we will start developing the UI.
+We need to develop very modern, slee, well thought out, intuitive web app.
+Imporrant: this web app will be a PWA - this is non-negotiable because of a requirement, unless its requiremen can be fulfilled in some other way.
+So as you'd know the whole process of using these APIs would start from providing an invoice. And this invoice is available to the user to download on on their phone from the Grocery app, which then they will feed into our app, by sharing that pdf, that is why this apps needs to PWA, so it means that this PWA must be a share target : Web Share Target API (manifest: share_target).
+You can also read this: https://github.com/linuxmaier/custom-radio/issues/79 and this: https://web.dev/articles/web-share?hl=en
+Here as well: https://www.w3.org/TR/web-share/ and this https://github.com/WebKit/standards-positions/issues/11
+
+---
+
+Now we will start developing the UI.
+We need to develop very modern, slee, well thought out, intuitive web app.
+Imporrant: this web app will be a PWA - this is non-negotiable because of a requirement, unless its requiremen can be fulfilled in some other way.
+So as you'd know the whole process of using these APIs would start from providing an invoice. And this invoice is available to the user to download on on their phone from the Grocery app, which then they will feed into our app, by sharing that pdf, that is why this apps needs to PWA, so it means that this PWA must be a share target : Web Share Target API (manifest: share_target).
+You can also read this: https://github.com/linuxmaier/custom-radio/issues/79 and this: https://web.dev/articles/web-share?hl=en
+Here as well: https://www.w3.org/TR/web-share/ and this https://github.com/WebKit/standards-positions/issues/11
+i would recommend to read all these and explore them to get a full holisitic idea and do let me know if something new you know that changed or something more you know
+
+---
+
+And also these:
+- https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest/Reference/share_target
+- https://developer.chrome.com/docs/capabilities/web-apis/web-share-target
+- https://w3c.github.io/web-share-target/
+- https://www.reddit.com/r/PWA/comments/1fi8s53/has_anyone_gotten_web_share_target_api_to_work.json
+- https://caniuse.com/?search=Share+targets
+
+---
+
+What's the primary phone platform of your users? Modern latest IPhone and Android
+For the UI framework: the latest cannonical modern web app, specfically PWA - whatever you think works the best - currently suggesting - Next.js + shadcn/ui + Tailwind - but do let me know if there are better frameworks for this like Angular or something else.
+Should we start with the share target flow first? yes absolutely
+Now after this, think and ask me as many questions, and then after that you can go into plan mode.
+
+---
+
+go ahead and start implement the plan. do note that there could be many cannonical ways to scafold and init the project, find the perfect to do it - is that first we should setup nextjs using nextjs cli, and then add shadcn to it.
+
+---
+
+continue on please
