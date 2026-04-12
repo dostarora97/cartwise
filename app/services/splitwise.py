@@ -21,7 +21,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.models.splitwise_audit import SplitwiseAuditLog
 
-BASE_URL = "https://secure.splitwise.com/api/v3.0"
+
+def _base_url() -> str:
+    url = settings.get("SPLITWISE_BASE_URL", "")
+    if not url:
+        raise SplitwiseDisabledError("SPLITWISE_BASE_URL is not configured.")
+    return url
 
 
 class SplitwiseDisabledError(Exception):
@@ -86,21 +91,21 @@ def _build_expense_payload(
 
 def get_current_user() -> dict:
     _check_enabled()
-    resp = httpx.get(f"{BASE_URL}/get_current_user", headers=_headers())
+    resp = httpx.get(f"{_base_url()}/get_current_user", headers=_headers())
     resp.raise_for_status()
     return resp.json()["user"]
 
 
 def get_friends() -> list[dict]:
     _check_enabled()
-    resp = httpx.get(f"{BASE_URL}/get_friends", headers=_headers())
+    resp = httpx.get(f"{_base_url()}/get_friends", headers=_headers())
     resp.raise_for_status()
     return resp.json()["friends"]
 
 
 def get_groups() -> list[dict]:
     _check_enabled()
-    resp = httpx.get(f"{BASE_URL}/get_groups", headers=_headers())
+    resp = httpx.get(f"{_base_url()}/get_groups", headers=_headers())
     resp.raise_for_status()
     return resp.json()["groups"]
 
@@ -162,7 +167,7 @@ async def create_expense_audited(
 
     # Step 2: Call Splitwise API
     try:
-        resp = httpx.post(f"{BASE_URL}/create_expense", headers=_headers(), json=payload)
+        resp = httpx.post(f"{_base_url()}/create_expense", headers=_headers(), json=payload)
         resp.raise_for_status()
         data = resp.json()
 
@@ -208,7 +213,9 @@ async def delete_expense_audited(
     await session.refresh(audit)
 
     try:
-        resp = httpx.post(f"{BASE_URL}/delete_expense/{splitwise_expense_id}", headers=_headers())
+        resp = httpx.post(
+            f"{_base_url()}/delete_expense/{splitwise_expense_id}", headers=_headers()
+        )
         resp.raise_for_status()
         data = resp.json()
 
