@@ -111,7 +111,7 @@ export default function MealPlanEditPage() {
             placeholder="SEARCH ITEMS..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full border-b-2 border-black bg-transparent pb-2 text-sm font-medium tracking-item outline-none placeholder:text-gray-300 placeholder:uppercase"
+            className="w-full bg-transparent text-sm font-medium tracking-item outline-none placeholder:text-gray-300 placeholder:uppercase"
           />
         ) : (
           <span className="text-sm font-bold tracking-label uppercase">
