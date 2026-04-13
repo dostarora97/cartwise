@@ -38,7 +38,7 @@ function SortableItem({
           ref={handleRef}
           type="button"
           aria-label="Drag to reorder"
-          className="touch-none cursor-grab active:cursor-grabbing"
+          className="flex touch-none cursor-grab active:cursor-grabbing"
         >
           <Icon name="drag_indicator" size={20} className="text-neutral-400" />
         </button>
