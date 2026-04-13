@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
@@ -17,13 +17,14 @@ export default function MealPlanEditPage() {
   const [mode, setMode] = useState<Mode>("select");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [error, setError] = useState("");
+  const dragIndexRef = useRef<number | null>(null);
 
   const { data: menuItems } = $api.useQuery("get", "/api/v1/menu-items/", {
     params: { query: { status: "active", created_by: appUser!.id } },
   });
 
-  const { data: mealPlan } = $api.useQuery(
+  const { data: mealPlan, isLoading } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
     { params: { path: { user_id: appUser!.id } } },
@@ -52,7 +53,9 @@ export default function MealPlanEditPage() {
     );
   }, [menuItems, search]);
 
+  // Bug fix: disable toggle while meal plan is still loading
   function toggle(id: string) {
+    if (isLoading) return;
     const base = selected ?? initialIds;
     const next = new Set<string>(base);
     if (next.has(id)) {
@@ -74,26 +77,49 @@ export default function MealPlanEditPage() {
     setMode("reorder");
   }
 
+  // Bug fix: use ref for dragIndex to avoid stale closure in rapid drag events
+  function handleDragStart(index: number) {
+    dragIndexRef.current = index;
+  }
+
   function handleDragOver(e: React.DragEvent, index: number) {
     e.preventDefault();
-    if (dragIndex === null || dragIndex === index) return;
+    const fromIndex = dragIndexRef.current;
+    if (fromIndex === null || fromIndex === index) return;
     setOrderedItems((prev) => {
       if (!prev) return prev;
       const next = [...prev];
-      const [moved] = next.splice(dragIndex, 1);
+      const [moved] = next.splice(fromIndex, 1);
       next.splice(index, 0, moved);
       return next;
     });
-    setDragIndex(index);
+    dragIndexRef.current = index;
   }
 
+  function handleDragEnd() {
+    dragIndexRef.current = null;
+  }
+
+  // Bug fix: handle API errors, reset saving state on failure
   async function handleSave() {
     if (!orderedItems) return;
     setSaving(true);
-    await apiClient.PUT("/api/v1/meal-plans/{user_id}", {
-      params: { path: { user_id: appUser!.id } },
-      body: { menu_item_ids: orderedItems.map((i) => i.id) },
-    });
+    setError("");
+
+    const { error: apiError } = await apiClient.PUT(
+      "/api/v1/meal-plans/{user_id}",
+      {
+        params: { path: { user_id: appUser!.id } },
+        body: { menu_item_ids: orderedItems.map((i) => i.id) },
+      },
+    );
+
+    if (apiError) {
+      setError("Failed to save. Please try again.");
+      setSaving(false);
+      return;
+    }
+
     router.replace("/meal-plan");
   }
 
@@ -148,10 +174,10 @@ export default function MealPlanEditPage() {
                 key={item.id}
                 name={item.name}
                 mode="reorder"
-                dragging={dragIndex === index}
-                onDragStart={() => setDragIndex(index)}
+                dragging={dragIndexRef.current === index}
+                onDragStart={() => handleDragStart(index)}
                 onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnd={() => setDragIndex(null)}
+                onDragEnd={handleDragEnd}
               />
             ))}
           </ul>
@@ -168,6 +194,9 @@ export default function MealPlanEditPage() {
       )}
 
       <div className="sticky bottom-0 border-t border-black bg-white px-6 py-4">
+        {error && (
+          <p className="mb-2 text-xs text-red-600 tracking-wider">{error}</p>
+        )}
         {mode === "select" ? (
           <button
             onClick={handleNext}

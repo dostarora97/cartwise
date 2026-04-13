@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
       {
         source: "/",
         destination: "/meal-plan",
-        permanent: true,
+        permanent: false,
       },
     ];
   },
