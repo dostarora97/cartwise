@@ -45,3 +45,7 @@ storage/
 
 # Logs
 *.log
+
+# Project planning docs (local only)
+PHASES.md
+REQUIREMENTS.md
