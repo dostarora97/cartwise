@@ -1,4 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
+import type { Session } from "@supabase/supabase-js";
 import createFetchClient, { type Middleware } from "openapi-fetch";
 import { createClient } from "@/lib/supabase/client";
 import type { paths } from "./schema";
@@ -14,6 +15,19 @@ export function registerApiQueryClient(client: QueryClient | null) {
 
 let sessionRecoveryPromise: Promise<boolean> | null = null;
 
+/** Matches GoTrueClient: refresh ~3 ticks before expiry at 30s per tick. */
+const SESSION_EXPIRY_MARGIN_MS = 90_000;
+
+function sessionHasUsableAccessToken(session: Session | null): session is Session {
+  if (!session?.access_token) {
+    return false;
+  }
+  if (session.expires_at == null) {
+    return false;
+  }
+  return session.expires_at * 1000 - Date.now() >= SESSION_EXPIRY_MARGIN_MS;
+}
+
 async function tryRecoverSessionAfter401(): Promise<boolean> {
   if (typeof window === "undefined") {
     return false;
@@ -28,7 +42,7 @@ async function tryRecoverSessionAfter401(): Promise<boolean> {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (session?.access_token) {
+      if (sessionHasUsableAccessToken(session)) {
         setAuthToken(session.access_token);
         return true;
       }
