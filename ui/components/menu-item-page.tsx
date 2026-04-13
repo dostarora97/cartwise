@@ -201,48 +201,48 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
       setMoreOpen(false);
       setMoreLoading(true);
 
-      if (action === "togglePlan") {
-        if (inPlan) {
-          await apiClient.DELETE(
-            "/api/v1/meal-plans/{user_id}/items/{menu_item_id}",
-            {
-              params: {
-                path: {
-                  user_id: appUser!.id,
-                  menu_item_id: itemId!,
+      try {
+        if (action === "togglePlan") {
+          const result = inPlan
+            ? await apiClient.DELETE(
+                "/api/v1/meal-plans/{user_id}/items/{menu_item_id}",
+                {
+                  params: {
+                    path: {
+                      user_id: appUser!.id,
+                      menu_item_id: itemId!,
+                    },
+                  },
                 },
-              },
-            },
-          );
+              )
+            : await apiClient.POST("/api/v1/meal-plans/{user_id}/items", {
+                params: { path: { user_id: appUser!.id } },
+                body: { menu_item_id: itemId! },
+              });
+          if (result.error) return;
+          await queryClient.invalidateQueries({
+            queryKey: ["get", "/api/v1/meal-plans/{user_id}"],
+          });
         } else {
-          await apiClient.POST("/api/v1/meal-plans/{user_id}/items", {
-            params: { path: { user_id: appUser!.id } },
-            body: { menu_item_id: itemId! },
+          const { error } = isArchived
+            ? await apiClient.PATCH(
+                "/api/v1/menu-items/{item_id}/unarchive",
+                { params: { path: { item_id: itemId! } } },
+              )
+            : await apiClient.PATCH("/api/v1/menu-items/{item_id}/archive", {
+                params: { path: { item_id: itemId! } },
+              });
+          if (error) return;
+          await queryClient.invalidateQueries({
+            queryKey: ["get", "/api/v1/menu-items/{item_id}"],
+          });
+          await queryClient.invalidateQueries({
+            queryKey: ["get", "/api/v1/meal-plans/{user_id}"],
           });
         }
-        await queryClient.invalidateQueries({
-          queryKey: ["get", "/api/v1/meal-plans/{user_id}"],
-        });
-      } else {
-        if (isArchived) {
-          await apiClient.PATCH(
-            "/api/v1/menu-items/{item_id}/unarchive",
-            { params: { path: { item_id: itemId! } } },
-          );
-        } else {
-          await apiClient.PATCH("/api/v1/menu-items/{item_id}/archive", {
-            params: { path: { item_id: itemId! } },
-          });
-        }
-        await queryClient.invalidateQueries({
-          queryKey: ["get", "/api/v1/menu-items/{item_id}"],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["get", "/api/v1/meal-plans/{user_id}"],
-        });
+      } finally {
+        setMoreLoading(false);
       }
-
-      setMoreLoading(false);
     },
     [appUser, itemId, inPlan, isArchived, queryClient],
   );
