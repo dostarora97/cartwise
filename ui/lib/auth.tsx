@@ -27,6 +27,7 @@ interface AuthContextType {
   appUser: AppUser | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshAppUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,10 +54,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const refreshAppUser = useCallback(async () => {
+    if (session?.access_token) {
+      await fetchAppUser(session.access_token);
+    }
+  }, [session, fetchAppUser]);
+
   useEffect(() => {
-    // Use onAuthStateChange as the single source of truth.
-    // getUser() and getSession() hang with @supabase/ssr's cookie-based client,
-    // but onAuthStateChange fires reliably when the session is detected from cookies.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -71,9 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    // Safety timeout: if onAuthStateChange doesn't fire within 3s, stop loading
     const timeout = setTimeout(() => {
-      setLoading((prev) => prev ? false : prev);
+      setLoading((prev) => (prev ? false : prev));
     }, 3000);
 
     return () => {
@@ -96,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         appUser,
         loading,
         signOut,
+        refreshAppUser,
       }}
     >
       {children}
