@@ -28,7 +28,17 @@ function sessionHasUsableAccessToken(session: Session | null): session is Sessio
   return session.expires_at * 1000 - Date.now() >= SESSION_EXPIRY_MARGIN_MS;
 }
 
-async function tryRecoverSessionAfter401(): Promise<boolean> {
+function bearerFromRequest(request: Request): string | null {
+  const auth = request.headers.get("Authorization");
+  if (!auth?.toLowerCase().startsWith("bearer ")) {
+    return null;
+  }
+  return auth.slice(7).trim();
+}
+
+async function tryRecoverSessionAfter401(
+  failedAccessToken: string | null,
+): Promise<boolean> {
   if (typeof window === "undefined") {
     return false;
   }
@@ -42,7 +52,11 @@ async function tryRecoverSessionAfter401(): Promise<boolean> {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      if (sessionHasUsableAccessToken(session)) {
+      if (
+        sessionHasUsableAccessToken(session) &&
+        failedAccessToken != null &&
+        session.access_token !== failedAccessToken
+      ) {
         setAuthToken(session.access_token);
         return true;
       }
@@ -80,11 +94,12 @@ const authMiddleware: Middleware = {
     }
     return request;
   },
-  async onResponse({ response }) {
+  async onResponse({ response, request }) {
     if (response.status !== 401 || typeof window === "undefined") {
       return response;
     }
-    const recovered = await tryRecoverSessionAfter401();
+    const failedAccessToken = bearerFromRequest(request) ?? cachedToken;
+    const recovered = await tryRecoverSessionAfter401(failedAccessToken);
     if (recovered) {
       void browserQueryClient?.invalidateQueries();
       return response;
