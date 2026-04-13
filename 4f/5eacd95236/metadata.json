@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "4f5eacd95236",
+  "strategy": "manual-commit",
+  "branch": "feat/home-meal-plan-ui",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "ui/app/share/page.tsx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4f/5eacd95236/0/metadata.json",
+      "transcript": "/4f/5eacd95236/0/full.jsonl",
+      "content_hash": "/4f/5eacd95236/0/content_hash.txt",
+      "prompt": "/4f/5eacd95236/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 14982,
+    "cache_creation_tokens": 40581766,
+    "cache_read_tokens": 1321703593,
+    "output_tokens": 761111,
+    "api_call_count": 2767
+  }
+}
