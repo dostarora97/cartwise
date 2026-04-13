@@ -502,3 +502,21 @@ i have fixed the email. proceed.
 ---
 
 go ahead and you test it yourself.
+
+---
+
+what was the breakthrough and learning ?
+
+---
+
+is it that if you access cannanonical docs you can find this information
+
+---
+
+in the PR: https://github.com/dostarora97/cartwise/pull/42
+there are some unchecked steps under Test plan - what about them ?
+
+---
+
+remove the phases file from PR.
+also there are other changes in PR - for which do you think we could have utility for that so that we dont spin up our own custom implementations
