@@ -845,3 +845,11 @@ whatevrr is the cannonial approach for react
 ---
 
 also udpdate the phases file and the PR description of TODOs
+
+---
+
+there are review comments on the PR. discuss and explain to me and discuss solution
+
+---
+
+go ahead and implement.
