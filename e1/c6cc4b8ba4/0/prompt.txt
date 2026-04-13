@@ -997,3 +997,7 @@ i think the leading-none worked, please set it again, i want oto check it visibl
 ---
 
 well leaning-none brought it from 20*26.5 to 20*22 but did not fix.
+
+---
+
+fixed not do the same for back button
