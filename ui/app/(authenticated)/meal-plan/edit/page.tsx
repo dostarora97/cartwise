@@ -23,11 +23,13 @@ export default function MealPlanEditPage() {
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const dragIndexRef = useRef<number | null>(null);
 
-  const { data: menuItems } = $api.useQuery("get", "/api/v1/menu-items/", {
-    params: { query: { status: "active", created_by: appUser!.id } },
-  });
+  const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
+    "get",
+    "/api/v1/menu-items/",
+    { params: { query: { status: "active", created_by: appUser!.id } } },
+  );
 
-  const { data: mealPlan, isLoading } = $api.useQuery(
+  const { data: mealPlan, isLoading: mealPlanLoading } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
     { params: { path: { user_id: appUser!.id } } },
@@ -60,7 +62,7 @@ export default function MealPlanEditPage() {
 
   // Bug fix: disable toggle while meal plan is still loading
   function toggle(id: string) {
-    if (isLoading) return;
+    if (mealPlanLoading) return;
     const base = selected ?? initialIds;
     const next = new Set<string>(base);
     if (next.has(id)) {
@@ -170,7 +172,7 @@ export default function MealPlanEditPage() {
                 />
               ))}
             </ul>
-            {filtered.length === 0 && (
+            {filtered.length === 0 && !menuItemsLoading && (
               <p className="py-10 text-center text-sm tracking-wider text-neutral-400 uppercase">
                 No menu items found
               </p>

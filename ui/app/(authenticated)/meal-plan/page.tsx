@@ -11,7 +11,7 @@ export default function MealPlanPage() {
   const { appUser } = useAuth();
   const router = useRouter();
 
-  const { data: mealPlan } = $api.useQuery(
+  const { data: mealPlan, isLoading } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
     { params: { path: { user_id: appUser!.id } } },
@@ -38,7 +38,7 @@ export default function MealPlanPage() {
       <main
         className={`flex-1 px-6 ${!hasItems ? "flex items-center justify-center" : ""}`}
       >
-        {!hasItems ? (
+        {isLoading ? null : !hasItems ? (
           <button
             onClick={() => router.push("/meal-plan/edit")}
             className="text-6xl text-gray-300 hover:text-black transition-colors"
