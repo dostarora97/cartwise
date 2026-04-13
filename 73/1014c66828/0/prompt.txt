@@ -451,3 +451,54 @@ go ahead, let's start with phase 1
 ---
 
 go ahead, let's start with phase 5b
+
+---
+
+I've added the mcp and skills. Now let's configure supabase for OAuth. Use the chrome cdp mcp to open chrome and help enable it for me. Also, importantly if you find any new information from the screens update it in the phases file accordingly. You can start from supabase auth here: https://supabase.com/dashboard/project/zwtqhrwsbmbuhwqcvrmj/auth/oauth-server.
+
+---
+
+actually i need it to start and use my chrome data. first check what all flags does it support for running. you can read about it here: /Users/I533118/personal/code/mealsplit-backend/.playground/chrome-devtools-mcp and also from your skills
+
+---
+
+i have started it: [1]  + 92575 done       /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
+
+---
+
+i have started it: [1]  + 92575 done       /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
+i can see it is running
+
+---
+
+can you actually read from here evertthing:
+- https://github.com/ChromeDevTools/chrome-devtools-mcp/issues/182
+- https://github.com/ChromeDevTools/chrome-devtools-mcp/issues/914
+- https://github.com/ChromeDevTools/chrome-devtools-mcp/issues/131
+
+---
+
+can you actually read from here everytthing (read the complete issue please, title, body, alll discussion):
+- https://github.com/ChromeDevTools/chrome-devtools-mcp/issues/182
+- https://github.com/ChromeDevTools/chrome-devtools-mcp/issues/914
+- https://github.com/ChromeDevTools/chrome-devtools-mcp/issues/131
+
+---
+
+I did enable remote debugging from chrome://inspect/#remote-debugging
+
+---
+
+Reconfigure the MCP to use --autoConnect in your Claude settings
+
+---
+
+restarted now
+
+---
+
+i have fixed the email. proceed.
+
+---
+
+go ahead and you test it yourself.
