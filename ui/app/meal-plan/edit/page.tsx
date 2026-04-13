@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
@@ -13,6 +13,7 @@ export default function MealPlanEditPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [initialized, setInitialized] = useState(false);
+  const originalPlanIds = useRef<Set<string>>(new Set());
 
   const { data: menuItems } = $api.useQuery(
     "get",
@@ -32,27 +33,29 @@ export default function MealPlanEditPage() {
   if (mealPlan && !initialized) {
     const planIds = new Set(mealPlan.items.map((i) => i.menu_item.id));
     setSelected(planIds);
+    originalPlanIds.current = planIds;
     setInitialized(true);
   }
 
-  const filtered = useMemo(() => {
+  // Sort once based on original plan membership, not current selection
+  const sorted = useMemo(() => {
     if (!menuItems) return [];
     const items = [...menuItems];
-    if (search) {
-      const q = search.toLowerCase();
-      return items.filter(
-        (i) =>
-          i.name.toLowerCase().includes(q) ||
-          i.body.toLowerCase().includes(q),
-      );
-    }
-    // Default sort: selected first
     return items.sort((a, b) => {
-      const aSelected = selected.has(a.id) ? 0 : 1;
-      const bSelected = selected.has(b.id) ? 0 : 1;
-      return aSelected - bSelected;
+      const aInPlan = originalPlanIds.current.has(a.id) ? 0 : 1;
+      const bInPlan = originalPlanIds.current.has(b.id) ? 0 : 1;
+      return aInPlan - bInPlan;
     });
-  }, [menuItems, search, selected]);
+  }, [menuItems]);
+
+  const filtered = useMemo(() => {
+    if (!search) return sorted;
+    const q = search.toLowerCase();
+    return sorted.filter(
+      (i) =>
+        i.name.toLowerCase().includes(q) || i.body.toLowerCase().includes(q),
+    );
+  }, [sorted, search]);
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -67,12 +70,17 @@ export default function MealPlanEditPage() {
   }
 
   function handleOk() {
-    // Pass selected IDs to reorder page via sessionStorage
     sessionStorage.setItem(
       "meal-plan-selected",
       JSON.stringify(Array.from(selected)),
     );
     router.push("/meal-plan/reorder");
+  }
+
+  function checkboxColor(id: string) {
+    if (!selected.has(id)) return "border-gray-400";
+    if (originalPlanIds.current.has(id)) return "border-green-600 bg-green-600";
+    return "border-gray-600 bg-gray-600";
   }
 
   return (
@@ -97,7 +105,7 @@ export default function MealPlanEditPage() {
                 type="checkbox"
                 checked={selected.has(item.id)}
                 onChange={() => toggle(item.id)}
-                className="h-5 w-5 shrink-0 appearance-none border-2 border-black checked:bg-gray-800 checked:border-gray-800"
+                className={`h-5 w-5 shrink-0 appearance-none border-2 ${checkboxColor(item.id)}`}
               />
               <button
                 onClick={() => router.push(`/menu-items/${item.id}`)}
