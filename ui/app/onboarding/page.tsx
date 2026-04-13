@@ -94,7 +94,7 @@ export default function OnboardingPage() {
         </span>
       </header>
 
-      <form onSubmit={handleSubmit} className="flex flex-1 flex-col justify-center px-6">
+      <form id="onboarding" onSubmit={handleSubmit} className="flex flex-1 flex-col justify-center px-6">
         <div className="space-y-8">
           <div>
             <label className="text-xs font-bold tracking-label uppercase">
@@ -147,10 +147,8 @@ export default function OnboardingPage() {
 
       <div className="sticky bottom-0 border-t border-black bg-white px-6 py-4">
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            document.querySelector("form")?.requestSubmit();
-          }}
+          type="submit"
+          form="onboarding"
           disabled={submitting}
           className="w-full bg-neutral-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-50"
         >

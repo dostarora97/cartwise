@@ -187,7 +187,7 @@ function ShareContent() {
     ) ?? 0;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6 font-sans">
+    <div className="flex min-h-screen flex-col items-center justify-center p-6">
       <div className="w-full max-w-lg space-y-6">
         {/* Header */}
         <div className="text-center space-y-1">
