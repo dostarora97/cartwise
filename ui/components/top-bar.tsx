@@ -16,7 +16,7 @@ export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
     <header className="flex h-14 items-center justify-between border-b border-black px-4">
       <div className="w-10">
         {showBack && (
-          <button onClick={onBack ?? (() => router.back())}>
+          <button onClick={onBack ?? (() => router.back())} className="flex">
             <Icon name="chevron_left" size={24} />
           </button>
         )}

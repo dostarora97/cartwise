@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -10,6 +10,8 @@ export default function LoginPage() {
   const supabase = createClient();
   const { session, appUser, loading } = useAuth();
   const router = useRouter();
+
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (loading) return;
@@ -21,12 +23,16 @@ export default function LoginPage() {
   }, [session, appUser, loading, router]);
 
   async function handleGoogleLogin() {
-    await supabase.auth.signInWithOAuth({
+    setError("");
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+    if (error) {
+      setError("Failed to sign in. Please try again.");
+    }
   }
 
   if (loading || session) {
@@ -46,6 +52,10 @@ export default function LoginPage() {
         <Icon name="login" size={20} />
         Auth via Google
       </button>
+
+      {error && (
+        <p className="mt-4 text-xs text-red-600 tracking-wider">{error}</p>
+      )}
     </div>
   );
 }

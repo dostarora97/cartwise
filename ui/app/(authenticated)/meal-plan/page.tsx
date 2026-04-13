@@ -29,7 +29,7 @@ export default function MealPlanPage() {
           Meal Plan
         </span>
         {hasItems && (
-          <button onClick={() => router.push("/meal-plan/edit")}>
+          <button onClick={() => router.push("/meal-plan/edit")} className="flex">
             <Icon name="edit" size={20} />
           </button>
         )}
