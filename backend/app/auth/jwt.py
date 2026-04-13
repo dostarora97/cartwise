@@ -15,14 +15,12 @@ Supabase JWT claims:
 from dataclasses import dataclass
 from functools import lru_cache
 
-import httpx
 import jwt
-from jwt import PyJWK
+from jwt import PyJWKClient
 
 from app.config import settings
 
 HS256 = "HS256"
-ES256 = "ES256"
 
 
 @dataclass
@@ -37,43 +35,29 @@ class SupabaseUser:
 
 
 @lru_cache(maxsize=1)
-def _fetch_jwks() -> dict | None:
-    """Fetch JWKS from Supabase. Cached for the lifetime of the process."""
+def _get_jwks_client() -> PyJWKClient | None:
+    """Get a PyJWKClient for the Supabase JWKS endpoint. Cached."""
     supabase_url = settings.get("SUPABASE_URL", "")
     if not supabase_url or "supabase.co" not in supabase_url:
         return None
-    try:
-        resp = httpx.get(f"{supabase_url}/auth/v1/.well-known/jwks.json", timeout=10)
-        resp.raise_for_status()
-        return resp.json()
-    except Exception:
-        return None
+    return PyJWKClient(f"{supabase_url}/auth/v1/.well-known/jwks.json")
 
 
 def _decode_with_jwks(token: str) -> dict | None:
     """Try to decode using JWKS (ES256)."""
-    jwks_data = _fetch_jwks()
-    if not jwks_data:
+    jwks_client = _get_jwks_client()
+    if not jwks_client:
         return None
-
     try:
-        header = jwt.get_unverified_header(token)
-        kid = header.get("kid")
-        if not kid or header.get("alg") != ES256:
-            return None
-
-        for key_data in jwks_data.get("keys", []):
-            if key_data.get("kid") == kid:
-                public_key = PyJWK(key_data).key
-                return jwt.decode(
-                    token,
-                    public_key,
-                    algorithms=[ES256],
-                    audience="authenticated",
-                )
-    except (jwt.InvalidTokenError, ValueError, KeyError):  # fmt: skip
-        pass
-    return None
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        return jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["ES256"],
+            audience="authenticated",
+        )
+    except (jwt.InvalidTokenError, jwt.exceptions.PyJWKClientError, ValueError, KeyError):  # fmt: skip
+        return None
 
 
 def _decode_with_secret(token: str) -> dict | None:

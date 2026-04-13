@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth";
 
 interface TopBarProps {
@@ -31,19 +32,12 @@ export function TopBar({ showBack = false }: TopBarProps) {
         {appUser && (
           <button
             onClick={() => router.push(`/profile/${appUser.id}`)}
-            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-accent"
+            className="flex h-10 w-10 items-center justify-center"
           >
-            {appUser.avatar_url ? (
-              <img
-                src={appUser.avatar_url}
-                alt={appUser.name}
-                className="h-8 w-8 rounded-full"
-              />
-            ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                {appUser.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={appUser.avatar_url ?? undefined} alt={appUser.name} />
+              <AvatarFallback>{appUser.name.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
           </button>
         )}
       </div>

@@ -6,6 +6,8 @@ import type { Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import apiClient from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -35,7 +37,6 @@ export default function OnboardingPage() {
       setReady(true);
     });
 
-    // Timeout fallback
     const timeout = setTimeout(() => {
       setReady((prev) => {
         if (!prev) router.replace("/login");
@@ -97,31 +98,25 @@ export default function OnboardingPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium">
-              Name
-            </label>
-            <input
+            <Label htmlFor="name">Name</Label>
+            <Input
               id="name"
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               placeholder="Your name"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="phone" className="text-sm font-medium">
-              Phone
-            </label>
-            <input
+            <Label htmlFor="phone">Phone</Label>
+            <Input
               id="phone"
               type="tel"
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               placeholder="10 digit phone number"
               pattern="[0-9]{10}"
               title="Enter a 10 digit phone number"
@@ -129,16 +124,13 @@ export default function OnboardingPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="splitwise" className="text-sm font-medium">
-              Splitwise User ID
-            </label>
-            <input
+            <Label htmlFor="splitwise">Splitwise User ID</Label>
+            <Input
               id="splitwise"
               type="number"
               required
               value={splitwiseUserId}
               onChange={(e) => setSplitwiseUserId(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               placeholder="Your Splitwise user ID"
             />
           </div>
