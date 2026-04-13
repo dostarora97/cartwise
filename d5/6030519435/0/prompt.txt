@@ -1076,3 +1076,8 @@ is there anyway using chrome-cdp mcp (check skills) you can automtically get to 
 
 well this PR seems too long.
 how come that is ? its diff seems too high
+
+---
+
+please remove phases an requirements file, rather put them as in gitignore.
+also well if this does contain all the changes from  PR #43 which was merged, then why does github show them as changes ?
