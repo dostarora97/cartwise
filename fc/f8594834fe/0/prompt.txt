@@ -784,3 +784,10 @@ what are the cons and pros of using [1]css grid layout, [2]grid layout as design
 
 i think we can use Consistent Column Structure and fallback to CSS Grid Layout (using tailwind).
 think now what else is left to discuss about this, and what is taking shape ?
+
+---
+
+also we need to show row lines in between all rows.
+When user taps "NEXT" in select mode — do the unchecked items fade out and checked items collapse together? Or instant swap? keep it instant.
+Back button behavior in reorder mode — should it go to select mode (keeping selections) or exit edit entirely? selection mode.
+The redirect from / to /meal-plan: whatever is cannonical way fo doing things
