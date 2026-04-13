@@ -1,8 +1,25 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
@@ -12,6 +29,38 @@ import { Icon } from "@/components/icon";
 
 type Mode = "select" | "reorder";
 
+type OrderedRow = { id: string; name: string };
+
+function SortableMealPlanRow({ item }: { item: OrderedRow }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <MealPlanItem
+      ref={setNodeRef}
+      name={item.name}
+      mode="reorder"
+      sortableRowStyle={style}
+      sortableAttributes={attributes}
+      sortableListeners={listeners}
+      setSortableActivatorRef={setActivatorNodeRef}
+      dragging={isDragging}
+    />
+  );
+}
+
 export default function MealPlanEditPage() {
   const { appUser } = useAuth();
   const router = useRouter();
@@ -20,8 +69,15 @@ export default function MealPlanEditPage() {
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
-  const dragIndexRef = useRef<number | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
     "get",
@@ -43,9 +99,7 @@ export default function MealPlanEditPage() {
   const [selected, setSelected] = useState<Set<string> | null>(null);
   const current = selected ?? initialIds;
 
-  const [orderedItems, setOrderedItems] = useState<
-    { id: string; name: string }[] | null
-  >(null);
+  const [orderedItems, setOrderedItems] = useState<OrderedRow[] | null>(null);
 
   const filtered = useMemo(() => {
     if (!menuItems) return [];
@@ -84,48 +138,16 @@ export default function MealPlanEditPage() {
     setMode("reorder");
   }
 
-  function readReorderIndexFromPoint(
-    clientX: number,
-    clientY: number,
-  ): number | null {
-    const el = document.elementFromPoint(clientX, clientY);
-    const row = el?.closest("[data-meal-reorder-index]");
-    if (!row || !(row instanceof HTMLElement)) return null;
-    const raw = row.getAttribute("data-meal-reorder-index");
-    if (raw === null) return null;
-    const n = Number.parseInt(raw, 10);
-    return Number.isNaN(n) ? null : n;
-  }
-
-  function applyReorder(fromIndex: number, toIndex: number) {
-    if (fromIndex === toIndex) return;
-    setOrderedItems((prev) => {
-      if (!prev) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(fromIndex, 1);
-      next.splice(toIndex, 0, moved);
-      return next;
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setOrderedItems((items) => {
+      if (!items) return items;
+      const oldIndex = items.findIndex((i) => i.id === active.id);
+      const newIndex = items.findIndex((i) => i.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return items;
+      return arrayMove(items, oldIndex, newIndex);
     });
-    dragIndexRef.current = toIndex;
-    setDraggingIndex(toIndex);
-  }
-
-  function handleReorderPointerDown(index: number) {
-    dragIndexRef.current = index;
-    setDraggingIndex(index);
-  }
-
-  function handleReorderPointerMove(e: React.PointerEvent) {
-    const fromIndex = dragIndexRef.current;
-    if (fromIndex === null) return;
-    const toIndex = readReorderIndexFromPoint(e.clientX, e.clientY);
-    if (toIndex === null || toIndex === fromIndex) return;
-    applyReorder(fromIndex, toIndex);
-  }
-
-  function handleReorderPointerEnd() {
-    dragIndexRef.current = null;
-    setDraggingIndex(null);
   }
 
   // Bug fix: handle API errors, reset saving state on failure
@@ -148,9 +170,13 @@ export default function MealPlanEditPage() {
       return;
     }
 
-    await queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/meal-plans/{user_id}"] });
+    await queryClient.invalidateQueries({
+      queryKey: ["get", "/api/v1/meal-plans/{user_id}"],
+    });
     router.replace("/meal-plan");
   }
+
+  const sortableIds = orderedItems?.map((i) => i.id) ?? [];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -197,21 +223,24 @@ export default function MealPlanEditPage() {
             )}
           </>
         ) : (
-          <ul>
-            {orderedItems?.map((item, index) => (
-              <MealPlanItem
-                key={item.id}
-                name={item.name}
-                mode="reorder"
-                reorderIndex={index}
-                dragging={draggingIndex === index}
-                onReorderPointerDown={() => handleReorderPointerDown(index)}
-                onReorderPointerMove={handleReorderPointerMove}
-                onReorderPointerUp={handleReorderPointerEnd}
-                onReorderPointerCancel={handleReorderPointerEnd}
-              />
-            ))}
-          </ul>
+          orderedItems && (
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={sortableIds}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul>
+                  {orderedItems.map((item) => (
+                    <SortableMealPlanRow key={item.id} item={item} />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
+          )
         )}
       </main>
 
