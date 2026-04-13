@@ -97,7 +97,7 @@ export default function MealPlanEditPage() {
                 type="checkbox"
                 checked={selected.has(item.id)}
                 onChange={() => toggle(item.id)}
-                className="h-5 w-5 shrink-0 appearance-none border-2 border-black checked:bg-black checked:border-black"
+                className="h-5 w-5 shrink-0 appearance-none border-2 border-black checked:bg-gray-800 checked:border-gray-800"
               />
               <button
                 onClick={() => router.push(`/menu-items/${item.id}`)}
@@ -118,7 +118,7 @@ export default function MealPlanEditPage() {
 
       <button
         onClick={() => router.push("/menu-items/new")}
-        className="fixed bottom-24 right-6 flex h-14 w-14 items-center justify-center border border-black bg-black text-white"
+        className="fixed bottom-24 right-6 flex h-14 w-14 items-center justify-center border border-gray-800 bg-gray-800 text-white"
       >
         <Icon name="add" size={28} />
       </button>
@@ -127,7 +127,7 @@ export default function MealPlanEditPage() {
         <button
           onClick={handleOk}
           disabled={selected.size === 0}
-          className="w-full bg-black py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-30"
+          className="w-full bg-gray-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-30"
         >
           Save
         </button>
