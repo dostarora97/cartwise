@@ -85,7 +85,7 @@ export default function MealPlanEditPage() {
           placeholder="SEARCH ITEMS..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full border-b-2 border-black bg-transparent pb-2 text-sm font-medium tracking-[0.15em] uppercase outline-none placeholder:text-gray-300"
+          className="w-full border-b-2 border-black bg-transparent pb-2 text-sm font-medium tracking-item uppercase outline-none placeholder:text-gray-300"
         />
       </div>
 
@@ -101,7 +101,7 @@ export default function MealPlanEditPage() {
               />
               <button
                 onClick={() => router.push(`/menu-items/${item.id}`)}
-                className="text-left text-sm font-medium tracking-[0.15em] uppercase"
+                className="text-left text-sm font-medium tracking-item uppercase"
               >
                 {item.name}
               </button>
@@ -127,7 +127,7 @@ export default function MealPlanEditPage() {
         <button
           onClick={handleOk}
           disabled={selected.size === 0}
-          className="w-full bg-black py-4 text-sm font-bold tracking-[0.2em] uppercase text-white disabled:opacity-30"
+          className="w-full bg-black py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-30"
         >
           Save
         </button>

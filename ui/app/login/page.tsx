@@ -31,13 +31,13 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6">
-      <h1 className="text-2xl font-bold tracking-[0.3em] uppercase">
+      <h1 className="text-2xl font-bold tracking-heading uppercase">
         CartWise
       </h1>
 
       <button
         onClick={handleGoogleLogin}
-        className="mt-12 flex w-full max-w-sm items-center justify-center gap-3 border border-black px-6 py-4 text-sm font-medium tracking-[0.2em] uppercase hover:bg-black hover:text-white transition-colors"
+        className="mt-12 flex w-full max-w-sm items-center justify-center gap-3 border border-black px-6 py-4 text-sm font-medium tracking-label uppercase hover:bg-black hover:text-white transition-colors"
       >
         <Icon name="login" size={20} />
         Auth via Google

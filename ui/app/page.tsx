@@ -39,7 +39,7 @@ export default function HomePage() {
       <TopBar />
 
       <div className="flex items-center justify-between border-b border-black px-6 py-4">
-        <span className="text-sm font-bold tracking-[0.2em] uppercase">
+        <span className="text-sm font-bold tracking-label uppercase">
           Meal Plan
         </span>
         {hasItems && (
@@ -72,7 +72,7 @@ export default function HomePage() {
                   }
                   className="w-full text-left"
                 >
-                  <span className="text-sm font-medium tracking-[0.15em] uppercase">
+                  <span className="text-sm font-medium tracking-item uppercase">
                     - {item.menu_item.name}
                   </span>
                 </button>

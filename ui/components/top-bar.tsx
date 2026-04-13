@@ -21,7 +21,7 @@ export function TopBar({ showBack = false, rightAction }: TopBarProps) {
         )}
       </div>
 
-      <span className="text-sm font-bold tracking-[0.3em] uppercase">
+      <span className="text-sm font-bold tracking-heading uppercase">
         CartWise
       </span>
 

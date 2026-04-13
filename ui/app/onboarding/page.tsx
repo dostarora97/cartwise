@@ -84,7 +84,7 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="flex h-14 items-center justify-center border-b border-black">
-        <span className="text-sm font-bold tracking-[0.3em] uppercase">
+        <span className="text-sm font-bold tracking-heading uppercase">
           CartWise
         </span>
       </header>
@@ -92,7 +92,7 @@ export default function OnboardingPage() {
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col justify-center px-6">
         <div className="space-y-8">
           <div>
-            <label className="text-xs font-bold tracking-[0.2em] uppercase">
+            <label className="text-xs font-bold tracking-label uppercase">
               Phone
             </label>
             <input
@@ -107,7 +107,7 @@ export default function OnboardingPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold tracking-[0.2em] uppercase">
+            <label className="text-xs font-bold tracking-label uppercase">
               Splitwise User ID
             </label>
             <input
@@ -133,7 +133,7 @@ export default function OnboardingPage() {
             document.querySelector("form")?.requestSubmit();
           }}
           disabled={submitting}
-          className="w-full bg-black py-4 text-sm font-bold tracking-[0.2em] uppercase text-white disabled:opacity-50"
+          className="w-full bg-black py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-50"
         >
           {submitting ? "Connecting..." : "Connect to Splitwise"}
         </button>
