@@ -23,8 +23,10 @@ function getQueryClient() {
   if (isServer) {
     return makeQueryClient();
   } else {
-    if (!browserQueryClient) browserQueryClient = makeQueryClient();
-    registerApiQueryClient(browserQueryClient);
+    if (!browserQueryClient) {
+      browserQueryClient = makeQueryClient();
+      registerApiQueryClient(browserQueryClient);
+    }
     return browserQueryClient;
   }
 }
