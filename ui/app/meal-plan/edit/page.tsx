@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
+import { Icon } from "@/components/icon";
 
 export default function MealPlanEditPage() {
   const { appUser } = useAuth();
@@ -114,6 +115,13 @@ export default function MealPlanEditPage() {
           </p>
         )}
       </main>
+
+      <button
+        onClick={() => router.push("/menu-items/new")}
+        className="fixed bottom-24 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-lg"
+      >
+        <Icon name="add" size={28} />
+      </button>
 
       <div className="sticky bottom-0 border-t border-black bg-white px-6 py-4">
         <button

@@ -32,6 +32,7 @@ export default function HomePage() {
   }
 
   const items = mealPlan?.items ?? [];
+  const hasItems = items.length > 0;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -41,13 +42,15 @@ export default function HomePage() {
         <span className="text-sm font-bold tracking-[0.2em] uppercase">
           Meal Plan
         </span>
-        <button onClick={() => router.push("/meal-plan/edit")}>
-          <Icon name="edit" size={20} />
-        </button>
+        {hasItems && (
+          <button onClick={() => router.push("/meal-plan/edit")}>
+            <Icon name="edit" size={20} />
+          </button>
+        )}
       </div>
 
       <main className="flex-1 px-6">
-        {items.length === 0 ? (
+        {!hasItems ? (
           <div className="flex flex-col items-center justify-center py-20">
             <button
               onClick={() => router.push("/meal-plan/edit")}
@@ -79,16 +82,13 @@ export default function HomePage() {
         )}
       </main>
 
-      {items.length > 0 && (
-        <div className="sticky bottom-0 border-t border-black bg-white px-6 py-4">
-          <button
-            onClick={() => router.push("/invoice")}
-            className="flex w-full items-center justify-center gap-3 bg-black py-4 text-sm font-bold tracking-[0.2em] uppercase text-white"
-          >
-            <Icon name="description" size={20} />
-            Add Invoice
-          </button>
-        </div>
+      {hasItems && (
+        <button
+          onClick={() => router.push("/invoice")}
+          className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-lg"
+        >
+          <Icon name="receipt_long" size={24} />
+        </button>
       )}
     </div>
   );
