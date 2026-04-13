@@ -12,6 +12,7 @@ export default function MealPlanEditPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [touched, setTouched] = useState<Set<string>>(new Set());
   const [initialized, setInitialized] = useState(false);
   const originalPlanIds = useRef<Set<string>>(new Set());
 
@@ -67,6 +68,7 @@ export default function MealPlanEditPage() {
       }
       return next;
     });
+    setTouched((prev) => new Set(prev).add(id));
   }
 
   function handleOk() {
@@ -78,9 +80,9 @@ export default function MealPlanEditPage() {
   }
 
   function checkboxColor(id: string) {
-    if (!selected.has(id)) return "border-gray-400";
-    if (originalPlanIds.current.has(id)) return "border-green-600 bg-green-600";
-    return "border-gray-600 bg-gray-600";
+    if (!selected.has(id)) return "border-neutral-400";
+    if (touched.has(id)) return "border-neutral-500 bg-neutral-500";
+    return "border-neutral-800 bg-neutral-800";
   }
 
   return (
@@ -126,7 +128,7 @@ export default function MealPlanEditPage() {
 
       <button
         onClick={() => router.push("/menu-items/new")}
-        className="fixed bottom-24 right-6 flex h-14 w-14 items-center justify-center border border-gray-800 bg-gray-800 text-white"
+        className="fixed bottom-24 right-6 flex h-14 w-14 items-center justify-center border border-neutral-800 bg-neutral-800 text-white"
       >
         <Icon name="add" size={28} />
       </button>
@@ -135,7 +137,7 @@ export default function MealPlanEditPage() {
         <button
           onClick={handleOk}
           disabled={selected.size === 0}
-          className="w-full bg-gray-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-30"
+          className="w-full bg-neutral-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-30"
         >
           Save
         </button>

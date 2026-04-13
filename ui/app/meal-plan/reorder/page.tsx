@@ -100,7 +100,7 @@ export default function MealPlanReorderPage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full bg-gray-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-50"
+          className="w-full bg-neutral-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save"}
         </button>

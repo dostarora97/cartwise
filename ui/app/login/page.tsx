@@ -37,7 +37,7 @@ export default function LoginPage() {
 
       <button
         onClick={handleGoogleLogin}
-        className="mt-12 flex w-full max-w-sm items-center justify-center gap-3 border border-black px-6 py-4 text-sm font-medium tracking-label uppercase hover:bg-gray-800 hover:text-white transition-colors"
+        className="mt-12 flex w-full max-w-sm items-center justify-center gap-3 border border-black px-6 py-4 text-sm font-medium tracking-label uppercase hover:bg-neutral-800 hover:text-white transition-colors"
       >
         <Icon name="login" size={20} />
         Auth via Google

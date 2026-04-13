@@ -133,7 +133,7 @@ export default function OnboardingPage() {
             document.querySelector("form")?.requestSubmit();
           }}
           disabled={submitting}
-          className="w-full bg-gray-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-50"
+          className="w-full bg-neutral-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-50"
         >
           {submitting ? "Connecting..." : "Connect to Splitwise"}
         </button>
