@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "4cffef25940b",
+  "strategy": "manual-commit",
+  "branch": "feat/auth-onboarding-ui",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/4c/ffef25940b/0/metadata.json",
+      "transcript": "/4c/ffef25940b/0/full.jsonl",
+      "content_hash": "/4c/ffef25940b/0/content_hash.txt",
+      "prompt": "/4c/ffef25940b/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 14502,
+    "cache_creation_tokens": 30166233,
+    "cache_read_tokens": 1051771944,
+    "output_tokens": 663782,
+    "api_call_count": 2402
+  }
+}
