@@ -24,24 +24,24 @@ export default function MealPlanPage() {
     <div className="flex min-h-screen flex-col">
       <TopBar />
 
-      <div className="flex h-12 items-center justify-between border-b border-black px-6">
-        <span className="text-sm font-bold tracking-label uppercase">
+      <div className="flex items-stretch justify-between border-b border-black">
+        <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
           Meal Plan
         </span>
         {hasItems && (
-          <button onClick={() => router.push("/meal-plan/edit")} className="flex">
-            <Icon name="edit" size={20} />
+          <button onClick={() => router.push("/meal-plan/edit")} className="flex items-center justify-center p-3 bg-black">
+            <Icon name="edit" size={24} className="text-white" />
           </button>
         )}
       </div>
 
       <main
-        className={`flex-1 px-6 ${!hasItems ? "flex items-center justify-center" : ""}`}
+        className={`flex-1 ${!hasItems ? "flex items-center justify-center" : ""}`}
       >
         {isLoading ? null : !hasItems ? (
           <button
             onClick={() => router.push("/meal-plan/edit")}
-            className="text-6xl text-gray-300 hover:text-black transition-colors"
+            className="flex h-14 w-14 items-center justify-center bg-black text-white text-4xl"
           >
             +
           </button>
@@ -64,7 +64,7 @@ export default function MealPlanPage() {
       {hasItems && (
         <button
           onClick={() => router.push("/invoice")}
-          className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center border border-neutral-800 bg-neutral-800 text-white"
+          className="fixed bottom-12 right-12 flex h-14 w-14 items-center justify-center bg-black text-white"
         >
           <Icon name="receipt_long" size={24} />
         </button>
