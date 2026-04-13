@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
@@ -10,13 +10,14 @@ import { useAuth } from "@/lib/auth";
 export default function OnboardingPage() {
   const router = useRouter();
   const { refreshAppUser } = useAuth();
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [splitwiseUserId, setSplitwiseUserId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const nameRef = useRef("");
+  const [namePrefilled, setNamePrefilled] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -29,9 +30,13 @@ export default function OnboardingPage() {
       }
       setSession(session);
 
-      if (!nameRef.current) {
+      if (!namePrefilled) {
         const meta = session.user?.user_metadata;
-        nameRef.current = meta?.full_name || meta?.name || "";
+        const googleName = meta?.full_name || meta?.name || "";
+        if (googleName) {
+          setName(googleName);
+          setNamePrefilled(true);
+        }
       }
 
       setReady(true);
@@ -64,7 +69,7 @@ export default function OnboardingPage() {
       {
         headers: { Authorization: `Bearer ${session!.access_token}` },
         body: {
-          name: nameRef.current,
+          name,
           phone,
           splitwise_user_id: parseInt(splitwiseUserId, 10),
         },
@@ -91,6 +96,20 @@ export default function OnboardingPage() {
 
       <form onSubmit={handleSubmit} className="flex flex-1 flex-col justify-center px-6">
         <div className="space-y-8">
+          <div>
+            <label className="text-xs font-bold tracking-label uppercase">
+              Name
+            </label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              className="mt-2 block w-full border-b-2 border-black bg-transparent pb-2 text-base font-medium tracking-wider outline-none placeholder:text-gray-300"
+            />
+          </div>
+
           <div>
             <label className="text-xs font-bold tracking-label uppercase">
               Phone

@@ -18,6 +18,7 @@ export default function MealPlanEditPage() {
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const dragIndexRef = useRef<number | null>(null);
 
   const { data: menuItems } = $api.useQuery("get", "/api/v1/menu-items/", {
@@ -80,6 +81,7 @@ export default function MealPlanEditPage() {
   // Bug fix: use ref for dragIndex to avoid stale closure in rapid drag events
   function handleDragStart(index: number) {
     dragIndexRef.current = index;
+    setDraggingIndex(index);
   }
 
   function handleDragOver(e: React.DragEvent, index: number) {
@@ -94,10 +96,12 @@ export default function MealPlanEditPage() {
       return next;
     });
     dragIndexRef.current = index;
+    setDraggingIndex(index);
   }
 
   function handleDragEnd() {
     dragIndexRef.current = null;
+    setDraggingIndex(null);
   }
 
   // Bug fix: handle API errors, reset saving state on failure
@@ -174,7 +178,7 @@ export default function MealPlanEditPage() {
                 key={item.id}
                 name={item.name}
                 mode="reorder"
-                dragging={dragIndexRef.current === index}
+                dragging={draggingIndex === index}
                 onDragStart={() => handleDragStart(index)}
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
