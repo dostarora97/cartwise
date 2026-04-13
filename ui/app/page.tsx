@@ -1,13 +1,22 @@
 "use client";
 
 import { useAuth } from "@/lib/auth";
+import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { Pencil, FileText } from "lucide-react";
 
 export default function HomePage() {
   const { session, appUser, loading } = useAuth();
   const router = useRouter();
+
+  const { data: mealPlan } = $api.useQuery(
+    "get",
+    "/api/v1/meal-plans/{user_id}",
+    { params: { path: { user_id: appUser?.id ?? "" } } },
+    { enabled: !!appUser },
+  );
 
   useEffect(() => {
     if (loading) return;
@@ -18,31 +27,72 @@ export default function HomePage() {
     }
   }, [session, appUser, loading, router]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-      </div>
-    );
+  if (loading || !session || !appUser) {
+    return <div className="flex min-h-screen items-center justify-center" />;
   }
 
-  if (!session || !appUser) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-      </div>
-    );
-  }
+  const items = mealPlan?.items ?? [];
 
   return (
     <div className="flex min-h-screen flex-col">
       <TopBar />
-      <main className="flex-1 p-6">
-        <h2 className="text-xl font-semibold">Welcome, {appUser.name}</h2>
-        <p className="text-sm text-muted-foreground">
-          Your meal plan and splits will appear here.
-        </p>
+
+      <div className="flex items-center justify-between border-b border-black px-6 py-4">
+        <span className="text-sm font-bold tracking-[0.2em] uppercase">
+          Meal Plan
+        </span>
+        <button onClick={() => router.push("/meal-plan/edit")}>
+          <Pencil className="h-4 w-4" />
+        </button>
+      </div>
+
+      <main className="flex-1 px-6">
+        {items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="text-sm tracking-wider text-gray-400 uppercase">
+              No items in your meal plan.
+            </p>
+            <button
+              onClick={() => router.push("/meal-plan/edit")}
+              className="mt-4 text-sm font-bold tracking-[0.2em] uppercase underline"
+            >
+              Tap to add
+            </button>
+          </div>
+        ) : (
+          <ul>
+            {items.map((item) => (
+              <li
+                key={item.menu_item.id}
+                className="border-b border-gray-200 py-5"
+              >
+                <button
+                  onClick={() =>
+                    router.push(`/menu-items/${item.menu_item.id}`)
+                  }
+                  className="w-full text-left"
+                >
+                  <span className="text-sm font-medium tracking-[0.15em] uppercase">
+                    - {item.menu_item.name}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </main>
+
+      {items.length > 0 && (
+        <div className="sticky bottom-0 border-t border-black bg-white px-6 py-4">
+          <button
+            onClick={() => router.push("/invoice")}
+            className="flex w-full items-center justify-center gap-3 bg-black py-4 text-sm font-bold tracking-[0.2em] uppercase text-white"
+          >
+            <FileText className="h-4 w-4" />
+            Add Invoice
+          </button>
+        </div>
+      )}
     </div>
   );
 }

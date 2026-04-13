@@ -2,8 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth";
 
@@ -21,42 +20,28 @@ export default function LoginPage() {
     }
   }, [session, appUser, loading, router]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-      </div>
-    );
+  async function handleGoogleLogin() {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">CartWise</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Grocery cost splitting with meal planning
-          </p>
-        </div>
-        <Auth
-          supabaseClient={supabase}
-          appearance={{
-            theme: ThemeSupa,
-            variables: {
-              default: {
-                colors: {
-                  brand: "hsl(0 0% 90%)",
-                  brandAccent: "hsl(0 0% 80%)",
-                },
-              },
-            },
-          }}
-          theme="dark"
-          providers={["google"]}
-          onlyThirdPartyProviders
-          redirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback`}
-        />
-      </div>
+    <div className="flex min-h-screen flex-col items-center justify-center px-6">
+      <h1 className="text-2xl font-bold tracking-[0.3em] uppercase">
+        CartWise
+      </h1>
+
+      <button
+        onClick={handleGoogleLogin}
+        className="mt-12 flex w-full max-w-sm items-center justify-center gap-3 border border-black px-6 py-4 text-sm font-medium tracking-[0.2em] uppercase hover:bg-black hover:text-white transition-colors"
+      >
+        <LogIn className="h-4 w-4" />
+        Auth via Google
+      </button>
     </div>
   );
 }
