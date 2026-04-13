@@ -457,7 +457,7 @@ async def test_order_full_pipeline(client: AsyncClient):
     order = order_resp.json()
 
     # Verify result structure
-    assert order["status"] == "completed"
+    assert order["status"] == "draft"
     assert order["paid_by"] == alice_id
     assert len(order["participants"]) == 3
     assert order["result"] is not None
@@ -468,6 +468,13 @@ async def test_order_full_pipeline(client: AsyncClient):
     assert order["snapshot"] is not None
     assert "members" in order["snapshot"]
     assert "uses" in order["snapshot"]
+
+    # Verify split rows were created
+    assert len(order["splits"]) > 0
+    for s in order["splits"]:
+        assert s["status"] == "pending"
+        assert s["amount"] > 0
+        assert len(s["member_ids"]) > 0
 
     # Every split has required fields
     for split in order["result"]["splits"]:
@@ -515,8 +522,8 @@ async def test_order_bad_participant_ids(client: AsyncClient):
     assert resp.status_code == 400
 
 
-async def test_order_not_participant_forbidden(client: AsyncClient):
-    """A user who is not a participant cannot view the order."""
+async def test_order_visible_to_non_participant(client: AsyncClient):
+    """Any authenticated user can view any order (open visibility)."""
     alice_token, alice_id = await _login(client, "alice_priv@test.com", "AlicePriv")
     bob_token, bob_id = await _login(client, "bob_priv@test.com", "BobPriv")
     outsider_token, _ = await _login(client, "outsider@test.com", "Outsider")
@@ -545,9 +552,9 @@ async def test_order_not_participant_forbidden(client: AsyncClient):
     assert order_resp.status_code == 201
     order_id = order_resp.json()["id"]
 
-    # Outsider tries to view → 403
+    # Outsider can view → 200
     resp = await client.get(f"/api/v1/orders/{order_id}", headers=_auth(outsider_token))
-    assert resp.status_code == 403
+    assert resp.status_code == 200
 
 
 async def test_order_not_found(client: AsyncClient):

@@ -16,7 +16,7 @@ class Order(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     paid_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
     invoice_filename: Mapped[str] = mapped_column(String(500))
-    status: Mapped[str] = mapped_column(String(20), default="processing")
+    status: Mapped[str] = mapped_column(String(20), default="draft")
     snapshot: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     result: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -26,6 +26,7 @@ class Order(Base):
     participants: Mapped[list[OrderParticipant]] = relationship(
         back_populates="order", cascade="all, delete-orphan"
     )
+    splits: Mapped[list[Split]] = relationship(back_populates="order", cascade="all, delete-orphan")
 
 
 class OrderParticipant(Base):
