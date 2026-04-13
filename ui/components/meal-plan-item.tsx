@@ -1,6 +1,4 @@
-import { Icon } from "@/components/icon";
-
-type Mode = "view" | "select" | "reorder";
+type Mode = "view" | "select";
 
 interface MealPlanItemProps {
   name: string;
@@ -8,10 +6,6 @@ interface MealPlanItemProps {
   checked?: boolean;
   onToggle?: () => void;
   onTap?: () => void;
-  onDragStart?: () => void;
-  onDragOver?: (e: React.DragEvent) => void;
-  onDragEnd?: () => void;
-  dragging?: boolean;
 }
 
 export function MealPlanItem({
@@ -20,21 +14,9 @@ export function MealPlanItem({
   checked,
   onToggle,
   onTap,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
-  dragging,
 }: MealPlanItemProps) {
   return (
-    <li
-      draggable={mode === "reorder"}
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-      className={`flex items-center gap-4 border-b border-gray-200 py-5 ${
-        mode === "reorder" ? "cursor-grab active:cursor-grabbing" : ""
-      } ${dragging ? "opacity-50" : ""}`}
-    >
+    <li className="flex items-center gap-4 border-b border-gray-200 py-5">
       <div className="w-6 shrink-0 flex justify-center">
         {mode === "view" && <span className="text-sm">-</span>}
         {mode === "select" && (
@@ -44,9 +26,6 @@ export function MealPlanItem({
             onChange={onToggle}
             className="h-5 w-5 appearance-none border-2 border-neutral-400 checked:border-neutral-800 checked:bg-neutral-800"
           />
-        )}
-        {mode === "reorder" && (
-          <Icon name="drag_indicator" size={20} className="text-neutral-400" />
         )}
       </div>
 

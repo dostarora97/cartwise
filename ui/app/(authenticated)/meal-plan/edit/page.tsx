@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { DragDropProvider } from "@dnd-kit/react";
+import { useSortable } from "@dnd-kit/react/sortable";
+import { move } from "@dnd-kit/helpers";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
@@ -12,6 +15,39 @@ import { Icon } from "@/components/icon";
 
 type Mode = "select" | "reorder";
 
+function SortableItem({
+  id,
+  name,
+  index,
+}: {
+  id: string;
+  name: string;
+  index: number;
+}) {
+  const { ref, handleRef, isDragging } = useSortable({ id, index });
+
+  return (
+    <li
+      ref={ref}
+      className={`flex items-center gap-4 border-b border-gray-200 py-5 ${
+        isDragging ? "opacity-50" : ""
+      }`}
+    >
+      <div className="w-6 shrink-0 flex justify-center">
+        <button
+          ref={handleRef}
+          type="button"
+          aria-label="Drag to reorder"
+          className="touch-none cursor-grab active:cursor-grabbing"
+        >
+          <Icon name="drag_indicator" size={20} className="text-neutral-400" />
+        </button>
+      </div>
+      <span className="flex-1 text-sm font-medium tracking-item">{name}</span>
+    </li>
+  );
+}
+
 export default function MealPlanEditPage() {
   const { appUser } = useAuth();
   const router = useRouter();
@@ -20,8 +56,6 @@ export default function MealPlanEditPage() {
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
-  const dragIndexRef = useRef<number | null>(null);
 
   const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
     "get",
@@ -60,7 +94,6 @@ export default function MealPlanEditPage() {
 
   // TODO: Add selected-first sort (relevance). Currently alphabetical only.
 
-  // Bug fix: disable toggle while meal plan is still loading
   function toggle(id: string) {
     if (mealPlanLoading) return;
     const base = selected ?? initialIds;
@@ -84,33 +117,6 @@ export default function MealPlanEditPage() {
     setMode("reorder");
   }
 
-  // Bug fix: use ref for dragIndex to avoid stale closure in rapid drag events
-  function handleDragStart(index: number) {
-    dragIndexRef.current = index;
-    setDraggingIndex(index);
-  }
-
-  function handleDragOver(e: React.DragEvent, index: number) {
-    e.preventDefault();
-    const fromIndex = dragIndexRef.current;
-    if (fromIndex === null || fromIndex === index) return;
-    setOrderedItems((prev) => {
-      if (!prev) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(fromIndex, 1);
-      next.splice(index, 0, moved);
-      return next;
-    });
-    dragIndexRef.current = index;
-    setDraggingIndex(index);
-  }
-
-  function handleDragEnd() {
-    dragIndexRef.current = null;
-    setDraggingIndex(null);
-  }
-
-  // Bug fix: handle API errors, reset saving state on failure
   async function handleSave() {
     if (!orderedItems) return;
     setSaving(true);
@@ -130,7 +136,9 @@ export default function MealPlanEditPage() {
       return;
     }
 
-    await queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/meal-plans/{user_id}"] });
+    await queryClient.invalidateQueries({
+      queryKey: ["get", "/api/v1/meal-plans/{user_id}"],
+    });
     router.replace("/meal-plan");
   }
 
@@ -179,21 +187,27 @@ export default function MealPlanEditPage() {
             )}
           </>
         ) : (
-          // TODO: Replace HTML5 drag-and-drop with @dnd-kit/sortable for mobile/touch support.
-          // HTML5 DnD does not fire on mobile browsers.
-          <ul>
-            {orderedItems?.map((item, index) => (
-              <MealPlanItem
-                key={item.id}
-                name={item.name}
-                mode="reorder"
-                dragging={draggingIndex === index}
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnd={handleDragEnd}
-              />
-            ))}
-          </ul>
+          orderedItems && (
+            <DragDropProvider
+              onDragEnd={(event) => {
+                if (event.canceled) return;
+                setOrderedItems((items) =>
+                  items ? move(items, event) : items,
+                );
+              }}
+            >
+              <ul>
+                {orderedItems.map((item, index) => (
+                  <SortableItem
+                    key={item.id}
+                    id={item.id}
+                    name={item.name}
+                    index={index}
+                  />
+                ))}
+              </ul>
+            </DragDropProvider>
+          )
         )}
       </main>
 
