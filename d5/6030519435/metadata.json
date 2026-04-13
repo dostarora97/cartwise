@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "d56030519435",
+  "strategy": "manual-commit",
+  "branch": "fix/post-merge-cleanup",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "PHASES.md",
+    "REQUIREMENTS.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d5/6030519435/0/metadata.json",
+      "transcript": "/d5/6030519435/0/full.jsonl",
+      "content_hash": "/d5/6030519435/0/content_hash.txt",
+      "prompt": "/d5/6030519435/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 15287,
+    "cache_creation_tokens": 48675379,
+    "cache_read_tokens": 1498870360,
+    "output_tokens": 806685,
+    "api_call_count": 2975
+  }
+}
