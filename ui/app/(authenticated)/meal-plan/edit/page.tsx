@@ -94,8 +94,9 @@ export default function MealPlanEditPage() {
 
   // TODO: Add selected-first sort (relevance). Currently alphabetical only.
 
+  const dataReady = !menuItemsLoading && !mealPlanLoading;
+
   function toggle(id: string) {
-    if (mealPlanLoading) return;
     const base = selected ?? initialIds;
     const next = new Set<string>(base);
     if (next.has(id)) {
@@ -167,25 +168,27 @@ export default function MealPlanEditPage() {
 
       <main className="flex-1 px-6">
         {mode === "select" ? (
-          <>
-            <ul>
-              {filtered.map((item) => (
-                <MealPlanItem
-                  key={item.id}
-                  name={item.name}
-                  mode="select"
-                  checked={current.has(item.id)}
-                  onToggle={() => toggle(item.id)}
-                  onTap={() => router.push(`/menu-items/${item.id}`)}
-                />
-              ))}
-            </ul>
-            {filtered.length === 0 && !menuItemsLoading && (
-              <p className="py-10 text-center text-sm tracking-wider text-neutral-400 uppercase">
-                No menu items found
-              </p>
-            )}
-          </>
+          dataReady ? (
+            <>
+              <ul>
+                {filtered.map((item) => (
+                  <MealPlanItem
+                    key={item.id}
+                    name={item.name}
+                    mode="select"
+                    checked={current.has(item.id)}
+                    onToggle={() => toggle(item.id)}
+                    onTap={() => router.push(`/menu-items/${item.id}`)}
+                  />
+                ))}
+              </ul>
+              {filtered.length === 0 && (
+                <p className="py-10 text-center text-sm tracking-wider text-neutral-400 uppercase">
+                  No menu items found
+                </p>
+              )}
+            </>
+          ) : null
         ) : (
           orderedItems && (
             <DragDropProvider
