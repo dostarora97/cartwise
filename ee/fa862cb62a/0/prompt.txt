@@ -977,3 +977,7 @@ also can there be different types of check boxes ? how can you convey to me what
 ---
 
 is it possible to have filled square but not too the brim ?
+
+---
+
+sure go ahead and apply this
