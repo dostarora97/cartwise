@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "71ee39244bde",
+  "strategy": "manual-commit",
+  "branch": "feat/menu-items-flow",
+  "checkpoints_count": 1,
+  "files_touched": null,
+  "sessions": [
+    {
+      "metadata": "/71/ee39244bde/0/metadata.json",
+      "transcript": "/71/ee39244bde/0/full.jsonl",
+      "content_hash": "/71/ee39244bde/0/content_hash.txt",
+      "prompt": "/71/ee39244bde/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 24461,
+    "cache_creation_tokens": 52796095,
+    "cache_read_tokens": 1651304474,
+    "output_tokens": 1039025,
+    "api_call_count": 3908
+  }
+}
