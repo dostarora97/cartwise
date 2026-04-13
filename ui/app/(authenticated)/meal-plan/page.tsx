@@ -3,33 +3,19 @@
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
+import { MealPlanItem } from "@/components/meal-plan-item";
 import { Icon } from "@/components/icon";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
-export default function HomePage() {
-  const { session, appUser, loading } = useAuth();
+export default function MealPlanPage() {
+  const { appUser } = useAuth();
   const router = useRouter();
 
   const { data: mealPlan } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser?.id ?? "" } } },
-    { enabled: !!appUser },
+    { params: { path: { user_id: appUser!.id } } },
   );
-
-  useEffect(() => {
-    if (loading) return;
-    if (!session) {
-      router.replace("/login");
-    } else if (!appUser) {
-      router.replace("/onboarding");
-    }
-  }, [session, appUser, loading, router]);
-
-  if (loading || !session || !appUser) {
-    return <div className="flex min-h-screen items-center justify-center" />;
-  }
 
   const items = mealPlan?.items ?? [];
   const hasItems = items.length > 0;
@@ -49,7 +35,9 @@ export default function HomePage() {
         )}
       </div>
 
-      <main className={`flex-1 px-6 ${!hasItems ? "flex items-center justify-center" : ""}`}>
+      <main
+        className={`flex-1 px-6 ${!hasItems ? "flex items-center justify-center" : ""}`}
+      >
         {!hasItems ? (
           <button
             onClick={() => router.push("/meal-plan/edit")}
@@ -60,21 +48,14 @@ export default function HomePage() {
         ) : (
           <ul>
             {items.map((item) => (
-              <li
+              <MealPlanItem
                 key={item.menu_item.id}
-                className="border-b border-gray-200 py-5"
-              >
-                <button
-                  onClick={() =>
-                    router.push(`/menu-items/${item.menu_item.id}`)
-                  }
-                  className="w-full text-left"
-                >
-                  <span className="text-sm font-medium tracking-item">
-                    - {item.menu_item.name}
-                  </span>
-                </button>
-              </li>
+                name={item.menu_item.name}
+                mode="view"
+                onTap={() =>
+                  router.push(`/menu-items/${item.menu_item.id}`)
+                }
+              />
             ))}
           </ul>
         )}

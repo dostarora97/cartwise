@@ -13,7 +13,6 @@ export function setAuthToken(token: string | null) {
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
-    // Don't override if caller already set Authorization
     if (request.headers.has("Authorization")) {
       return request;
     }
@@ -21,6 +20,13 @@ const authMiddleware: Middleware = {
       request.headers.set("Authorization", `Bearer ${cachedToken}`);
     }
     return request;
+  },
+  async onResponse({ response }) {
+    if (response.status === 401 && typeof window !== "undefined") {
+      cachedToken = null;
+      window.location.href = "/login";
+    }
+    return response;
   },
 };
 

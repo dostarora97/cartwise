@@ -9,8 +9,16 @@ const withSerwist = withSerwistInit({
 });
 
 const nextConfig: NextConfig = {
-  // Serwist uses webpack — tell Next.js 16 to allow it
   turbopack: {},
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/meal-plan",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
