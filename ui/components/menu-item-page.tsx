@@ -86,13 +86,14 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   // toggle lets the browser settle before we re-evaluate.
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    const heading = headingRef.current;
     const bar = stickyBarRef.current;
-    if (!sentinel || !heading || !bar) return;
+    if (!sentinel || !bar) return;
     let wasCollapsed = false;
     let cooldown = false;
     const check = () => {
       if (cooldown) return;
+      const heading = headingRef.current;
+      if (!heading) return;
       const shouldCollapse = sentinel.getBoundingClientRect().bottom <= 0;
       if (shouldCollapse === wasCollapsed) return;
       wasCollapsed = shouldCollapse;
@@ -282,6 +283,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
               ref={nameRef}
               contentEditable
               suppressContentEditableWarning
+              onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
               onInput={(e) => handleFormChange("name", e.currentTarget.textContent || "")}
               className="flex-1 min-w-0 p-3 text-2xl font-bold tracking-heading uppercase leading-6 break-words outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300"
               data-placeholder={isNew ? "Dish..." : "Item name"}
