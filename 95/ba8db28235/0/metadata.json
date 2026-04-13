@@ -1,0 +1,23 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "95ba8db28235",
+  "session_id": "7a92bfbe-350a-40ec-8838-7a5f26fbf795",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-13T10:31:02.130871Z",
+  "branch": "feat/home-meal-plan-ui",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-latest[1m]",
+  "turn_id": "a2b12e923fd3",
+  "token_usage": {
+    "input_tokens": 14637,
+    "cache_creation_tokens": 31585463,
+    "cache_read_tokens": 1133331750,
+    "output_tokens": 693537,
+    "api_call_count": 2519
+  },
+  "session_metrics": {
+    "turn_count": 92
+  }
+}
