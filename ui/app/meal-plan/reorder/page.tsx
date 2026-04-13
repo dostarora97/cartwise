@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { GripHorizontal } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
+import { Icon } from "@/components/icon";
 
 interface Item {
   id: string;
@@ -87,7 +87,7 @@ export default function MealPlanReorderPage() {
                 dragIndex === index ? "opacity-50" : ""
               }`}
             >
-              <GripHorizontal className="h-5 w-5 shrink-0 text-gray-400" />
+              <Icon name="drag_indicator" size={20} className="text-gray-400" />
               <span className="text-sm font-medium tracking-[0.15em] uppercase">
                 {item.name}
               </span>

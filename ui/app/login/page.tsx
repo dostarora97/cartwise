@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { Icon } from "@/components/icon";
 
 export default function LoginPage() {
   const supabase = createClient();
@@ -39,7 +39,7 @@ export default function LoginPage() {
         onClick={handleGoogleLogin}
         className="mt-12 flex w-full max-w-sm items-center justify-center gap-3 border border-black px-6 py-4 text-sm font-medium tracking-[0.2em] uppercase hover:bg-black hover:text-white transition-colors"
       >
-        <LogIn className="h-4 w-4" />
+        <Icon name="login" size={20} />
         Auth via Google
       </button>
     </div>

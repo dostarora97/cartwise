@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { Icon } from "@/components/icon";
 
 interface TopBarProps {
   showBack?: boolean;
@@ -16,7 +16,7 @@ export function TopBar({ showBack = false, rightAction }: TopBarProps) {
       <div className="w-10">
         {showBack && (
           <button onClick={() => router.back()}>
-            <ChevronLeft className="h-5 w-5" />
+            <Icon name="chevron_left" size={24} />
           </button>
         )}
       </div>

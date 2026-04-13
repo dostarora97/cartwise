@@ -3,9 +3,9 @@
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
+import { Icon } from "@/components/icon";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Pencil, FileText } from "lucide-react";
 
 export default function HomePage() {
   const { session, appUser, loading } = useAuth();
@@ -42,21 +42,18 @@ export default function HomePage() {
           Meal Plan
         </span>
         <button onClick={() => router.push("/meal-plan/edit")}>
-          <Pencil className="h-4 w-4" />
+          <Icon name="edit" size={20} />
         </button>
       </div>
 
       <main className="flex-1 px-6">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-sm tracking-wider text-gray-400 uppercase">
-              No items in your meal plan.
-            </p>
+          <div className="flex flex-col items-center justify-center py-20">
             <button
               onClick={() => router.push("/meal-plan/edit")}
-              className="mt-4 text-sm font-bold tracking-[0.2em] uppercase underline"
+              className="text-6xl text-gray-300 hover:text-black transition-colors"
             >
-              Tap to add
+              +
             </button>
           </div>
         ) : (
@@ -88,7 +85,7 @@ export default function HomePage() {
             onClick={() => router.push("/invoice")}
             className="flex w-full items-center justify-center gap-3 bg-black py-4 text-sm font-bold tracking-[0.2em] uppercase text-white"
           >
-            <FileText className="h-4 w-4" />
+            <Icon name="description" size={20} />
             Add Invoice
           </button>
         </div>
