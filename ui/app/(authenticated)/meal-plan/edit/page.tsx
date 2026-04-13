@@ -70,14 +70,9 @@ export default function MealPlanEditPage() {
   );
 
   const initialIds = useMemo(() => {
-    if (!mealPlan || !menuItems) return new Set<string>();
-    const activeIds = new Set(menuItems.map((m) => m.id));
-    return new Set(
-      mealPlan.items
-        .map((i) => i.menu_item.id)
-        .filter((id) => activeIds.has(id)),
-    );
-  }, [mealPlan, menuItems]);
+    if (!mealPlan) return new Set<string>();
+    return new Set(mealPlan.items.map((i) => i.menu_item.id));
+  }, [mealPlan]);
 
   const [selected, setSelected] = useState<Set<string> | null>(null);
   const current = selected ?? initialIds;
