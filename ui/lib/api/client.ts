@@ -22,9 +22,12 @@ const authMiddleware: Middleware = {
     return request;
   },
   async onResponse({ response }) {
-    if (response.status === 401 && typeof window !== "undefined") {
+    // On 401, clear the cached token. Don't hard-redirect — let
+    // Supabase attempt a token refresh via onAuthStateChange. If
+    // the session is truly gone, the proxy will redirect on next
+    // navigation and the auth context will update.
+    if (response.status === 401) {
       cachedToken = null;
-      window.location.href = "/login";
     }
     return response;
   },
