@@ -210,17 +210,12 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
           </button>
           <span
             className={`flex-1 text-sm font-bold tracking-heading uppercase transition-all ${
-              collapsed ? "truncate" : ""
+              collapsed ? "truncate" : "break-words"
             }`}
           >
             {isNew ? "NEW ITEM" : name || "CARTWISE"}
           </span>
         </div>
-        {!collapsed && !isNew && name && (
-          <div className="pb-3 pl-8">
-            <h1 className="text-lg font-bold tracking-label">{name}</h1>
-          </div>
-        )}
       </header>
 
       {/* Content */}
