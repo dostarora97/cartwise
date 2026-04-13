@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
@@ -14,6 +15,7 @@ type Mode = "select" | "reorder";
 export default function MealPlanEditPage() {
   const { appUser } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<Mode>("select");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
@@ -124,6 +126,7 @@ export default function MealPlanEditPage() {
       return;
     }
 
+    await queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/meal-plans/{user_id}"] });
     router.replace("/meal-plan");
   }
 

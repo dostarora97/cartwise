@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
@@ -17,7 +17,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const [namePrefilled, setNamePrefilled] = useState(false);
+  const namePrefilledRef = useRef(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -30,12 +30,12 @@ export default function OnboardingPage() {
       }
       setSession(session);
 
-      if (!namePrefilled) {
+      if (!namePrefilledRef.current) {
         const meta = session.user?.user_metadata;
         const googleName = meta?.full_name || meta?.name || "";
         if (googleName) {
           setName(googleName);
-          setNamePrefilled(true);
+          namePrefilledRef.current = true;
         }
       }
 
