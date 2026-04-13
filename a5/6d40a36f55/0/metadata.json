@@ -1,0 +1,37 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "a56d40a36f55",
+  "session_id": "7a92bfbe-350a-40ec-8838-7a5f26fbf795",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-13T10:33:14.971914Z",
+  "branch": "feat/home-meal-plan-ui",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "ui/backend/tests/fixtures/test_invoice.pdf"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-latest[1m]",
+  "turn_id": "a2b12e923fd3",
+  "token_usage": {
+    "input_tokens": 14645,
+    "cache_creation_tokens": 31588978,
+    "cache_read_tokens": 1139266322,
+    "output_tokens": 695533,
+    "api_call_count": 2527
+  },
+  "session_metrics": {
+    "turn_count": 92
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-13T10:33:03.89537Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 11,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 11,
+    "total_lines_changed": 20,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
