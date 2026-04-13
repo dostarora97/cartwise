@@ -16,7 +16,7 @@ export function MealPlanItem({
   onTap,
 }: MealPlanItemProps) {
   return (
-    <li className="flex items-center gap-4 border-b border-gray-200 py-5">
+    <li className="flex items-center gap-4 border-b border-gray-200 py-5 last:border-b-0">
       <div className="w-6 shrink-0 flex justify-center">
         {mode === "view" && <span className="text-sm">-</span>}
         {mode === "select" && (

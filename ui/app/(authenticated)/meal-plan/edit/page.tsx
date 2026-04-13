@@ -29,7 +29,7 @@ function SortableItem({
   return (
     <li
       ref={ref}
-      className={`flex items-center gap-4 border-b border-gray-200 py-5 ${
+      className={`flex items-center gap-4 border-b border-gray-200 py-5 last:border-b-0 ${
         isDragging ? "opacity-50" : ""
       }`}
     >
