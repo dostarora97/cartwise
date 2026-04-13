@@ -520,3 +520,24 @@ there are some unchecked steps under Test plan - what about them ?
 
 remove the phases file from PR.
 also there are other changes in PR - for which do you think we could have utility for that so that we dont spin up our own custom implementations
+
+---
+
+so anything need to be done in PR changes anymore for cannonical usage.
+
+---
+
+why do we need our own custom copy of supabase client, server, proxy ?
+
+---
+
+should this be in ui or backend ? what do you think ?
+
+---
+
+should this be in ui or backend ? what do you think ? all this proxy, jwt and other logic ?
+
+---
+
+there are review comments on the pr.
+once you have made your changes, add a comment to do review again using "@bugbot review"
