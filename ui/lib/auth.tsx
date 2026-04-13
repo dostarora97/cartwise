@@ -9,8 +9,8 @@ import {
   useState,
 } from "react";
 import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase";
-import apiClient from "@/lib/api/client";
+import { createClient } from "@/lib/supabase/client";
+import apiClient, { setAuthToken } from "@/lib/api/client";
 
 interface AppUser {
   id: string;
@@ -39,42 +39,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = useMemo(() => createClient(), []);
 
   const fetchAppUser = useCallback(async (accessToken: string) => {
-    const { data, error } = await apiClient.GET("/api/v1/auth/me", {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (!error && data) {
-      setAppUser(data as unknown as AppUser);
-    } else {
+    try {
+      const { data, error } = await apiClient.GET("/api/v1/auth/me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!error && data) {
+        setAppUser(data as unknown as AppUser);
+      } else {
+        setAppUser(null);
+      }
+    } catch {
       setAppUser(null);
     }
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setSession(session);
-      if (session?.access_token) {
-        await fetchAppUser(session.access_token);
-      }
-      setLoading(false);
-    };
-    init();
-
+    // Use onAuthStateChange as the single source of truth.
+    // getUser() and getSession() hang with @supabase/ssr's cookie-based client,
+    // but onAuthStateChange fires reliably when the session is detected from cookies.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       if (session?.access_token) {
+        setAuthToken(session.access_token);
         await fetchAppUser(session.access_token);
       } else {
+        setAuthToken(null);
         setAppUser(null);
       }
+      setLoading(false);
     });
+
+    // Safety timeout: if onAuthStateChange doesn't fire within 3s, stop loading
+    const timeout = setTimeout(() => {
+      setLoading((prev) => prev ? false : prev);
+    }, 3000);
 
     return () => {
       subscription.unsubscribe();
+      clearTimeout(timeout);
     };
   }, [supabase, fetchAppUser]);
 

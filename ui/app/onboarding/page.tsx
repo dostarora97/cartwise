@@ -1,31 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
+import type { Session } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 import apiClient from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 
 export default function OnboardingPage() {
-  const { supabaseUser, session, loading } = useAuth();
   const router = useRouter();
-
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [splitwiseUserId, setSplitwiseUserId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [session, setSession] = useState<Session | null>(null);
+  const [ready, setReady] = useState(false);
 
-  // Pre-fill name from Google once supabase user loads
-  if (supabaseUser && !name) {
-    const googleName =
-      supabaseUser.user_metadata?.full_name ||
-      supabaseUser.user_metadata?.name ||
-      "";
-    if (googleName) setName(googleName);
-  }
+  useEffect(() => {
+    const supabase = createClient();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.replace("/login");
+        return;
+      }
+      setSession(session);
 
-  if (loading) {
+      const meta = session.user?.user_metadata;
+      const googleName = meta?.full_name || meta?.name || "";
+      if (googleName && !name) setName(googleName);
+
+      setReady(true);
+    });
+
+    // Timeout fallback
+    const timeout = setTimeout(() => {
+      setReady((prev) => {
+        if (!prev) router.replace("/login");
+        return prev;
+      });
+    }, 5000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, [router]);
+
+  if (!ready) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
@@ -33,17 +57,12 @@ export default function OnboardingPage() {
     );
   }
 
-  if (!session) {
-    router.replace("/login");
-    return null;
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setSubmitting(true);
 
-    const { data, error: apiError } = await apiClient.POST(
+    const { error: apiError } = await apiClient.POST(
       "/api/v1/auth/onboard",
       {
         headers: {
@@ -124,9 +143,7 @@ export default function OnboardingPage() {
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-red-500">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-500">{error}</p>}
 
           <Button
             type="submit"

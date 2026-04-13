@@ -5,7 +5,8 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 
-from app.auth.jwt import ALGORITHM, SupabaseUser, create_test_token, decode_supabase_jwt
+from app.auth.jwt import HS256 as ALGORITHM
+from app.auth.jwt import SupabaseUser, create_test_token, decode_supabase_jwt
 from app.config import settings
 
 

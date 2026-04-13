@@ -1,15 +1,24 @@
 import createFetchClient, { type Middleware } from "openapi-fetch";
 import type { paths } from "./schema";
-import { createClient } from "@/lib/supabase";
+
+let cachedToken: string | null = null;
+
+/**
+ * Set the auth token for API calls. Called by the auth context
+ * when a session is established via onAuthStateChange.
+ */
+export function setAuthToken(token: string | null) {
+  cachedToken = token;
+}
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
-    const supabase = createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (session?.access_token) {
-      request.headers.set("Authorization", `Bearer ${session.access_token}`);
+    // Don't override if caller already set Authorization
+    if (request.headers.has("Authorization")) {
+      return request;
+    }
+    if (cachedToken) {
+      request.headers.set("Authorization", `Bearer ${cachedToken}`);
     }
     return request;
   },
