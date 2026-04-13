@@ -49,16 +49,14 @@ export default function HomePage() {
         )}
       </div>
 
-      <main className="flex-1 px-6">
+      <main className={`flex-1 px-6 ${!hasItems ? "flex items-center justify-center" : ""}`}>
         {!hasItems ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <button
-              onClick={() => router.push("/meal-plan/edit")}
-              className="text-6xl text-gray-300 hover:text-black transition-colors"
-            >
-              +
-            </button>
-          </div>
+          <button
+            onClick={() => router.push("/meal-plan/edit")}
+            className="text-6xl text-gray-300 hover:text-black transition-colors"
+          >
+            +
+          </button>
         ) : (
           <ul>
             {items.map((item) => (
