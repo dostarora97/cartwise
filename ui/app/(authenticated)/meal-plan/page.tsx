@@ -24,7 +24,7 @@ export default function MealPlanPage() {
     <div className="flex min-h-screen flex-col">
       <TopBar />
 
-      <div className="flex items-center justify-between border-b border-black px-6 py-4">
+      <div className="flex h-12 items-center justify-between border-b border-black px-6">
         <span className="text-sm font-bold tracking-label uppercase">
           Meal Plan
         </span>

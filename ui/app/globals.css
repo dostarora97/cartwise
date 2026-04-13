@@ -129,4 +129,7 @@
   html {
     @apply font-mono;
   }
+  button, a, [role="button"] {
+    @apply cursor-pointer;
+  }
 }
