@@ -16,6 +16,7 @@ interface MealPlanItemProps {
   onTap?: () => void;
   /** Applied to the root `<li>` in reorder mode (transform / transition from @dnd-kit). */
   sortableRowStyle?: CSSProperties;
+  /** Draggable a11y props from `useSortable`; must live on the same node as `sortableListeners` when using a handle. */
   sortableAttributes?: DraggableAttributes;
   sortableListeners?: DraggableSyntheticListeners;
   setSortableActivatorRef?: (element: HTMLButtonElement | null) => void;
@@ -45,7 +46,6 @@ export const MealPlanItem = forwardRef<HTMLLIElement, MealPlanItemProps>(
         className={`flex items-center gap-4 border-b border-gray-200 py-5 ${
           dragging ? "opacity-50" : ""
         }`}
-        {...(mode === "reorder" ? (sortableAttributes ?? {}) : {})}
       >
         <div className="flex w-6 shrink-0 justify-center">
           {mode === "view" && <span className="text-sm">-</span>}
@@ -63,6 +63,7 @@ export const MealPlanItem = forwardRef<HTMLLIElement, MealPlanItemProps>(
               ref={setSortableActivatorRef}
               aria-label="Drag to reorder"
               className="flex touch-none cursor-grab appearance-none items-center justify-center border-0 bg-transparent p-0 active:cursor-grabbing"
+              {...(sortableAttributes ?? {})}
               {...(sortableListeners ?? {})}
             >
               <Icon
