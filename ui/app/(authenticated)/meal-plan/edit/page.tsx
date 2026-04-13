@@ -153,7 +153,10 @@ export default function MealPlanEditPage() {
       <div className="border-b border-black px-6 py-4">
         {mode === "select" ? (
           <input
+            id="search"
+            name="search"
             type="text"
+            autoComplete="off"
             placeholder="SEARCH ITEMS..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
