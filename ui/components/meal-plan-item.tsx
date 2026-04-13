@@ -8,9 +8,12 @@ interface MealPlanItemProps {
   checked?: boolean;
   onToggle?: () => void;
   onTap?: () => void;
-  onDragStart?: () => void;
-  onDragOver?: (e: React.DragEvent) => void;
-  onDragEnd?: () => void;
+  /** Row index for reorder mode; sets `data-meal-reorder-index` on the row. */
+  reorderIndex?: number;
+  onReorderPointerDown?: (e: React.PointerEvent<HTMLButtonElement>) => void;
+  onReorderPointerMove?: (e: React.PointerEvent<HTMLButtonElement>) => void;
+  onReorderPointerUp?: (e: React.PointerEvent<HTMLButtonElement>) => void;
+  onReorderPointerCancel?: (e: React.PointerEvent<HTMLButtonElement>) => void;
   dragging?: boolean;
 }
 
@@ -20,20 +23,23 @@ export function MealPlanItem({
   checked,
   onToggle,
   onTap,
-  onDragStart,
-  onDragOver,
-  onDragEnd,
+  reorderIndex,
+  onReorderPointerDown,
+  onReorderPointerMove,
+  onReorderPointerUp,
+  onReorderPointerCancel,
   dragging,
 }: MealPlanItemProps) {
   return (
     <li
-      draggable={mode === "reorder"}
-      onDragStart={onDragStart}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
+      data-meal-reorder-index={
+        mode === "reorder" && reorderIndex !== undefined
+          ? reorderIndex
+          : undefined
+      }
       className={`flex items-center gap-4 border-b border-gray-200 py-5 ${
-        mode === "reorder" ? "cursor-grab active:cursor-grabbing" : ""
-      } ${dragging ? "opacity-50" : ""}`}
+        dragging ? "opacity-50" : ""
+      }`}
     >
       <div className="w-6 shrink-0 flex justify-center">
         {mode === "view" && <span className="text-sm">-</span>}
@@ -46,7 +52,34 @@ export function MealPlanItem({
           />
         )}
         {mode === "reorder" && (
-          <Icon name="drag_indicator" size={20} className="text-neutral-400" />
+          <button
+            type="button"
+            aria-label="Drag to reorder"
+            className="flex cursor-grab touch-none appearance-none items-center justify-center border-0 bg-transparent p-0 active:cursor-grabbing"
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.currentTarget.setPointerCapture(e.pointerId);
+              onReorderPointerDown?.(e);
+            }}
+            onPointerMove={(e) => {
+              if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+              onReorderPointerMove?.(e);
+            }}
+            onPointerUp={(e) => {
+              if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                e.currentTarget.releasePointerCapture(e.pointerId);
+              }
+              onReorderPointerUp?.(e);
+            }}
+            onPointerCancel={(e) => {
+              if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+                e.currentTarget.releasePointerCapture(e.pointerId);
+              }
+              onReorderPointerCancel?.(e);
+            }}
+          >
+            <Icon name="drag_indicator" size={20} className="text-neutral-400" />
+          </button>
         )}
       </div>
 

@@ -84,28 +84,46 @@ export default function MealPlanEditPage() {
     setMode("reorder");
   }
 
-  // Bug fix: use ref for dragIndex to avoid stale closure in rapid drag events
-  function handleDragStart(index: number) {
-    dragIndexRef.current = index;
-    setDraggingIndex(index);
+  function readReorderIndexFromPoint(
+    clientX: number,
+    clientY: number,
+  ): number | null {
+    const el = document.elementFromPoint(clientX, clientY);
+    const row = el?.closest("[data-meal-reorder-index]");
+    if (!row || !(row instanceof HTMLElement)) return null;
+    const raw = row.getAttribute("data-meal-reorder-index");
+    if (raw === null) return null;
+    const n = Number.parseInt(raw, 10);
+    return Number.isNaN(n) ? null : n;
   }
 
-  function handleDragOver(e: React.DragEvent, index: number) {
-    e.preventDefault();
-    const fromIndex = dragIndexRef.current;
-    if (fromIndex === null || fromIndex === index) return;
+  function applyReorder(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) return;
     setOrderedItems((prev) => {
       if (!prev) return prev;
       const next = [...prev];
       const [moved] = next.splice(fromIndex, 1);
-      next.splice(index, 0, moved);
+      next.splice(toIndex, 0, moved);
       return next;
     });
+    dragIndexRef.current = toIndex;
+    setDraggingIndex(toIndex);
+  }
+
+  function handleReorderPointerDown(index: number) {
     dragIndexRef.current = index;
     setDraggingIndex(index);
   }
 
-  function handleDragEnd() {
+  function handleReorderPointerMove(e: React.PointerEvent) {
+    const fromIndex = dragIndexRef.current;
+    if (fromIndex === null) return;
+    const toIndex = readReorderIndexFromPoint(e.clientX, e.clientY);
+    if (toIndex === null || toIndex === fromIndex) return;
+    applyReorder(fromIndex, toIndex);
+  }
+
+  function handleReorderPointerEnd() {
     dragIndexRef.current = null;
     setDraggingIndex(null);
   }
@@ -179,18 +197,18 @@ export default function MealPlanEditPage() {
             )}
           </>
         ) : (
-          // TODO: Replace HTML5 drag-and-drop with @dnd-kit/sortable for mobile/touch support.
-          // HTML5 DnD does not fire on mobile browsers.
           <ul>
             {orderedItems?.map((item, index) => (
               <MealPlanItem
                 key={item.id}
                 name={item.name}
                 mode="reorder"
+                reorderIndex={index}
                 dragging={draggingIndex === index}
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnd={handleDragEnd}
+                onReorderPointerDown={() => handleReorderPointerDown(index)}
+                onReorderPointerMove={handleReorderPointerMove}
+                onReorderPointerUp={handleReorderPointerEnd}
+                onReorderPointerCancel={handleReorderPointerEnd}
               />
             ))}
           </ul>
