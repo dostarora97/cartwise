@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "86c70fcc6dbe",
+  "strategy": "manual-commit",
+  "branch": "feat/menu-items-flow",
+  "checkpoints_count": 101,
+  "files_touched": [
+    ".gitignore",
+    "ui/app/(authenticated)/meal-plan/edit/page.tsx",
+    "ui/app/(authenticated)/meal-plan/page.tsx",
+    "ui/app/globals.css",
+    "ui/app/login/page.tsx",
+    "ui/app/onboarding/page.tsx",
+    "ui/components/meal-plan-item.tsx",
+    "ui/components/menu-item-page.tsx",
+    "ui/components/top-bar.tsx",
+    "ui/public/logo-calculator.png",
+    "ui/public/logo-grocery.png",
+    "ui/public/logo-pizza.png"
+  ],
+  "sessions": [
+    {
+      "metadata": "/86/c70fcc6dbe/0/metadata.json",
+      "transcript": "/86/c70fcc6dbe/0/full.jsonl",
+      "content_hash": "/86/c70fcc6dbe/0/content_hash.txt",
+      "prompt": "/86/c70fcc6dbe/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 24427,
+    "cache_creation_tokens": 52562132,
+    "cache_read_tokens": 1645990582,
+    "output_tokens": 1032663,
+    "api_call_count": 3882
+  }
+}
