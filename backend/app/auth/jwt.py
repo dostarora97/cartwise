@@ -2,7 +2,8 @@
 Supabase JWT validation.
 
 Supabase Auth issues JWTs after OAuth login. Our backend validates them
-using the project's JWT secret and extracts user information.
+using JWKS (ES256) for production Supabase tokens, or the legacy shared
+secret (HS256) for dev/test tokens.
 
 Supabase JWT claims:
   - sub: Supabase Auth user UUID
@@ -12,12 +13,14 @@ Supabase JWT claims:
 """
 
 from dataclasses import dataclass
+from functools import lru_cache
 
 import jwt
+from jwt import PyJWKClient
 
 from app.config import settings
 
-ALGORITHM = "HS256"
+HS256 = "HS256"
 
 
 @dataclass
@@ -31,19 +34,54 @@ class SupabaseUser:
     provider: str
 
 
-def decode_supabase_jwt(token: str) -> SupabaseUser | None:
-    """Validate and decode a Supabase-issued JWT.
+@lru_cache(maxsize=1)
+def _get_jwks_client() -> PyJWKClient | None:
+    """Get a PyJWKClient for the Supabase JWKS endpoint. Cached."""
+    supabase_url = settings.get("SUPABASE_URL", "")
+    if not supabase_url or "supabase.co" not in supabase_url:
+        return None
+    return PyJWKClient(f"{supabase_url}/auth/v1/.well-known/jwks.json")
 
-    Returns SupabaseUser if valid, None otherwise.
-    """
+
+def _decode_with_jwks(token: str) -> dict | None:
+    """Try to decode using JWKS (ES256)."""
+    jwks_client = _get_jwks_client()
+    if not jwks_client:
+        return None
     try:
-        payload = jwt.decode(
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        return jwt.decode(
+            token,
+            signing_key.key,
+            algorithms=["ES256"],
+            audience="authenticated",
+        )
+    except (jwt.InvalidTokenError, jwt.exceptions.PyJWKClientError, ValueError, KeyError):  # fmt: skip
+        return None
+
+
+def _decode_with_secret(token: str) -> dict | None:
+    """Try to decode using legacy HS256 shared secret."""
+    try:
+        return jwt.decode(
             token,
             settings.SUPABASE_JWT_SECRET,
-            algorithms=[ALGORITHM],
+            algorithms=[HS256],
             audience="authenticated",
         )
     except (jwt.InvalidTokenError, ValueError):  # fmt: skip
+        return None
+
+
+def decode_supabase_jwt(token: str) -> SupabaseUser | None:
+    """Validate and decode a Supabase-issued JWT.
+
+    Tries ES256 (JWKS) first, falls back to HS256 (shared secret).
+    Returns SupabaseUser if valid, None otherwise.
+    """
+    jwks_result = _decode_with_jwks(token)
+    payload = jwks_result if jwks_result is not None else _decode_with_secret(token)
+    if payload is None:
         return None
 
     sub = payload.get("sub")
@@ -71,4 +109,4 @@ def create_test_token(oauth_id: str, email: str = "test@example.com") -> str:
         "aud": "authenticated",
         "user_metadata": {"full_name": "Test User"},
     }
-    return jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm=ALGORITHM)
+    return jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm=HS256)
