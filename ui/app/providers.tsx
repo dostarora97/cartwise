@@ -5,6 +5,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { registerApiQueryClient } from "@/lib/api/client";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -23,6 +24,7 @@ function getQueryClient() {
     return makeQueryClient();
   } else {
     if (!browserQueryClient) browserQueryClient = makeQueryClient();
+    registerApiQueryClient(browserQueryClient);
     return browserQueryClient;
   }
 }
