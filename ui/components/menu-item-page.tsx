@@ -32,7 +32,6 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   // More popup state
   const [moreOpen, setMoreOpen] = useState(false);
   const [moreLoading, setMoreLoading] = useState(false);
-  const moreRef = useRef<HTMLButtonElement>(null);
   const nameRef = useRef<HTMLHeadingElement>(null);
 
   // Sticky heading scroll state
@@ -307,7 +306,6 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
           {/* More button — only for existing saved items */}
           {showMoreButton && (
             <button
-              ref={moreRef}
               onClick={() => (moreLoading ? null : setMoreOpen(!moreOpen))}
               className="flex h-12 items-center justify-center px-3 bg-black shrink-0"
             >
