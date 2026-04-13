@@ -1001,3 +1001,8 @@ well leaning-none brought it from 20*26.5 to 20*22 but did not fix.
 ---
 
 fixed not do the same for back button
+
+---
+
+there is a review comment: https://github.com/dostarora97/cartwise/pull/43#discussion_r3074159694
+explain to me and discuss
