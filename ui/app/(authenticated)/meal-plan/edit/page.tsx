@@ -56,6 +56,8 @@ export default function MealPlanEditPage() {
     );
   }, [menuItems, search]);
 
+  // TODO: Add selected-first sort (relevance). Currently alphabetical only.
+
   // Bug fix: disable toggle while meal plan is still loading
   function toggle(id: string) {
     if (isLoading) return;
@@ -175,6 +177,8 @@ export default function MealPlanEditPage() {
             )}
           </>
         ) : (
+          // TODO: Replace HTML5 drag-and-drop with @dnd-kit/sortable for mobile/touch support.
+          // HTML5 DnD does not fire on mobile browsers.
           <ul>
             {orderedItems?.map((item, index) => (
               <MealPlanItem
