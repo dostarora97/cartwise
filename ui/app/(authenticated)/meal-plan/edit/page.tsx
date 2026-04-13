@@ -29,21 +29,19 @@ function SortableItem({
   return (
     <li
       ref={ref}
-      className={`flex items-center gap-4 border-b border-gray-200 py-5 last:border-b-0 ${
+      className={`flex items-center border-b border-gray-200 last:border-b-0 ${
         isDragging ? "opacity-50" : ""
       }`}
     >
-      <div className="w-6 shrink-0 flex justify-center">
-        <button
-          ref={handleRef}
-          type="button"
-          aria-label="Drag to reorder"
-          className="flex touch-none cursor-grab active:cursor-grabbing"
-        >
-          <Icon name="drag_indicator" size={20} className="text-neutral-400" />
-        </button>
-      </div>
-      <span className="flex-1 text-sm font-medium tracking-item">{name}</span>
+      <button
+        ref={handleRef}
+        type="button"
+        aria-label="Drag to reorder"
+        className="p-3 shrink-0 flex touch-none cursor-grab active:cursor-grabbing"
+      >
+        <Icon name="drag_indicator" size={24} className="text-neutral-400" />
+      </button>
+      <span className="flex-1 min-w-0 py-3 pr-3 text-2xl font-medium tracking-item leading-6 truncate">{name}</span>
     </li>
   );
 }
@@ -150,7 +148,7 @@ export default function MealPlanEditPage() {
         onBack={mode === "reorder" ? () => setMode("select") : undefined}
       />
 
-      <div className="flex h-12 items-center border-b border-black px-6">
+      <div className="flex items-center p-3 border-b border-black">
         {mode === "select" ? (
           <input
             id="search"
@@ -160,16 +158,16 @@ export default function MealPlanEditPage() {
             placeholder="SEARCH ITEMS..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-transparent text-sm font-medium tracking-item outline-none placeholder:text-gray-300 placeholder:uppercase"
+            className="w-full h-6 bg-transparent text-2xl font-medium tracking-item leading-6 outline-none placeholder:text-gray-300 placeholder:uppercase"
           />
         ) : (
-          <span className="text-sm font-bold tracking-label uppercase">
+          <span className="text-2xl font-bold tracking-label uppercase leading-6">
             {orderedItems?.length ?? 0} items selected
           </span>
         )}
       </div>
 
-      <main className="flex-1 px-6">
+      <main className="flex-1">
         {mode === "select" ? (
           dataReady ? (
             <>
@@ -220,21 +218,21 @@ export default function MealPlanEditPage() {
       {mode === "select" && (
         <button
           onClick={() => router.push("/menu-items/new")}
-          className="fixed bottom-24 right-6 flex h-14 w-14 items-center justify-center border border-neutral-800 bg-neutral-800 text-white"
+          className="fixed bottom-24 right-12 flex h-14 w-14 items-center justify-center bg-black text-white"
         >
-          <Icon name="add" size={28} />
+          <Icon name="add" size={24} />
         </button>
       )}
 
-      <div className="sticky bottom-0 border-t border-black bg-white px-6 py-4">
+      <div className="sticky bottom-0">
         {error && (
-          <p className="mb-2 text-xs text-red-600 tracking-wider">{error}</p>
+          <p className="p-3 text-xs text-red-600 tracking-wider bg-white border-t border-black">{error}</p>
         )}
         {mode === "select" ? (
           <button
             onClick={handleNext}
             disabled={current.size === 0}
-            className="w-full bg-neutral-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-30"
+            className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-30"
           >
             Next
           </button>
@@ -242,7 +240,7 @@ export default function MealPlanEditPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-neutral-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-50"
+            className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save"}
           </button>

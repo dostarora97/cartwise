@@ -16,28 +16,34 @@ export function MealPlanItem({
   onTap,
 }: MealPlanItemProps) {
   return (
-    <li className="flex items-center gap-4 border-b border-gray-200 py-5 last:border-b-0">
-      <div className="w-6 shrink-0 flex justify-center">
-        {mode === "view" && <span className="text-sm">-</span>}
-        {mode === "select" && (
+    <li className="flex items-center border-b border-gray-200 last:border-b-0">
+      {/* Icon container — owns all padding, is the touch target in select mode */}
+      {mode === "view" && (
+        <div className="p-3 shrink-0">
+          <div className="w-6 h-0.5 bg-black" />
+        </div>
+      )}
+      {mode === "select" && (
+        <label className="flex p-3 shrink-0 cursor-pointer">
           <input
             type="checkbox"
             checked={checked}
             onChange={onToggle}
-            className="h-5 w-5 appearance-none border-2 border-neutral-400 checked:border-neutral-800 checked:bg-neutral-800 checked:shadow-[inset_0_0_0_3px_white]"
+            className="h-6 w-6 appearance-none border-2 border-neutral-400 checked:border-black checked:bg-black checked:shadow-[inset_0_0_0_3px_white]"
           />
-        )}
-      </div>
+        </label>
+      )}
 
+      {/* Text — owns vertical + right padding, navigates on tap */}
       {onTap ? (
         <button
           onClick={onTap}
-          className="flex-1 text-left text-sm font-medium tracking-item"
+          className="flex-1 min-w-0 py-3 pr-3 text-left text-2xl font-medium tracking-item leading-6 truncate"
         >
           {name}
         </button>
       ) : (
-        <span className="flex-1 text-sm font-medium tracking-item">
+        <span className="flex-1 min-w-0 py-3 pr-3 text-2xl font-medium tracking-item leading-6 truncate">
           {name}
         </span>
       )}

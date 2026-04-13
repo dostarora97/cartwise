@@ -88,13 +88,13 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="flex h-14 items-center justify-center border-b border-black">
-        <span className="text-sm font-bold tracking-heading uppercase">
+      <header className="flex items-center justify-center p-3 border-b border-black">
+        <span className="text-2xl font-bold tracking-heading uppercase leading-6">
           CartWise
         </span>
       </header>
 
-      <form id="onboarding" onSubmit={handleSubmit} className="flex flex-1 flex-col justify-center px-6">
+      <form id="onboarding" onSubmit={handleSubmit} className="flex flex-1 flex-col justify-center p-3">
         <div className="space-y-8">
           <div>
             <label className="text-xs font-bold tracking-label uppercase">
@@ -145,16 +145,14 @@ export default function OnboardingPage() {
         )}
       </form>
 
-      <div className="sticky bottom-0 border-t border-black bg-white px-6 py-4">
-        <button
-          type="submit"
-          form="onboarding"
-          disabled={submitting}
-          className="w-full bg-neutral-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-50"
-        >
-          {submitting ? "Connecting..." : "Connect to Splitwise"}
-        </button>
-      </div>
+      <button
+        type="submit"
+        form="onboarding"
+        disabled={submitting}
+        className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-50"
+      >
+        {submitting ? "Connecting..." : "Connect to Splitwise"}
+      </button>
     </div>
   );
 }
