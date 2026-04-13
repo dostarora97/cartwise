@@ -79,7 +79,8 @@ def decode_supabase_jwt(token: str) -> SupabaseUser | None:
     Tries ES256 (JWKS) first, falls back to HS256 (shared secret).
     Returns SupabaseUser if valid, None otherwise.
     """
-    payload = _decode_with_jwks(token) or _decode_with_secret(token)
+    jwks_result = _decode_with_jwks(token)
+    payload = jwks_result if jwks_result is not None else _decode_with_secret(token)
     if payload is None:
         return None
 
