@@ -13,7 +13,6 @@ export function setAuthToken(token: string | null) {
 
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
-    // Don't override if caller already set Authorization
     if (request.headers.has("Authorization")) {
       return request;
     }
@@ -21,6 +20,16 @@ const authMiddleware: Middleware = {
       request.headers.set("Authorization", `Bearer ${cachedToken}`);
     }
     return request;
+  },
+  async onResponse({ response }) {
+    // On 401, clear the cached token. Don't hard-redirect — let
+    // Supabase attempt a token refresh via onAuthStateChange. If
+    // the session is truly gone, the proxy will redirect on next
+    // navigation and the auth context will update.
+    if (response.status === 401) {
+      cachedToken = null;
+    }
+    return response;
   },
 };
 

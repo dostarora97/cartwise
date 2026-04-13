@@ -6,9 +6,6 @@ import type { Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import apiClient from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -20,7 +17,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
-  const namePrefilled = useRef(false);
+  const namePrefilledRef = useRef(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -33,13 +30,12 @@ export default function OnboardingPage() {
       }
       setSession(session);
 
-      // Pre-fill name from Google only once
-      if (!namePrefilled.current) {
+      if (!namePrefilledRef.current) {
         const meta = session.user?.user_metadata;
         const googleName = meta?.full_name || meta?.name || "";
         if (googleName) {
           setName(googleName);
-          namePrefilled.current = true;
+          namePrefilledRef.current = true;
         }
       }
 
@@ -60,11 +56,7 @@ export default function OnboardingPage() {
   }, [router]);
 
   if (!ready) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center" />;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -75,9 +67,7 @@ export default function OnboardingPage() {
     const { error: apiError } = await apiClient.POST(
       "/api/v1/auth/onboard",
       {
-        headers: {
-          Authorization: `Bearer ${session!.access_token}`,
-        },
+        headers: { Authorization: `Bearer ${session!.access_token}` },
         body: {
           name,
           phone,
@@ -92,70 +82,78 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Refresh appUser in auth context so home page sees the new user
     await refreshAppUser();
     router.replace("/");
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">CartWise</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Welcome! Set up your account
-          </p>
-        </div>
+    <div className="flex min-h-screen flex-col">
+      <header className="flex h-14 items-center justify-center border-b border-black">
+        <span className="text-sm font-bold tracking-heading uppercase">
+          CartWise
+        </span>
+      </header>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
+      <form id="onboarding" onSubmit={handleSubmit} className="flex flex-1 flex-col justify-center px-6">
+        <div className="space-y-8">
+          <div>
+            <label className="text-xs font-bold tracking-label uppercase">
+              Name
+            </label>
+            <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
+              className="mt-2 block w-full border-b-2 border-black bg-transparent pb-2 text-base font-medium tracking-wider outline-none placeholder:text-gray-300"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
+          <div>
+            <label className="text-xs font-bold tracking-label uppercase">
+              Phone
+            </label>
+            <input
               type="tel"
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="10 digit phone number"
+              placeholder="0000000000"
               pattern="[0-9]{10}"
-              title="Enter a 10 digit phone number"
+              className="mt-2 block w-full border-b-2 border-black bg-transparent pb-2 text-base font-medium tracking-wider outline-none placeholder:text-gray-300"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="splitwise">Splitwise User ID</Label>
-            <Input
-              id="splitwise"
+          <div>
+            <label className="text-xs font-bold tracking-label uppercase">
+              Splitwise User ID
+            </label>
+            <input
               type="number"
               required
               value={splitwiseUserId}
               onChange={(e) => setSplitwiseUserId(e.target.value)}
-              placeholder="Your Splitwise user ID"
+              placeholder="00000"
+              className="mt-2 block w-full border-b-2 border-black bg-transparent pb-2 text-base font-medium tracking-wider outline-none placeholder:text-gray-300"
             />
           </div>
+        </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && (
+          <p className="mt-4 text-xs text-red-600 tracking-wider">{error}</p>
+        )}
+      </form>
 
-          <Button
-            type="submit"
-            className="w-full h-12 text-base font-medium"
-            disabled={submitting}
-          >
-            {submitting ? "Setting up..." : "Complete Setup"}
-          </Button>
-        </form>
+      <div className="sticky bottom-0 border-t border-black bg-white px-6 py-4">
+        <button
+          type="submit"
+          form="onboarding"
+          disabled={submitting}
+          className="w-full bg-neutral-800 py-4 text-sm font-bold tracking-label uppercase text-white disabled:opacity-50"
+        >
+          {submitting ? "Connecting..." : "Connect to Splitwise"}
+        </button>
       </div>
     </div>
   );

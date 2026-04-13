@@ -1,46 +1,32 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/lib/auth";
+import { Icon } from "@/components/icon";
 
 interface TopBarProps {
   showBack?: boolean;
+  onBack?: () => void;
+  rightAction?: React.ReactNode;
 }
 
-export function TopBar({ showBack = false }: TopBarProps) {
-  const { appUser } = useAuth();
+export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
   const router = useRouter();
 
   return (
-    <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border/50 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="flex h-14 items-center justify-between border-b border-black px-4">
       <div className="w-10">
         {showBack && (
-          <button
-            onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent"
-          >
-            <ChevronLeft className="h-5 w-5" />
+          <button onClick={onBack ?? (() => router.back())} className="flex">
+            <Icon name="chevron_left" size={24} />
           </button>
         )}
       </div>
 
-      <span className="text-lg font-semibold tracking-tight">CartWise</span>
+      <span className="text-sm font-bold tracking-heading uppercase">
+        CartWise
+      </span>
 
-      <div className="w-10">
-        {appUser && (
-          <button
-            onClick={() => router.push(`/profile/${appUser.id}`)}
-            className="flex h-10 w-10 items-center justify-center"
-          >
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={appUser.avatar_url ?? undefined} alt={appUser.name} />
-              <AvatarFallback>{appUser.name.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
-          </button>
-        )}
-      </div>
+      <div className="w-10 flex justify-end">{rightAction}</div>
     </header>
   );
 }
