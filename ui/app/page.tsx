@@ -70,7 +70,7 @@ export default function HomePage() {
                   }
                   className="w-full text-left"
                 >
-                  <span className="text-sm font-medium tracking-item uppercase">
+                  <span className="text-sm font-medium tracking-item">
                     - {item.menu_item.name}
                   </span>
                 </button>
@@ -83,7 +83,7 @@ export default function HomePage() {
       {hasItems && (
         <button
           onClick={() => router.push("/invoice")}
-          className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-lg"
+          className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center border border-black bg-black text-white"
         >
           <Icon name="receipt_long" size={24} />
         </button>

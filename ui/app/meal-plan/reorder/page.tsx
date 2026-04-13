@@ -88,7 +88,7 @@ export default function MealPlanReorderPage() {
               }`}
             >
               <Icon name="drag_indicator" size={20} className="text-gray-400" />
-              <span className="text-sm font-medium tracking-item uppercase">
+              <span className="text-sm font-medium tracking-item">
                 {item.name}
               </span>
             </li>

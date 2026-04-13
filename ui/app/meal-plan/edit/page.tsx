@@ -85,7 +85,7 @@ export default function MealPlanEditPage() {
           placeholder="SEARCH ITEMS..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full border-b-2 border-black bg-transparent pb-2 text-sm font-medium tracking-item uppercase outline-none placeholder:text-gray-300"
+          className="w-full border-b-2 border-black bg-transparent pb-2 text-sm font-medium tracking-item outline-none placeholder:text-gray-300 placeholder:uppercase"
         />
       </div>
 
@@ -101,7 +101,7 @@ export default function MealPlanEditPage() {
               />
               <button
                 onClick={() => router.push(`/menu-items/${item.id}`)}
-                className="text-left text-sm font-medium tracking-item uppercase"
+                className="text-left text-sm font-medium tracking-item"
               >
                 {item.name}
               </button>
@@ -118,7 +118,7 @@ export default function MealPlanEditPage() {
 
       <button
         onClick={() => router.push("/menu-items/new")}
-        className="fixed bottom-24 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-black text-white shadow-lg"
+        className="fixed bottom-24 right-6 flex h-14 w-14 items-center justify-center border border-black bg-black text-white"
       >
         <Icon name="add" size={28} />
       </button>
