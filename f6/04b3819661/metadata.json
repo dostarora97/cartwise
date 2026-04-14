@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "f604b3819661",
+  "strategy": "manual-commit",
+  "branch": "feat/pwa-compliance",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "ui/app/globals.css",
+    "ui/app/layout.tsx",
+    "ui/app/manifest.ts",
+    "ui/app/sw.ts",
+    "ui/next.config.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f6/04b3819661/0/metadata.json",
+      "transcript": "/f6/04b3819661/0/full.jsonl",
+      "content_hash": "/f6/04b3819661/0/content_hash.txt",
+      "prompt": "/f6/04b3819661/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 27835,
+    "cache_creation_tokens": 56657924,
+    "cache_read_tokens": 1852470299,
+    "output_tokens": 1233563,
+    "api_call_count": 4704
+  }
+}
