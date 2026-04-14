@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
@@ -12,6 +12,14 @@ import { ErrorModal } from "@/components/error-modal";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function InvoiceSetupPage() {
+  return (
+    <Suspense>
+      <InvoiceSetupContent />
+    </Suspense>
+  );
+}
+
+function InvoiceSetupContent() {
   const { appUser, session } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
