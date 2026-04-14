@@ -2185,3 +2185,7 @@ there are review comments:
 - https://github.com/dostarora97/cartwise/pull/51#discussion_r3076855001
 - https://github.com/dostarora97/cartwise/pull/51#discussion_r3076855004
 are these applicable ? and if so what is their fix ?>
+
+---
+
+commit and push and add a comment saying: "@bugbot review"
