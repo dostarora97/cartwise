@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
@@ -29,18 +30,19 @@ export default function MealPlanPage() {
           Meal Plan
         </span>
         {hasItems && (
-          <button onClick={() => router.push("/meal-plan/edit")} className="flex items-center justify-center p-3 bg-black">
+          <button onClick={() => router.push("/meal-plan/edit")} aria-label="Edit meal plan" className="flex items-center justify-center p-3 bg-black">
             <Icon name="edit" size={24} className="text-white" />
           </button>
         )}
       </div>
 
       <main
-        className={`flex-1 ${!hasItems ? "flex items-center justify-center" : ""}`}
+        className={cn("flex-1", !hasItems && "flex items-center justify-center")}
       >
         {isLoading ? null : !hasItems ? (
           <button
             onClick={() => router.push("/meal-plan/edit")}
+            aria-label="Create meal plan"
             className="flex h-14 w-14 items-center justify-center bg-black text-white text-4xl"
           >
             +
@@ -64,6 +66,7 @@ export default function MealPlanPage() {
       {hasItems && (
         <button
           onClick={() => router.push("/invoice")}
+          aria-label="New expense"
           className="fixed bottom-12 right-12 flex h-14 w-14 items-center justify-center bg-black text-white"
         >
           <Icon name="receipt_long" size={24} />

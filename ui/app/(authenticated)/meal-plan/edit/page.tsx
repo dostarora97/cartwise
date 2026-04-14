@@ -3,9 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { DragDropProvider } from "@dnd-kit/react";
-import { useSortable } from "@dnd-kit/react/sortable";
-import { move } from "@dnd-kit/helpers";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
@@ -13,38 +11,9 @@ import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
 import { Icon } from "@/components/icon";
 
+const MealPlanReorder = dynamic(() => import("@/components/meal-plan-reorder"));
+
 type Mode = "select" | "reorder";
-
-function SortableItem({
-  id,
-  name,
-  index,
-}: {
-  id: string;
-  name: string;
-  index: number;
-}) {
-  const { ref, handleRef, isDragging } = useSortable({ id, index });
-
-  return (
-    <li
-      ref={ref}
-      className={`flex items-center border-b border-gray-200 last:border-b-0 ${
-        isDragging ? "opacity-50" : ""
-      }`}
-    >
-      <button
-        ref={handleRef}
-        type="button"
-        aria-label="Drag to reorder"
-        className="p-3 shrink-0 flex touch-none cursor-grab active:cursor-grabbing"
-      >
-        <Icon name="drag_indicator" size={24} className="text-neutral-400" />
-      </button>
-      <span className="flex-1 min-w-0 py-3 pr-3 text-2xl font-medium tracking-item leading-6 truncate">{name}</span>
-    </li>
-  );
-}
 
 export default function MealPlanEditPage() {
   const { appUser } = useAuth();
@@ -89,8 +58,6 @@ export default function MealPlanEditPage() {
         i.name.toLowerCase().includes(q) || i.body.toLowerCase().includes(q),
     );
   }, [menuItems, search]);
-
-  // TODO: Add selected-first sort (relevance). Currently alphabetical only.
 
   const dataReady = !menuItemsLoading && !mealPlanLoading;
 
@@ -192,25 +159,10 @@ export default function MealPlanEditPage() {
           ) : null
         ) : (
           orderedItems && (
-            <DragDropProvider
-              onDragEnd={(event) => {
-                if (event.canceled) return;
-                setOrderedItems((items) =>
-                  items ? move(items, event) : items,
-                );
-              }}
-            >
-              <ul>
-                {orderedItems.map((item, index) => (
-                  <SortableItem
-                    key={item.id}
-                    id={item.id}
-                    name={item.name}
-                    index={index}
-                  />
-                ))}
-              </ul>
-            </DragDropProvider>
+            <MealPlanReorder
+              items={orderedItems}
+              onReorder={setOrderedItems}
+            />
           )
         )}
       </main>
@@ -218,6 +170,7 @@ export default function MealPlanEditPage() {
       {mode === "select" && (
         <button
           onClick={() => router.push("/menu-items/new")}
+          aria-label="New menu item"
           className="fixed bottom-24 right-12 flex h-14 w-14 items-center justify-center bg-black text-white"
         >
           <Icon name="add" size={24} />

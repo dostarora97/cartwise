@@ -110,6 +110,7 @@ function InvoiceSetupContent() {
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => chipInputRef.current?.toggleAll()}
+              aria-label="Toggle participant list"
               className="flex items-center justify-center p-3 bg-black text-white"
             >
               <Icon name={showingAll ? "arrow_drop_up" : "arrow_drop_down"} size={24} />
@@ -139,6 +140,7 @@ function InvoiceSetupContent() {
                 setFile(null);
                 if (fileRef.current) fileRef.current.value = "";
               }}
+              aria-label="Remove file"
               className="flex items-center justify-center p-3"
             >
               <Icon name="close" size={24} />

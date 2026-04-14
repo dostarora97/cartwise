@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { $api } from "@/lib/api/hooks";
+import { cn } from "@/lib/utils";
 import { TopBar } from "@/components/top-bar";
 import { Chip } from "@/components/chip";
 
@@ -57,7 +58,20 @@ export default function SplitResultPage() {
       });
   }, [order, userMap]);
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <TopBar showBack onBack={() => router.push("/meal-plan")} />
+        <div className="flex items-center p-3 border-b border-black">
+          <span className="text-2xl font-bold tracking-label uppercase leading-6">
+            Split result
+          </span>
+        </div>
+        <main className="flex-1" />
+      </div>
+    );
+  }
+  if (!order && !isLoading) notFound();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -76,9 +90,10 @@ export default function SplitResultPage() {
           return (
             <div
               key={split.id}
-              className={`border-b border-black last:border-b-0 ${
-                isSuccess ? "bg-green-50" : "bg-red-50"
-              }`}
+              className={cn(
+                "border-b border-black last:border-b-0",
+                isSuccess ? "bg-green-50" : "bg-red-50",
+              )}
             >
               <div className="flex items-center gap-1 flex-wrap p-3">
                 {split._sortedMemberIds.map((mid) => (

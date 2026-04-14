@@ -10,12 +10,20 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CartWise",
+  title: {
+    default: "CartWise",
+    template: "%s | CartWise",
+  },
   description: "Grocery cost splitting with meal planning",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "CartWise",
+  },
+  openGraph: {
+    title: "CartWise",
+    description: "Grocery cost splitting with meal planning",
+    type: "website",
   },
 };
 
@@ -35,6 +43,8 @@ export default function RootLayout({
     <html lang="en" className={`${mono.variable} h-full`}>
       <head>
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"

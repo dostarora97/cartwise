@@ -29,7 +29,7 @@ export function MealPlanItem({
             type="checkbox"
             checked={checked}
             onChange={onToggle}
-            className="h-6 w-6 appearance-none border-2 border-neutral-400 checked:border-black checked:bg-black checked:shadow-[inset_0_0_0_3px_white]"
+            className="size-6 appearance-none border-2 border-neutral-400 checked:border-black checked:bg-black checked:shadow-[inset_0_0_0_3px_white]"
           />
         </label>
       )}

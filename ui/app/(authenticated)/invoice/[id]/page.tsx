@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
@@ -182,7 +182,20 @@ export default function SplitAnalysisPage() {
     });
   }
 
-  if (orderLoading) return null;
+  if (orderLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <TopBar showBack onBack={handleBack} />
+        <div className="flex items-stretch justify-between border-b border-black">
+          <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
+            Split review
+          </span>
+        </div>
+        <main className="flex-1" />
+      </div>
+    );
+  }
+  if (!order && !orderLoading) notFound();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -196,6 +209,7 @@ export default function SplitAnalysisPage() {
         {mode === "view" && (
           <button
             onClick={enterEditMode}
+            aria-label="Edit split assignments"
             className="flex items-center justify-center p-3 bg-black"
           >
             <Icon name="edit" size={24} className="text-white" />
