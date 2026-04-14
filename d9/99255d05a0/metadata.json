@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "d999255d05a0",
+  "strategy": "manual-commit",
+  "branch": "feat/invoice-wizard",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "ui/app/manifest.ts",
+    "ui/app/share/page.tsx",
+    "ui/app/sw.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d9/99255d05a0/0/metadata.json",
+      "transcript": "/d9/99255d05a0/0/full.jsonl",
+      "content_hash": "/d9/99255d05a0/0/content_hash.txt",
+      "prompt": "/d9/99255d05a0/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 24584,
+    "cache_creation_tokens": 53597331,
+    "cache_read_tokens": 1677814868,
+    "output_tokens": 1078069,
+    "api_call_count": 4011
+  }
+}
