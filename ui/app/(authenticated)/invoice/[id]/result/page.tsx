@@ -17,10 +17,11 @@ export default function SplitResultPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const { data: order, isLoading, isError } = $api.useQuery(
+  const { data: order, isLoading } = $api.useQuery(
     "get",
     "/api/v1/orders/{order_id}",
     { params: { path: { order_id: id } } },
+    { throwOnError: true },
   );
 
   const { data: users } = $api.useQuery("get", "/api/v1/users/");
@@ -71,7 +72,7 @@ export default function SplitResultPage() {
       </div>
     );
   }
-  if (!order && !isError) notFound();
+  if (!order && !isLoading) notFound();
 
   return (
     <div className="flex min-h-screen flex-col">

@@ -31,10 +31,11 @@ export default function SplitAnalysisPage() {
     new Map(),
   );
 
-  const { data: order, isLoading: orderLoading, isError } = $api.useQuery(
+  const { data: order, isLoading: orderLoading } = $api.useQuery(
     "get",
     "/api/v1/orders/{order_id}",
     { params: { path: { order_id: id } } },
+    { throwOnError: true },
   );
 
   const { data: users } = $api.useQuery("get", "/api/v1/users/");
@@ -195,7 +196,7 @@ export default function SplitAnalysisPage() {
       </div>
     );
   }
-  if (!order && !isError) notFound();
+  if (!order && !orderLoading) notFound();
 
   return (
     <div className="flex min-h-screen flex-col">

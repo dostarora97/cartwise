@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth";
-import { cn } from "@/lib/utils";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
