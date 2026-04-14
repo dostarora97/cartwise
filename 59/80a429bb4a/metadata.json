@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "5980a429bb4a",
+  "strategy": "manual-commit",
+  "branch": "feat/invoice-wizard",
+  "checkpoints_count": 20,
+  "files_touched": [
+    "backend/app/services/storage.py",
+    "ui/app/(authenticated)/invoice/[id]/page.tsx",
+    "ui/app/(authenticated)/invoice/[id]/result/page.tsx",
+    "ui/app/(authenticated)/invoice/page.tsx",
+    "ui/app/manifest.ts",
+    "ui/components/chip-input.tsx",
+    "ui/components/chip.tsx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/59/80a429bb4a/0/metadata.json",
+      "transcript": "/59/80a429bb4a/0/full.jsonl",
+      "content_hash": "/59/80a429bb4a/0/content_hash.txt",
+      "prompt": "/59/80a429bb4a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 25445,
+    "cache_creation_tokens": 53996673,
+    "cache_read_tokens": 1732445967,
+    "output_tokens": 1138505,
+    "api_call_count": 4317
+  }
+}
