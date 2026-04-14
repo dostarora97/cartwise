@@ -95,14 +95,16 @@ export default function OnboardingPage() {
       </header>
 
       <form id="onboarding" onSubmit={handleSubmit} className="flex flex-1 flex-col justify-center p-3">
-        <div className="space-y-8">
+        <div className="flex flex-col gap-8">
           <div>
-            <label className="text-xs font-bold tracking-label uppercase">
+            <label htmlFor="onboarding-name" className="text-xs font-bold tracking-label uppercase">
               Name
             </label>
             <input
+              id="onboarding-name"
               type="text"
               required
+              autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
@@ -111,12 +113,14 @@ export default function OnboardingPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold tracking-label uppercase">
+            <label htmlFor="onboarding-phone" className="text-xs font-bold tracking-label uppercase">
               Phone
             </label>
             <input
+              id="onboarding-phone"
               type="tel"
               required
+              autoComplete="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="0000000000"
@@ -126,10 +130,11 @@ export default function OnboardingPage() {
           </div>
 
           <div>
-            <label className="text-xs font-bold tracking-label uppercase">
+            <label htmlFor="onboarding-splitwise-id" className="text-xs font-bold tracking-label uppercase">
               Splitwise User ID
             </label>
             <input
+              id="onboarding-splitwise-id"
               type="number"
               required
               value={splitwiseUserId}

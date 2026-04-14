@@ -3,12 +3,15 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import Markdown from "react-markdown";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
+
+const Markdown = dynamic(() => import("react-markdown"));
 
 interface MenuItemPageProps {
   itemId?: string; // undefined = new item
@@ -118,6 +121,16 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
     check();
     return () => window.removeEventListener("scroll", check);
   }, []);
+
+  // Close popup on Escape key
+  useEffect(() => {
+    if (!moreOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMoreOpen(false);
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [moreOpen]);
 
   // Populate and focus contentEditable heading when entering edit mode.
   //
@@ -298,7 +311,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
 
           {/* Edit button — only in view mode for existing items */}
           {showEditButton && (
-            <button onClick={handleEdit} className="flex h-12 items-center justify-center px-3 bg-black shrink-0">
+            <button onClick={handleEdit} aria-label="Edit item" className="flex h-12 items-center justify-center px-3 bg-black shrink-0">
               <Icon name="edit" size={24} className="text-white" />
             </button>
           )}
@@ -307,10 +320,11 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
           {showMoreButton && (
             <button
               onClick={() => (moreLoading ? null : setMoreOpen(!moreOpen))}
+              aria-label="More options"
               className="flex h-12 items-center justify-center px-3 bg-black shrink-0"
             >
               {moreLoading ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                <div className="size-4 animate-spin motion-reduce:animate-none rounded-full border-2 border-white border-t-transparent" />
               ) : (
                 <Icon name="more_horiz" size={24} className="text-white" />
               )}
@@ -328,7 +342,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
                   checked={inPlan}
                   disabled={isArchived}
                   onChange={() => handleMoreAction("togglePlan")}
-                  className="h-4 w-4 appearance-none border-2 border-neutral-400 checked:border-black checked:bg-black checked:shadow-[inset_0_0_0_2px_white]"
+                  className="size-4 appearance-none border-2 border-neutral-400 checked:border-black checked:bg-black checked:shadow-[inset_0_0_0_2px_white]"
                 />
                 In meal plan
               </label>
@@ -337,7 +351,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
                   type="checkbox"
                   checked={isArchived}
                   onChange={() => handleMoreAction("toggleArchive")}
-                  className="h-4 w-4 appearance-none border-2 border-neutral-400 checked:border-black checked:bg-black checked:shadow-[inset_0_0_0_2px_white]"
+                  className="size-4 appearance-none border-2 border-neutral-400 checked:border-black checked:bg-black checked:shadow-[inset_0_0_0_2px_white]"
                 />
                 Archived
               </label>
@@ -347,7 +361,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
       </div>
 
       {/* Content */}
-      <main className={`flex-1 p-3 ${editing ? "flex flex-col" : ""}`}>
+      <main className={cn("flex-1 p-3", editing && "flex flex-col")}>
         {editing ? (
           <textarea
             value={body}
