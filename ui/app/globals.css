@@ -2,9 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* TODO: remove debug outlines before shipping */
-* { outline: 1px solid red; }
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
