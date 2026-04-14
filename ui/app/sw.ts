@@ -44,7 +44,7 @@ self.addEventListener("fetch", (event) => {
         }
 
         // Redirect to the share page
-        return Response.redirect("/share?received=true", 303);
+        return Response.redirect("/invoice?received=true", 303);
       })()
     );
     return;

@@ -22,7 +22,7 @@ export default function manifest(): MetadataRoute.Manifest {
       },
     ],
     share_target: {
-      action: "/share",
+      action: "/invoice",
       method: "POST",
       enctype: "multipart/form-data",
       params: {
