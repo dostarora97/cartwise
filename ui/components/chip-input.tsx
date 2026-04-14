@@ -89,6 +89,7 @@ export const ChipInput = forwardRef<ChipInputHandle, ChipInputProps>(
             onChange={(e) => {
               setQuery(e.target.value);
               setShowAll(false);
+              onShowAllChange?.(false);
               setOpen(true);
             }}
             onKeyDown={(e) => {
