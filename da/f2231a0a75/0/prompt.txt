@@ -2289,3 +2289,7 @@ push changes
 
 alright now let's ananalyse and see our git pipeline.
 what all happens in our git pipeline ?
+
+---
+
+okay before that please also push the actual avif images to the PR.
