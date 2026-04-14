@@ -2151,3 +2151,7 @@ can you unmakr this as completed in the db please, you should have access to dat
 
 what is the git status, are we in condition to create a PR, do you need to add unit tests, or anything.
 also check from the phases documentation what all we covered, and what all remains, and what did we change, and anything new we decided.
+
+---
+
+yes commit and push to pr
