@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "daf2231a0a75",
+  "strategy": "manual-commit",
+  "branch": "feat/invoice-wizard-polish",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "ui/public/logo-calculator.png",
+    "ui/public/logo-grocery.png",
+    "ui/public/logo-pizza.png"
+  ],
+  "sessions": [
+    {
+      "metadata": "/da/f2231a0a75/0/metadata.json",
+      "transcript": "/da/f2231a0a75/0/full.jsonl",
+      "content_hash": "/da/f2231a0a75/0/content_hash.txt",
+      "prompt": "/da/f2231a0a75/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 26122,
+    "cache_creation_tokens": 55056892,
+    "cache_read_tokens": 1769804389,
+    "output_tokens": 1175138,
+    "api_call_count": 4470
+  }
+}

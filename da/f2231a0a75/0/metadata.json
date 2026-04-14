@@ -1,0 +1,68 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "daf2231a0a75",
+  "session_id": "7a92bfbe-350a-40ec-8838-7a5f26fbf795",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-14T11:43:25.603149Z",
+  "branch": "feat/invoice-wizard-polish",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "ui/public/logo-calculator.png",
+    "ui/public/logo-grocery.png",
+    "ui/public/logo-pizza.png"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-latest[1m]",
+  "turn_id": "3445145c2bcb",
+  "token_usage": {
+    "input_tokens": 26122,
+    "cache_creation_tokens": 55056892,
+    "cache_read_tokens": 1769804389,
+    "output_tokens": 1175138,
+    "api_call_count": 4470
+  },
+  "session_metrics": {
+    "turn_count": 349
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-14T11:43:08.039448Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 0,
+    "total_lines_changed": 0,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 76,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 76
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 76,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 76
+      }
+    }
+  ]
+}
