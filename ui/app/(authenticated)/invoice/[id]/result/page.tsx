@@ -21,7 +21,6 @@ export default function SplitResultPage() {
     "get",
     "/api/v1/orders/{order_id}",
     { params: { path: { order_id: id } } },
-    { throwOnError: true },
   );
 
   const { data: users } = $api.useQuery("get", "/api/v1/users/");
