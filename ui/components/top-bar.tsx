@@ -24,10 +24,10 @@ export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
         )}
       </div>
 
-      <div className="flex items-center gap-1 py-3">
-        <img src="/logo-grocery.png" alt="" className="h-6 w-auto" />
-        <img src="/logo-calculator.png" alt="" className="h-6 w-auto" />
-        <img src="/logo-pizza.png" alt="" className="h-6 w-auto" />
+      <div className="flex items-center gap-1 h-12">
+        <img src="/logo-grocery.avif" alt="" className="h-9 w-9 object-contain" />
+        <img src="/logo-calculator.avif" alt="" className="h-9 w-9 object-contain" />
+        <img src="/logo-pizza.avif" alt="" className="h-9 w-9 object-contain" />
       </div>
 
       <div className="w-12 shrink-0 flex items-stretch">{rightAction}</div>
