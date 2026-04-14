@@ -1,13 +1,15 @@
 {
+  "name": "cartwise",
   "private": true,
+  "type": "module",
   "scripts": {
     "prepare": "husky"
   },
   "devDependencies": {
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.0",
-    "@commitlint/cli": "^19.8.1",
-    "@commitlint/config-conventional": "^19.8.1"
+    "@commitlint/cli": "20.5.0",
+    "@commitlint/config-conventional": "20.5.0",
+    "husky": "9.1.7",
+    "lint-staged": "16.4.0"
   },
   "lint-staged": {
     "backend/**/*.py": [

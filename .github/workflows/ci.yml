@@ -151,18 +151,14 @@ jobs:
         working-directory: ui
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: ui/package-lock.json
-      - run: npm ci
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
 
       - name: Type-check
-        run: npx tsc --noEmit
+        run: bunx tsc --noEmit
 
       - name: Lint
-        run: npx eslint .
+        run: bunx eslint .
 
   fe-build:
     needs: [changes]
@@ -177,15 +173,11 @@ jobs:
       NEXT_PUBLIC_API_URL: http://localhost:8000
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: ui/package-lock.json
-      - run: npm ci
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
 
       - name: Build
-        run: npx next build
+        run: bunx next build
 
   # ── Cross-cutting ─────────────────────────────────────────────────
   openapi-drift:
@@ -217,9 +209,7 @@ jobs:
       - uses: astral-sh/setup-uv@v4
         with:
           enable-cache: true
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - uses: oven-sh/setup-bun@v2
 
       - name: Install backend dependencies
         run: cd backend && uv sync --frozen
@@ -234,13 +224,13 @@ jobs:
         run: timeout 30 bash -c 'until curl -sf http://localhost:8000/healthz; do sleep 1; done'
 
       - name: Generate fresh OpenAPI types
-        run: npx openapi-typescript http://localhost:8000/openapi.json -o /tmp/schema.d.ts
+        run: bunx openapi-typescript http://localhost:8000/openapi.json -o /tmp/schema.d.ts
 
       - name: Check for schema drift
         run: |
           if ! diff -u ui/lib/api/schema.d.ts /tmp/schema.d.ts; then
             echo ""
-            echo "::error::OpenAPI schema is out of date. Run 'npm run generate:api' locally and commit the result."
+            echo "::error::OpenAPI schema is out of date. Run 'bun run generate:api' locally and commit the result."
             exit 1
           fi
 
@@ -260,23 +250,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Backend — pip-audit
-        uses: astral-sh/setup-uv@v4
+      - uses: astral-sh/setup-uv@v4
         with:
           enable-cache: true
       - name: Audit Python dependencies
         working-directory: backend
         run: uvx pip-audit --requirement <(uv export --no-hashes)
 
-      - name: Frontend — npm audit
-        if: always()
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - uses: oven-sh/setup-bun@v2
       - name: Audit Node dependencies
         if: always()
         working-directory: ui
-        run: npm audit --audit-level=high
+        run: bun install --frozen-lockfile && bun pm audit 2>/dev/null || npm audit --audit-level=high
 
   # ── Security ──────────────────────────────────────────────────────
   security-gitleaks:

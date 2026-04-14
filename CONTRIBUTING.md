@@ -3,11 +3,11 @@
 ## Quick start
 
 ```bash
-# Prerequisites: Python 3.14, Docker, uv, mise (optional)
+# Prerequisites: Python 3.14, Docker, uv, Bun, mise (optional)
 git clone https://github.com/dostarora97/cartwise.git && cd cartwise
 
-# Install git hooks (from repo root — requires Node.js)
-npm install
+# Install git hooks (from repo root — requires Bun)
+bun install
 
 # Backend setup
 cd backend

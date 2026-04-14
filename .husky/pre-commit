@@ -4,4 +4,4 @@ if command -v gitleaks &> /dev/null; then
 fi
 
 # Run lint-staged (ruff on backend, eslint on frontend)
-npx lint-staged
+bunx lint-staged
