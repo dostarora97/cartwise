@@ -281,6 +281,7 @@ jobs:
   all-green:
     if: always()
     needs:
+      - changes
       - be-lint
       - be-test
       - migration-check
@@ -294,6 +295,7 @@ jobs:
       - name: Verify all jobs passed or were skipped
         run: |
           results=(
+            "${{ needs.changes.result }}"
             "${{ needs.be-lint.result }}"
             "${{ needs.be-test.result }}"
             "${{ needs.migration-check.result }}"

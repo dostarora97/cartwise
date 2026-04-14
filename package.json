@@ -13,11 +13,11 @@
   },
   "lint-staged": {
     "backend/**/*.py": [
-      "ruff check --fix",
-      "ruff format"
+      "uv run --project backend ruff check --fix",
+      "uv run --project backend ruff format"
     ],
     "ui/**/*.{ts,tsx}": [
-      "eslint --fix"
+      "bunx --cwd ui eslint --fix"
     ]
   }
 }
