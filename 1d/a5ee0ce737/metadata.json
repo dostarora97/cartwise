@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "1da5ee0ce737",
+  "strategy": "manual-commit",
+  "branch": "feat/invoice-wizard-polish",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "ui/components/chip-input.tsx",
+    "ui/components/top-bar.tsx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/1d/a5ee0ce737/0/metadata.json",
+      "transcript": "/1d/a5ee0ce737/0/full.jsonl",
+      "content_hash": "/1d/a5ee0ce737/0/content_hash.txt",
+      "prompt": "/1d/a5ee0ce737/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 26112,
+    "cache_creation_tokens": 55051287,
+    "cache_read_tokens": 1768085661,
+    "output_tokens": 1174153,
+    "api_call_count": 4464
+  }
+}
