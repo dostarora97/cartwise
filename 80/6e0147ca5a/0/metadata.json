@@ -1,0 +1,121 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "806e0147ca5a",
+  "session_id": "7a92bfbe-350a-40ec-8838-7a5f26fbf795",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-14T14:37:15.212649Z",
+  "branch": "feat/ui-quality-and-bundle-optimizations",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "ui/app/(authenticated)/invoice/[id]/page.tsx",
+    "ui/app/(authenticated)/invoice/[id]/result/page.tsx",
+    "ui/app/(authenticated)/invoice/page.tsx",
+    "ui/app/(authenticated)/meal-plan/edit/page.tsx",
+    "ui/app/(authenticated)/meal-plan/page.tsx",
+    "ui/app/error.tsx",
+    "ui/app/global-error.tsx",
+    "ui/app/globals.css",
+    "ui/app/layout.tsx",
+    "ui/app/not-found.tsx",
+    "ui/app/onboarding/page.tsx",
+    "ui/bun.lock",
+    "ui/components/error-modal.tsx",
+    "ui/components/icon.tsx",
+    "ui/components/meal-plan-item.tsx",
+    "ui/components/meal-plan-reorder.tsx",
+    "ui/components/menu-item-page.tsx",
+    "ui/components/top-bar.tsx",
+    "ui/components/ui/avatar.tsx",
+    "ui/components/ui/button.tsx",
+    "ui/components/ui/input.tsx",
+    "ui/components/ui/label.tsx",
+    "ui/package.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-latest[1m]",
+  "turn_id": "2ada8547227c",
+  "token_usage": {
+    "input_tokens": 28082,
+    "cache_creation_tokens": 57376779,
+    "cache_read_tokens": 1886112564,
+    "output_tokens": 1277611,
+    "api_call_count": 4923
+  },
+  "session_metrics": {
+    "turn_count": 374
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-14T14:36:55.543364Z",
+    "agent_lines": 288,
+    "agent_removed": 298,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 288,
+    "total_lines_changed": 586,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 76,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 76
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 76,
+      "user_lines_removed": 0,
+      "agent_lines_added": 213,
+      "agent_lines_removed": 35,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 76
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 76,
+      "user_lines_removed": 0,
+      "agent_lines_added": 288,
+      "agent_lines_removed": 300,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 76
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 76,
+      "user_lines_removed": 0,
+      "agent_lines_added": 288,
+      "agent_lines_removed": 300,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 76
+      }
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 76,
+      "user_lines_removed": 0,
+      "agent_lines_added": 288,
+      "agent_lines_removed": 300,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 76
+      }
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 76,
+      "user_lines_removed": 0,
+      "agent_lines_added": 287,
+      "agent_lines_removed": 299,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 76
+      }
+    }
+  ]
+}

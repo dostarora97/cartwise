@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "806e0147ca5a",
+  "strategy": "manual-commit",
+  "branch": "feat/ui-quality-and-bundle-optimizations",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "ui/app/(authenticated)/invoice/[id]/page.tsx",
+    "ui/app/(authenticated)/invoice/[id]/result/page.tsx",
+    "ui/app/(authenticated)/invoice/page.tsx",
+    "ui/app/(authenticated)/meal-plan/edit/page.tsx",
+    "ui/app/(authenticated)/meal-plan/page.tsx",
+    "ui/app/error.tsx",
+    "ui/app/global-error.tsx",
+    "ui/app/globals.css",
+    "ui/app/layout.tsx",
+    "ui/app/not-found.tsx",
+    "ui/app/onboarding/page.tsx",
+    "ui/bun.lock",
+    "ui/components/error-modal.tsx",
+    "ui/components/icon.tsx",
+    "ui/components/meal-plan-item.tsx",
+    "ui/components/meal-plan-reorder.tsx",
+    "ui/components/menu-item-page.tsx",
+    "ui/components/top-bar.tsx",
+    "ui/components/ui/avatar.tsx",
+    "ui/components/ui/button.tsx",
+    "ui/components/ui/input.tsx",
+    "ui/components/ui/label.tsx",
+    "ui/package.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/80/6e0147ca5a/0/metadata.json",
+      "transcript": "/80/6e0147ca5a/0/full.jsonl",
+      "content_hash": "/80/6e0147ca5a/0/content_hash.txt",
+      "prompt": "/80/6e0147ca5a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 28082,
+    "cache_creation_tokens": 57376779,
+    "cache_read_tokens": 1886112564,
+    "output_tokens": 1277611,
+    "api_call_count": 4923
+  }
+}
