@@ -17,7 +17,7 @@
       "uv run --project backend ruff format"
     ],
     "ui/**/*.{ts,tsx}": [
-      "bunx --cwd ui eslint --fix"
+      "bash -c 'cd ui && bunx eslint --fix \"$@\"' _"
     ]
   }
 }

@@ -15,7 +15,7 @@ class Split(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     order_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE")
+        UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), index=True
     )
     amount: Mapped[float] = mapped_column(Numeric(10, 2))
     grocery_items: Mapped[list] = mapped_column(JSONB)
