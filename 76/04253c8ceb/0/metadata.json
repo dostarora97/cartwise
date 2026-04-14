@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "7604253c8ceb",
+  "session_id": "7a92bfbe-350a-40ec-8838-7a5f26fbf795",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-14T03:20:22.582931Z",
+  "branch": "feat/invoice-wizard",
+  "checkpoints_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-opus-latest[1m]",
+  "turn_id": "9dc41280256a",
+  "token_usage": {
+    "input_tokens": 25758,
+    "cache_creation_tokens": 54244957,
+    "cache_read_tokens": 1743653940,
+    "output_tokens": 1149632,
+    "api_call_count": 4368
+  },
+  "session_metrics": {
+    "turn_count": 328
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 76,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 76
+      }
+    }
+  ]
+}
