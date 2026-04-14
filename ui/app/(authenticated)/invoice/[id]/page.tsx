@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
@@ -8,7 +8,6 @@ import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
-import { Chip } from "@/components/chip";
 import { ChipInput } from "@/components/chip-input";
 import { ErrorModal } from "@/components/error-modal";
 
@@ -92,11 +91,13 @@ export default function SplitAnalysisPage() {
     setMode("edit");
   }
 
-  function sortedNames(memberIds: string[]) {
-    return memberIds
-      .map((id) => userMap.get(id) ?? id)
-      .sort((a, b) => a.localeCompare(b));
-  }
+  const sortedNames = useCallback(
+    (memberIds: string[]) =>
+      memberIds
+        .map((id) => userMap.get(id) ?? id)
+        .sort((a, b) => a.localeCompare(b)),
+    [userMap],
+  );
 
   // Sort splits: by group size ascending, then by sorted concatenated member names
   const sortedSplits = useMemo(() => {
@@ -115,7 +116,7 @@ export default function SplitAnalysisPage() {
         const bNamesKey = sortedNames(b.memberIds).join(", ");
         return aNamesKey.localeCompare(bNamesKey);
       });
-  }, [splitGroups, userMap]);
+  }, [splitGroups, userMap, sortedNames]);
 
   async function handleBack() {
     if (mode === "edit") {

@@ -1,0 +1,17 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks#configuration
+
+[allowlist]
+  description = "Known public keys and test values"
+  regexTarget = "match"
+
+  # Supabase anon keys are public by design (row-level security enforces access)
+  # Test/CI JWT secrets are not real credentials
+  regexes = [
+    '''SUPABASE_ANON_KEY''',
+    '''ci-test-jwt-secret|test-jwt-secret''',
+  ]
+
+  paths = [
+    '''.secrets.toml.example''',
+  ]

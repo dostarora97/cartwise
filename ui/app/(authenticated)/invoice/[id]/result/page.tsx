@@ -30,32 +30,29 @@ export default function SplitResultPage() {
     return m;
   }, [users]);
 
-  function sortedNames(memberIds: string[]) {
-    return memberIds
-      .map((id) => userMap.get(id) ?? id)
-      .sort((a, b) => a.localeCompare(b));
-  }
-
   // Sort splits: by group size ascending, then by sorted concatenated names
   const sortedSplits = useMemo(() => {
     if (!order?.splits) return [];
+
+    function resolveName(id: string) {
+      return userMap.get(id) ?? id;
+    }
+
     return [...order.splits]
       .map((split) => ({
         ...split,
         _sortedItems: ([...(split.grocery_items ?? [])] as unknown as GroceryItem[]).sort(
           (a, b) => a.description.localeCompare(b.description),
         ),
-        _sortedMemberIds: [...split.member_ids].sort((a, b) => {
-          const nameA = userMap.get(a) ?? a;
-          const nameB = userMap.get(b) ?? b;
-          return nameA.localeCompare(nameB);
-        }),
+        _sortedMemberIds: [...split.member_ids].sort((a, b) =>
+          resolveName(a).localeCompare(resolveName(b)),
+        ),
       }))
       .sort((a, b) => {
         const sizeDiff = a.member_ids.length - b.member_ids.length;
         if (sizeDiff !== 0) return sizeDiff;
-        const aNamesKey = sortedNames(a.member_ids).join(", ");
-        const bNamesKey = sortedNames(b.member_ids).join(", ");
+        const aNamesKey = a._sortedMemberIds.map(resolveName).join(", ");
+        const bNamesKey = b._sortedMemberIds.map(resolveName).join(", ");
         return aNamesKey.localeCompare(bNamesKey);
       });
   }, [order, userMap]);

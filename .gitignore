@@ -27,6 +27,9 @@ wheels/
 .agents/
 skills-lock.json
 
+# Node (root — husky + lint-staged deps)
+node_modules/
+
 # OS
 .DS_Store
 Thumbs.db

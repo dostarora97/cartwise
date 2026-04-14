@@ -1,0 +1,2 @@
+# Enforce conventional commit messages
+bunx commitlint --edit "$1"

@@ -1,0 +1,23 @@
+{
+  "name": "cartwise",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "20.5.0",
+    "@commitlint/config-conventional": "20.5.0",
+    "husky": "9.1.7",
+    "lint-staged": "16.4.0"
+  },
+  "lint-staged": {
+    "backend/**/*.py": [
+      "uv run --project backend ruff check --fix",
+      "uv run --project backend ruff format"
+    ],
+    "ui/**/*.{ts,tsx}": [
+      "bash -c 'cd ui && bunx eslint --fix \"$@\"' _"
+    ]
+  }
+}
