@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#09090b",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -42,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${mono.variable} h-full`}>
       <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
