@@ -1,0 +1,25 @@
+{
+  "cli_version": "0.5.4",
+  "checkpoint_id": "d428a175d390",
+  "strategy": "manual-commit",
+  "branch": "feat/ci-improvements",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".github/workflows/ci.yml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/d4/28a175d390/0/metadata.json",
+      "transcript": "/d4/28a175d390/0/full.jsonl",
+      "content_hash": "/d4/28a175d390/0/content_hash.txt",
+      "prompt": "/d4/28a175d390/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 27338,
+    "cache_creation_tokens": 55390743,
+    "cache_read_tokens": 1777802282,
+    "output_tokens": 1187649,
+    "api_call_count": 4497
+  }
+}
