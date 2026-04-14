@@ -209,9 +209,8 @@ jobs:
       - uses: astral-sh/setup-uv@v4
         with:
           enable-cache: true
-      - uses: oven-sh/setup-bun@v2
-
-      - name: Install backend dependencies
+          prune-cache: false
+      - uses: oven-sh/setup-bun@v2      - name: Install backend dependencies
         run: cd backend && uv sync --frozen
 
       - name: Apply migrations
