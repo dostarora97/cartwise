@@ -6,14 +6,14 @@
 # Prerequisites: Python 3.14, Docker, uv, mise (optional)
 git clone https://github.com/dostarora97/cartwise.git && cd cartwise
 
+# Install git hooks (from repo root — requires Node.js)
+npm install
+
 # Backend setup
 cd backend
 
 # Install dependencies
 uv sync
-
-# Install git hooks (must run after uv sync, from repo root)
-cd .. && uv run --project backend pre-commit install && uv run --project backend pre-commit install --hook-type commit-msg && cd backend
 
 # Start PostgreSQL
 docker compose up -d postgres postgres-test
