@@ -210,7 +210,9 @@ jobs:
         with:
           enable-cache: true
           prune-cache: false
-      - uses: oven-sh/setup-bun@v2      - name: Install backend dependencies
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install backend dependencies
         run: cd backend && uv sync --frozen
 
       - name: Apply migrations
@@ -257,6 +259,7 @@ jobs:
         run: uvx pip-audit --requirement <(uv export --no-hashes)
 
       - uses: actions/setup-node@v4
+        if: always()
         with:
           node-version-file: .nvmrc
       - name: Audit Node dependencies
