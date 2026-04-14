@@ -19,6 +19,8 @@ BUCKET = "invoices"
 
 
 def _is_real_supabase() -> bool:
+    if settings.get("STORAGE_LOCAL", False):
+        return False
     url = settings.get("SUPABASE_URL", "")
     return bool(url) and url.startswith("https://")
 
