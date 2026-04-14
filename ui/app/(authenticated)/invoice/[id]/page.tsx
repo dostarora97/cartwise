@@ -19,17 +19,6 @@ interface GroceryItem {
   total: number;
 }
 
-interface SplitGroup {
-  amount: number;
-  groceryItems: GroceryItem[];
-  splitEquallyAmong: string[];
-}
-
-interface OrderResult {
-  paidBy: string;
-  splits: SplitGroup[];
-}
-
 export default function SplitAnalysisPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -57,7 +46,6 @@ export default function SplitAnalysisPage() {
     return m;
   }, [users]);
 
-  const result = order?.result as OrderResult | null;
   const participantUsers = useMemo(
     () =>
       (order?.participants ?? [])
@@ -67,23 +55,33 @@ export default function SplitAnalysisPage() {
     [order, userMap, appUser],
   );
 
+  // Derive view/edit data from order.splits (DB rows, updated by edit-splits)
+  // NOT from order.result.splits (immutable AI pipeline output)
+  const splitGroups = useMemo(() => {
+    if (!order?.splits) return [];
+    return order.splits.map((s) => ({
+      memberIds: s.member_ids,
+      groceryItems: (s.grocery_items ?? []) as unknown as GroceryItem[],
+    }));
+  }, [order]);
+
   // All grocery items flattened and sorted alphabetically (for edit mode)
   const allItems = useMemo(() => {
-    if (!result) return [];
+    if (splitGroups.length === 0) return [];
     const items: { item: GroceryItem; memberIds: string[] }[] = [];
     const seen = new Set<string>();
-    for (const group of result.splits) {
+    for (const group of splitGroups) {
       for (const gi of group.groceryItems) {
         if (!seen.has(gi.upc)) {
           seen.add(gi.upc);
-          items.push({ item: gi, memberIds: [...group.splitEquallyAmong] });
+          items.push({ item: gi, memberIds: [...group.memberIds] });
         }
       }
     }
     return items.sort((a, b) =>
       a.item.description.localeCompare(b.item.description),
     );
-  }, [result]);
+  }, [splitGroups]);
 
   function enterEditMode() {
     const assignments = new Map<string, string[]>();
@@ -102,8 +100,8 @@ export default function SplitAnalysisPage() {
 
   // Sort splits: by group size ascending, then by sorted concatenated member names
   const sortedSplits = useMemo(() => {
-    if (!result) return [];
-    return [...result.splits]
+    if (splitGroups.length === 0) return [];
+    return [...splitGroups]
       .map((group) => ({
         ...group,
         groceryItems: [...group.groceryItems].sort((a, b) =>
@@ -111,13 +109,13 @@ export default function SplitAnalysisPage() {
         ),
       }))
       .sort((a, b) => {
-        const sizeDiff = a.splitEquallyAmong.length - b.splitEquallyAmong.length;
+        const sizeDiff = a.memberIds.length - b.memberIds.length;
         if (sizeDiff !== 0) return sizeDiff;
-        const aNamesKey = sortedNames(a.splitEquallyAmong).join(", ");
-        const bNamesKey = sortedNames(b.splitEquallyAmong).join(", ");
+        const aNamesKey = sortedNames(a.memberIds).join(", ");
+        const bNamesKey = sortedNames(b.memberIds).join(", ");
         return aNamesKey.localeCompare(bNamesKey);
       });
-  }, [result, userMap]);
+  }, [splitGroups, userMap]);
 
   async function handleBack() {
     if (mode === "edit") {
@@ -206,13 +204,13 @@ export default function SplitAnalysisPage() {
 
       {/* Content */}
       <main className="flex-1">
-        {mode === "view" && result && (
+        {mode === "view" && sortedSplits.length > 0 && (
           <div>
             {sortedSplits.map((group, gi) => (
               <div key={gi} className="border-b border-black last:border-b-0">
                 <div className="p-3">
                   <span className="text-2xl font-bold tracking-label uppercase leading-6">
-                    {sortedNames(group.splitEquallyAmong).join(", ")}
+                    {sortedNames(group.memberIds).join(", ")}
                   </span>
                 </div>
                 {group.groceryItems.map((item, ii) => (
@@ -243,7 +241,7 @@ export default function SplitAnalysisPage() {
                   <ChipInput
                     participants={participantUsers}
                     selected={editAssignments.get(item.upc) ?? []}
-                    protectedId={result?.paidBy}
+                    protectedId={order?.paid_by}
                     onAdd={(userId) => {
                       const current = editAssignments.get(item.upc) ?? [];
                       if (!current.includes(userId)) {
@@ -253,8 +251,8 @@ export default function SplitAnalysisPage() {
                     onRemove={(userId) => {
                       const current = editAssignments.get(item.upc) ?? [];
                       const next = current.filter((id) => id !== userId);
-                      if (next.length === 0 && result?.paidBy) {
-                        updateAssignment(item.upc, [result.paidBy]);
+                      if (next.length === 0 && order?.paid_by) {
+                        updateAssignment(item.upc, [order.paid_by]);
                       } else {
                         updateAssignment(item.upc, next);
                       }
