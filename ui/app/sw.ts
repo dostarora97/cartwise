@@ -19,11 +19,11 @@ const serwist = new Serwist({
   runtimeCaching: defaultCache,
 });
 
-// Handle Web Share Target API — intercept POST to /share
+// Handle Web Share Target API — intercept POST to /invoice
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  if (event.request.method === "POST" && url.pathname === "/share") {
+  if (event.request.method === "POST" && url.pathname === "/invoice") {
     event.respondWith(
       (async () => {
         const formData = await event.request.formData();
