@@ -1,0 +1,20 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks#configuration
+
+[allowlist]
+  description = "Known public keys and test values"
+
+  # Supabase anon keys are public by design (row-level security enforces access)
+  [[allowlist.regexes]]
+    description = "Supabase anon key in settings"
+    regex = '''SUPABASE_ANON_KEY'''
+
+  # Test/CI JWT secrets are not real credentials
+  [[allowlist.regexes]]
+    description = "Test JWT secrets"
+    regex = '''ci-test-jwt-secret|test-jwt-secret'''
+
+  # Mock Splitwise API keys used only in local development
+  [[allowlist.paths]]
+    description = "Secret template file"
+    regex = '''.secrets.toml.example'''
