@@ -17,7 +17,7 @@ export default function SplitResultPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
 
-  const { data: order, isLoading } = $api.useQuery(
+  const { data: order, isLoading, isError } = $api.useQuery(
     "get",
     "/api/v1/orders/{order_id}",
     { params: { path: { order_id: id } } },
@@ -71,7 +71,7 @@ export default function SplitResultPage() {
       </div>
     );
   }
-  if (!order) notFound();
+  if (!order && !isError) notFound();
 
   return (
     <div className="flex min-h-screen flex-col">
