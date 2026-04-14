@@ -8,7 +8,7 @@ on:
 
 concurrency:
   group: ci-${{ github.head_ref || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   # ── Path filtering ────────────────────────────────────────────────
@@ -214,6 +214,9 @@ jobs:
       - name: Install backend dependencies
         run: cd backend && uv sync --frozen
 
+      - name: Install frontend dependencies
+        run: cd ui && bun install --frozen-lockfile
+
       - name: Apply migrations
         run: cd backend && uv run alembic upgrade head
 
@@ -224,7 +227,7 @@ jobs:
         run: timeout 30 bash -c 'until curl -sf http://localhost:8000/healthz; do sleep 1; done'
 
       - name: Generate fresh OpenAPI types
-        run: bunx openapi-typescript http://localhost:8000/openapi.json -o /tmp/schema.d.ts
+        run: cd ui && bunx openapi-typescript http://localhost:8000/openapi.json -o /tmp/schema.d.ts
 
       - name: Check for schema drift
         run: |
