@@ -1,5 +1,7 @@
 "use client";
 
+import { Icon } from "@/components/icon";
+
 interface ChipProps {
   label: string;
   onRemove?: () => void;
@@ -13,10 +15,10 @@ export function Chip({ label, onRemove }: ChipProps) {
         <button
           type="button"
           onClick={onRemove}
-          className="ml-1 text-white"
+          className="ml-1 flex items-center text-white"
           aria-label={`Remove ${label}`}
         >
-          ×
+          <Icon name="close" size={14} className="!font-bold" />
         </button>
       )}
     </span>

@@ -39,7 +39,6 @@ export default function SplitAnalysisPage() {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [editError, setEditError] = useState("");
   const [editAssignments, setEditAssignments] = useState<Map<string, string[]>>(
     new Map(),
   );
@@ -68,7 +67,7 @@ export default function SplitAnalysisPage() {
     [order, userMap, appUser],
   );
 
-  // All grocery items flattened (for edit mode)
+  // All grocery items flattened and sorted alphabetically (for edit mode)
   const allItems = useMemo(() => {
     if (!result) return [];
     const items: { item: GroceryItem; memberIds: string[] }[] = [];
@@ -81,7 +80,9 @@ export default function SplitAnalysisPage() {
         }
       }
     }
-    return items;
+    return items.sort((a, b) =>
+      a.item.description.localeCompare(b.item.description),
+    );
   }, [result]);
 
   function enterEditMode() {
@@ -90,13 +91,33 @@ export default function SplitAnalysisPage() {
       assignments.set(item.upc, [...memberIds]);
     }
     setEditAssignments(assignments);
-    setEditError("");
     setMode("edit");
   }
 
-  function resolveNames(memberIds: string[]) {
-    return memberIds.map((id) => userMap.get(id) ?? id).join(", ");
+  function sortedNames(memberIds: string[]) {
+    return memberIds
+      .map((id) => userMap.get(id) ?? id)
+      .sort((a, b) => a.localeCompare(b));
   }
+
+  // Sort splits: by group size ascending, then by sorted concatenated member names
+  const sortedSplits = useMemo(() => {
+    if (!result) return [];
+    return [...result.splits]
+      .map((group) => ({
+        ...group,
+        groceryItems: [...group.groceryItems].sort((a, b) =>
+          a.description.localeCompare(b.description),
+        ),
+      }))
+      .sort((a, b) => {
+        const sizeDiff = a.splitEquallyAmong.length - b.splitEquallyAmong.length;
+        if (sizeDiff !== 0) return sizeDiff;
+        const aNamesKey = sortedNames(a.splitEquallyAmong).join(", ");
+        const bNamesKey = sortedNames(b.splitEquallyAmong).join(", ");
+        return aNamesKey.localeCompare(bNamesKey);
+      });
+  }, [result, userMap]);
 
   async function handleBack() {
     if (mode === "edit") {
@@ -131,7 +152,6 @@ export default function SplitAnalysisPage() {
 
   async function handleConfirmEdits() {
     setSubmitting(true);
-    setEditError("");
     try {
       const assignments = [...editAssignments.entries()].map(
         ([upc, member_ids]) => ({ upc, member_ids }),
@@ -149,7 +169,7 @@ export default function SplitAnalysisPage() {
       });
       setMode("view");
     } catch (e) {
-      setEditError(e instanceof Error ? e.message : "Unknown error");
+      setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setSubmitting(false);
     }
@@ -188,16 +208,16 @@ export default function SplitAnalysisPage() {
       <main className="flex-1">
         {mode === "view" && result && (
           <div>
-            {result.splits.map((group, gi) => (
+            {sortedSplits.map((group, gi) => (
               <div key={gi} className="border-b border-black last:border-b-0">
                 <div className="p-3">
                   <span className="text-2xl font-bold tracking-label uppercase leading-6">
-                    {resolveNames(group.splitEquallyAmong)}
+                    {sortedNames(group.splitEquallyAmong).join(", ")}
                   </span>
                 </div>
-                {group.groceryItems.map((item) => (
+                {group.groceryItems.map((item, ii) => (
                   <div
-                    key={item.upc}
+                    key={`${item.upc}-${ii}`}
                     className="flex items-center p-3 border-t border-gray-200"
                   >
                     <span className="flex-1 text-base leading-6 truncate">
@@ -219,10 +239,11 @@ export default function SplitAnalysisPage() {
                     {item.description}
                   </span>
                 </div>
-                <div className="px-3 pb-3">
+                <div className="p-3 border-t border-gray-200">
                   <ChipInput
                     participants={participantUsers}
                     selected={editAssignments.get(item.upc) ?? []}
+                    protectedId={result?.paidBy}
                     onAdd={(userId) => {
                       const current = editAssignments.get(item.upc) ?? [];
                       if (!current.includes(userId)) {
@@ -231,10 +252,12 @@ export default function SplitAnalysisPage() {
                     }}
                     onRemove={(userId) => {
                       const current = editAssignments.get(item.upc) ?? [];
-                      updateAssignment(
-                        item.upc,
-                        current.filter((id) => id !== userId),
-                      );
+                      const next = current.filter((id) => id !== userId);
+                      if (next.length === 0 && result?.paidBy) {
+                        updateAssignment(item.upc, [result.paidBy]);
+                      } else {
+                        updateAssignment(item.upc, next);
+                      }
                     }}
                   />
                 </div>
@@ -256,29 +279,19 @@ export default function SplitAnalysisPage() {
       )}
 
       {mode === "edit" && (
-        <div className="sticky bottom-0">
-          {editError && (
-            <p className="p-3 text-xs text-red-600 tracking-wider bg-white border-t border-black">
-              {editError}
-            </p>
-          )}
-          <button
-            onClick={handleConfirmEdits}
-            disabled={submitting}
-            className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-30"
-          >
-            {submitting ? "Confirming..." : "Confirm"}
-          </button>
-        </div>
+        <button
+          onClick={handleConfirmEdits}
+          disabled={submitting}
+          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-30"
+        >
+          {submitting ? "Confirming..." : "Confirm"}
+        </button>
       )}
 
       {error && (
         <ErrorModal
           message={error}
-          onDismiss={() => {
-            setError(null);
-            router.replace("/meal-plan");
-          }}
+          onDismiss={() => setError(null)}
         />
       )}
     </div>

@@ -65,22 +65,20 @@ export default function InvoiceSetupPage() {
 
       <main className="flex-1 p-3 flex flex-col gap-6">
         {/* Participants */}
-        <div>
-          <p className="text-base leading-6">
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="text-base leading-6">
             With <span className="font-bold">You</span> and
-          </p>
-          <div className="flex flex-wrap gap-1 mt-2">
-            {otherUsers.map((u) => (
-              <Chip key={u.id} label={u.name} />
-            ))}
-          </div>
+          </span>
+          {otherUsers.map((u) => (
+            <Chip key={u.id} label={u.name} />
+          ))}
         </div>
 
         {/* File upload */}
         <label className="flex items-center gap-3 p-3 border border-gray-200 cursor-pointer">
           <Icon name={file ? "description" : "upload_file"} size={24} />
           <span className="text-base leading-6 truncate">
-            {file ? file.name : "Upload PDF"}
+            {file ? file.name : "Invoice"}
           </span>
           <input
             ref={fileRef}
@@ -90,12 +88,6 @@ export default function InvoiceSetupPage() {
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
         </label>
-
-        {/* Static text */}
-        <p className="text-xs leading-4 text-gray-400">
-          Paid by <span className="font-bold">you</span> and split{" "}
-          <span className="font-bold">equally</span>
-        </p>
       </main>
 
       {/* Bottom button */}

@@ -30,6 +30,36 @@ export default function SplitResultPage() {
     return m;
   }, [users]);
 
+  function sortedNames(memberIds: string[]) {
+    return memberIds
+      .map((id) => userMap.get(id) ?? id)
+      .sort((a, b) => a.localeCompare(b));
+  }
+
+  // Sort splits: by group size ascending, then by sorted concatenated names
+  const sortedSplits = useMemo(() => {
+    if (!order?.splits) return [];
+    return [...order.splits]
+      .map((split) => ({
+        ...split,
+        _sortedItems: ([...(split.grocery_items ?? [])] as unknown as GroceryItem[]).sort(
+          (a, b) => a.description.localeCompare(b.description),
+        ),
+        _sortedMemberIds: [...split.member_ids].sort((a, b) => {
+          const nameA = userMap.get(a) ?? a;
+          const nameB = userMap.get(b) ?? b;
+          return nameA.localeCompare(nameB);
+        }),
+      }))
+      .sort((a, b) => {
+        const sizeDiff = a.member_ids.length - b.member_ids.length;
+        if (sizeDiff !== 0) return sizeDiff;
+        const aNamesKey = sortedNames(a.member_ids).join(", ");
+        const bNamesKey = sortedNames(b.member_ids).join(", ");
+        return aNamesKey.localeCompare(bNamesKey);
+      });
+  }, [order, userMap]);
+
   if (isLoading) return null;
 
   return (
@@ -43,9 +73,8 @@ export default function SplitResultPage() {
       </div>
 
       <main className="flex-1">
-        {order?.splits.map((split) => {
+        {sortedSplits.map((split) => {
           const isSuccess = split.status === "success";
-          const items = (split.grocery_items ?? []) as unknown as GroceryItem[];
 
           return (
             <div
@@ -55,16 +84,16 @@ export default function SplitResultPage() {
               }`}
             >
               <div className="flex items-center gap-1 flex-wrap p-3">
-                {split.member_ids.map((mid) => (
+                {split._sortedMemberIds.map((mid) => (
                   <Chip key={mid} label={userMap.get(mid) ?? mid} />
                 ))}
                 <span className="ml-auto text-2xl font-bold leading-6">
                   ₹{split.amount.toFixed(2)}
                 </span>
               </div>
-              {items.map((item) => (
+              {split._sortedItems.map((item, ii) => (
                 <div
-                  key={item.upc}
+                  key={`${item.upc}-${ii}`}
                   className="flex items-center p-3 border-t border-gray-200"
                 >
                   <span className="flex-1 text-base leading-6 truncate">
