@@ -14,7 +14,9 @@ class Order(Base):
     __tablename__ = "orders"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    paid_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    paid_by: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
+    )
     invoice_filename: Mapped[str] = mapped_column(String(500))
     status: Mapped[str] = mapped_column(String(20), default="draft")
     snapshot: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
@@ -36,7 +38,7 @@ class OrderParticipant(Base):
         UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), primary_key=True
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), primary_key=True
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
     )
 
     # Relationships

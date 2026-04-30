@@ -82,3 +82,21 @@ def download_to_temp(storage_path: str) -> str:
 
     # Fallback: the storage_path IS the local path
     return storage_path
+
+
+def delete_order_files(order_id: uuid.UUID) -> None:
+    """Delete all stored files for an order.
+
+    Sync function — call via asyncio.to_thread() in async context.
+    """
+    import shutil
+
+    if _is_real_supabase():
+        client = _get_supabase_client()
+        path = _storage_path(order_id)
+        client.storage.from_(BUCKET).remove([path])
+        return
+
+    local_dir = Path(settings.get("STORAGE_DIR", "./storage")) / "orders" / str(order_id)
+    if local_dir.exists():
+        shutil.rmtree(local_dir)

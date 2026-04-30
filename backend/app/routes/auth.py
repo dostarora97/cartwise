@@ -26,9 +26,11 @@ from app.auth.dependencies import CurrentUser, security
 from app.auth.jwt import create_test_token, decode_supabase_jwt
 from app.config import settings
 from app.database import SessionDep
+from app.models.order import Order
 from app.models.user import User
 from app.schemas.user import UserResponse
-from app.services.vault import store_secret
+from app.services.storage import delete_order_files
+from app.services.vault import delete_secret, store_secret
 
 _signer = URLSafeTimedSerializer(settings.SESSION_SECRET_KEY)
 STATE_MAX_AGE = 600  # 10 minutes
@@ -56,6 +58,37 @@ async def get_me(current_user: CurrentUser):
     Returns 404 if the user hasn't completed onboarding yet.
     """
     return current_user
+
+
+class DeleteAccountRequest(BaseModel):
+    action: str
+
+
+@router.delete("/me")
+async def delete_account(
+    body: DeleteAccountRequest, current_user: CurrentUser, session: SessionDep
+):
+    """Permanently delete the current user's account and all associated data."""
+    if body.action != "delete":
+        raise HTTPException(status_code=400, detail="Must confirm with action: 'delete'")
+
+    # 1. Delete vault secret (Splitwise token)
+    await delete_secret(session, f"splitwise_token:{current_user.id}")
+
+    # 2. Delete storage files for user's orders
+    import asyncio
+
+    result = await session.execute(select(Order).where(Order.paid_by == current_user.id))
+    for order in result.scalars():
+        await asyncio.to_thread(delete_order_files, order.id)
+
+    # 3. Delete user — DB CASCADE handles all related rows
+    from sqlalchemy import delete
+
+    await session.execute(delete(User).where(User.id == current_user.id))
+    await session.commit()
+
+    return {"detail": "Account deleted"}
 
 
 @router.post("/onboard", response_model=UserResponse, status_code=201)
