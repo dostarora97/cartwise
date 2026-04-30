@@ -1,6 +1,6 @@
 export default function OfflinePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center font-mono">
+    <div className="flex min-h-dvh items-center justify-center font-mono">
       <div className="p-3 text-center">
         <span className="text-2xl font-bold tracking-label uppercase leading-6">
           Offline

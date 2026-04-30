@@ -276,7 +276,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   const showEditButton = !isNew && !editing;
 
   return (
-    <div className="flex min-h-screen flex-col [overflow-anchor:none]">
+    <div className="flex flex-1 flex-col [overflow-anchor:none]">
       {/* TopBar — scrolls away (not sticky). The observer watches this
           element; when it leaves the viewport the sticky heading truncates. */}
       <div ref={sentinelRef}>

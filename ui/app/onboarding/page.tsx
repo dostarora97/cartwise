@@ -56,7 +56,7 @@ export default function OnboardingPage() {
   }, [router]);
 
   if (!ready) {
-    return <div className="flex min-h-screen items-center justify-center" />;
+    return <div className="flex min-h-dvh items-center justify-center" />;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -71,7 +71,7 @@ export default function OnboardingPage() {
         body: {
           name,
           phone,
-          splitwise_user_id: parseInt(splitwiseUserId, 10),
+          splitwise_user_id: splitwiseUserId ? parseInt(splitwiseUserId, 10) : undefined,
         },
       },
     );
@@ -87,7 +87,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <header className="flex items-center justify-center p-3 border-b border-black">
         <span className="text-2xl font-bold tracking-heading uppercase leading-6">
           CartWise
@@ -136,7 +136,6 @@ export default function OnboardingPage() {
             <input
               id="onboarding-splitwise-id"
               type="number"
-              required
               value={splitwiseUserId}
               onChange={(e) => setSplitwiseUserId(e.target.value)}
               placeholder="00000"

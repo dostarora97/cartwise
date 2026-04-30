@@ -28,4 +28,4 @@ class UserUpdate(BaseModel):
 class OnboardRequest(BaseModel):
     name: str
     phone: str
-    splitwise_user_id: int
+    splitwise_user_id: int | None = None

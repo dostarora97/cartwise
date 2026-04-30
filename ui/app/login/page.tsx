@@ -36,11 +36,11 @@ export default function LoginPage() {
   }
 
   if (loading || session) {
-    return <div className="flex min-h-screen items-center justify-center" />;
+    return <div className="flex min-h-dvh items-center justify-center" />;
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-6">
+    <div className="flex min-h-dvh flex-col items-center justify-center px-6">
       <h1 className="text-2xl font-bold tracking-heading uppercase">
         CartWise
       </h1>
