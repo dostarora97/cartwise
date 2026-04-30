@@ -23,7 +23,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Middleware (order matters — outermost first)
+# Middleware (order matters — last added runs first)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
     CORSMiddleware,

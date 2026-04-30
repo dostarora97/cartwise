@@ -40,10 +40,56 @@ export interface paths {
          * @description Complete onboarding — creates the user record in the DB.
          *
          *     Requires a valid Supabase JWT. The user must NOT already exist.
-         *     OAuth claims (email, avatar, provider) come from the JWT.
-         *     Name, phone, and splitwise_user_id come from the request body.
+         *     All user fields (email, name, avatar, provider) come from JWT claims.
          */
         post: operations["onboard_api_v1_auth_onboard_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/splitwise/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Splitwise Connect
+         * @description Start the Splitwise OAuth flow.
+         *
+         *     Returns an authorize_url the frontend navigates to, plus the redirect_uri
+         *     that the frontend callback route must echo back during token exchange.
+         */
+        post: operations["splitwise_connect_api_v1_auth_splitwise_connect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/splitwise/exchange": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Splitwise Exchange
+         * @description Exchange a Splitwise authorization code for an access token.
+         *
+         *     Called by the frontend callback route after Splitwise redirects back.
+         *     The frontend forwards code + state + redirect_uri; backend handles
+         *     token exchange, stores the token in Vault, and returns success/failure.
+         */
+        post: operations["splitwise_exchange_api_v1_auth_splitwise_exchange_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -482,15 +528,6 @@ export interface components {
             /** Body */
             body?: string | null;
         };
-        /** OnboardRequest */
-        OnboardRequest: {
-            /** Name */
-            name: string;
-            /** Phone */
-            phone: string;
-            /** Splitwise User Id */
-            splitwise_user_id: number;
-        };
         /** OrderParticipantResponse */
         OrderParticipantResponse: {
             /**
@@ -563,6 +600,15 @@ export interface components {
             /** Splitwise Expense Id */
             splitwise_expense_id: number | null;
         };
+        /** SplitwiseExchangeRequest */
+        SplitwiseExchangeRequest: {
+            /** Code */
+            code: string;
+            /** State */
+            state: string;
+            /** Redirect Uri */
+            redirect_uri: string;
+        };
         /** UserResponse */
         UserResponse: {
             /**
@@ -574,14 +620,14 @@ export interface components {
             email: string;
             /** Name */
             name: string;
-            /** Phone */
-            phone: string | null;
             /** Avatar Url */
             avatar_url: string | null;
             /** Oauth Provider */
             oauth_provider: string;
             /** Splitwise User Id */
             splitwise_user_id: number | null;
+            /** Splitwise Connected */
+            splitwise_connected: boolean;
             /** Is Active */
             is_active: boolean;
             /**
@@ -599,8 +645,6 @@ export interface components {
         UserUpdate: {
             /** Name */
             name?: string | null;
-            /** Phone */
-            phone?: string | null;
             /** Avatar Url */
             avatar_url?: string | null;
         };
@@ -653,11 +697,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OnboardRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             201: {
@@ -666,6 +706,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    splitwise_connect_api_v1_auth_splitwise_connect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    splitwise_exchange_api_v1_auth_splitwise_exchange_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SplitwiseExchangeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

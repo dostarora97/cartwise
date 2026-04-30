@@ -16,9 +16,9 @@ interface AppUser {
   id: string;
   email: string;
   name: string;
-  phone: string | null;
   avatar_url: string | null;
   splitwise_user_id: number | null;
+  splitwise_connected: boolean;
 }
 
 interface AuthContextType {

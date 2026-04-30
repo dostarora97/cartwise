@@ -19,11 +19,19 @@ DATABASE_URL = ""
 
 # Splitwise — actual values in .secrets.toml (gitignored)
 # SPLITWISE_ENABLED must be explicitly true to allow API calls
+# Default points to mock server — only production overrides to real Splitwise
 SPLITWISE_ENABLED = false
-SPLITWISE_BASE_URL = "https://secure.splitwise.com/api/v3.0"
+SPLITWISE_BASE_URL = "http://localhost:8001/api/mock/splitwise/v3.0"
+SPLITWISE_OAUTH_BASE_URL = "http://localhost:8001"
 SPLITWISE_API_KEY = ""
 SPLITWISE_CONSUMER_KEY = ""
 SPLITWISE_CONSUMER_SECRET = ""
+
+# Frontend URL (for OAuth callback redirects)
+FRONTEND_URL = "http://localhost:3000"
+
+# Session/signing secret — set in .secrets.toml
+SESSION_SECRET_KEY = ""
 
 # Mock server (for local mock services)
 MOCK_SERVER_PORT = 8001
@@ -31,11 +39,16 @@ MOCK_SERVER_PORT = 8001
 [development]
 DEBUG = true
 SPLITWISE_ENABLED = true
-SPLITWISE_BASE_URL = "http://localhost:8001/api/mock/splitwise/v3.0"
+CORS_ORIGINS = ["http://lr602lw45l.taile1dca.ts.net:3000", "http://localhost:3000"]
+FRONTEND_URL = "http://lr602lw45l.taile1dca.ts.net:3000"
+SESSION_SECRET_KEY = "dev-session-secret-not-for-production"
 
 [testing]
 DEBUG = true
 SPLITWISE_ENABLED = true
-SPLITWISE_BASE_URL = "http://localhost:8001/api/mock/splitwise/v3.0"
+SESSION_SECRET_KEY = "test-session-secret"
 
 [production]
+# Real Splitwise — only production hits the actual API
+SPLITWISE_BASE_URL = "https://secure.splitwise.com/api/v3.0"
+SPLITWISE_OAUTH_BASE_URL = "https://secure.splitwise.com"
