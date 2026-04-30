@@ -6,6 +6,7 @@ import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
 import { Icon } from "@/components/icon";
+import { LogoutButton } from "@/components/logout-button";
 import { useRouter } from "next/navigation";
 
 export default function MealPlanPage() {
@@ -15,15 +16,17 @@ export default function MealPlanPage() {
   const { data: mealPlan, isLoading } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser!.id } } },
+    { params: { path: { user_id: appUser?.id ?? "" } }, enabled: !!appUser },
   );
+
+  if (!appUser) return null;
 
   const items = mealPlan?.items ?? [];
   const hasItems = items.length > 0;
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar />
+      <TopBar rightAction={<LogoutButton />} />
 
       <div className="flex items-stretch justify-between border-b border-black">
         <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">

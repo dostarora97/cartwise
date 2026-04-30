@@ -2,51 +2,33 @@
 
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Session } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
 import apiClient from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
 
 function OnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refreshAppUser } = useAuth();
+  const { session, loading, refreshAppUser } = useAuth();
 
   const swParam = searchParams.get("splitwise");
   const initialStatus = swParam === "success" ? "done" : swParam === "error" ? "connecting" : "loading";
 
   const [error, setError] = useState(swParam === "error" ? "Failed to connect Splitwise. Please try again." : "");
   const [status, setStatus] = useState<"loading" | "connecting" | "done">(initialStatus);
-  const [session, setSession] = useState<Session | null>(null);
   const startedRef = useRef(false);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!session) {
+      router.replace("/login");
+    }
+  }, [loading, session, router]);
 
   useEffect(() => {
     if (swParam === "success") {
       refreshAppUser().then(() => router.replace("/meal-plan"));
     }
   }, [swParam, refreshAppUser, router]);
-
-  useEffect(() => {
-    const supabase = createClient();
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        router.replace("/login");
-        return;
-      }
-      setSession(session);
-    });
-
-    const timeout = setTimeout(() => {
-      if (!session) router.replace("/login");
-    }, 5000);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-    };
-  }, [router, session]);
 
   useEffect(() => {
     if (!session || startedRef.current || swParam) return;
@@ -93,6 +75,8 @@ function OnboardingContent() {
 
     window.location.href = data.authorize_url;
   }
+
+  if (loading || !session) return null;
 
   return (
     <div className="flex min-h-dvh flex-col">
