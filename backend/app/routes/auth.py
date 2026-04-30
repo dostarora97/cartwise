@@ -11,8 +11,6 @@ In development (DEBUG=true), a dev-login endpoint is available
 for testing without a frontend.
 """
 
-import hashlib
-import hmac
 import secrets
 import uuid
 from datetime import UTC, datetime
@@ -20,6 +18,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
+from itsdangerous import BadSignature, URLSafeTimedSerializer
 from pydantic import BaseModel
 from sqlalchemy import select
 
@@ -31,28 +30,19 @@ from app.models.user import User
 from app.schemas.user import UserResponse
 from app.services.vault import store_secret
 
+_signer = URLSafeTimedSerializer(settings.SESSION_SECRET_KEY)
+STATE_MAX_AGE = 600  # 10 minutes
+
 
 def _sign_state(user_id: str, nonce: str) -> str:
-    """Encode user_id + nonce into a signed OAuth state parameter."""
-    payload = f"{user_id}:{nonce}"
-    sig = hmac.new(
-        settings.SESSION_SECRET_KEY.encode(), payload.encode(), hashlib.sha256
-    ).hexdigest()[:16]
-    return f"{sig}.{payload}"
+    return _signer.dumps({"uid": user_id, "nonce": nonce})
 
 
-def _verify_state(state: str) -> str | None:
-    """Verify and extract user_id from signed state. Returns None if invalid."""
+def _verify_state(state: str, max_age: int = STATE_MAX_AGE) -> str | None:
     try:
-        sig, payload = state.split(".", 1)
-        expected = hmac.new(
-            settings.SESSION_SECRET_KEY.encode(), payload.encode(), hashlib.sha256
-        ).hexdigest()[:16]
-        if not hmac.compare_digest(sig, expected):
-            return None
-        user_id, _ = payload.split(":", 1)
-        return user_id
-    except ValueError, AttributeError:
+        data = _signer.loads(state, max_age=max_age)
+        return data["uid"]
+    except BadSignature, KeyError, TypeError:
         return None
 
 

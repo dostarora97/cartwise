@@ -25,24 +25,22 @@ class TestSignedState:
         assert _verify_state(s1) == user_id
         assert _verify_state(s2) == user_id
 
-    def test_tampered_signature_rejected(self):
+    def test_tampered_state_rejected(self):
         state = _sign_state("user-id", "nonce")
-        tampered = "0000000000000000" + state[16:]
-        assert _verify_state(tampered) is None
-
-    def test_tampered_payload_rejected(self):
-        state = _sign_state("user-id", "nonce")
-        sig, _ = state.split(".", 1)
-        tampered = f"{sig}.attacker-id:nonce"
+        tampered = state[:-4] + "XXXX"
         assert _verify_state(tampered) is None
 
     def test_garbage_input_returns_none(self):
         assert _verify_state("") is None
-        assert _verify_state("no-dot-here") is None
-        assert _verify_state("a.b") is None  # no colon in payload
+        assert _verify_state("not-a-valid-token") is None
+        assert _verify_state("a.b.c") is None
 
     def test_none_input_returns_none(self):
         assert _verify_state(None) is None  # type: ignore[arg-type]
+
+    def test_expired_state_rejected(self):
+        state = _sign_state("user-id", "nonce")
+        assert _verify_state(state, max_age=-1) is None
 
 
 class TestSplitwiseConnect:
