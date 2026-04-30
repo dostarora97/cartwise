@@ -39,8 +39,8 @@ MOCK_SERVER_PORT = 8001
 [development]
 DEBUG = true
 SPLITWISE_ENABLED = true
-CORS_ORIGINS = ["http://lr602lw45l.taile1dca.ts.net:3000", "http://localhost:3000"]
-FRONTEND_URL = "http://lr602lw45l.taile1dca.ts.net:3000"
+CORS_ORIGINS = ["https://lr602lw45l.taile1dca.ts.net", "http://localhost:3000"]
+FRONTEND_URL = "https://lr602lw45l.taile1dca.ts.net"
 SESSION_SECRET_KEY = "dev-session-secret-not-for-production"
 
 [testing]
