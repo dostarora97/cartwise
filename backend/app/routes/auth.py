@@ -98,7 +98,12 @@ class SplitwiseExchangeRequest(BaseModel):
     redirect_uri: str
 
 
-@router.post("/splitwise/connect")
+class SplitwiseConnectResponse(BaseModel):
+    authorize_url: str
+    redirect_uri: str
+
+
+@router.post("/splitwise/connect", response_model=SplitwiseConnectResponse)
 async def splitwise_connect(current_user: CurrentUser):
     """Start the Splitwise OAuth flow.
 

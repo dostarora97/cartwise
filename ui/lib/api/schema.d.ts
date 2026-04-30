@@ -600,6 +600,13 @@ export interface components {
             /** Splitwise Expense Id */
             splitwise_expense_id: number | null;
         };
+        /** SplitwiseConnectResponse */
+        SplitwiseConnectResponse: {
+            /** Authorize Url */
+            authorize_url: string;
+            /** Redirect Uri */
+            redirect_uri: string;
+        };
         /** SplitwiseExchangeRequest */
         SplitwiseExchangeRequest: {
             /** Code */
@@ -725,7 +732,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["SplitwiseConnectResponse"];
                 };
             };
         };
