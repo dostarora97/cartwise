@@ -109,7 +109,7 @@ export default function MealPlanEditPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 flex-col">
       <TopBar
         showBack
         onBack={mode === "reorder" ? () => setMode("select") : undefined}

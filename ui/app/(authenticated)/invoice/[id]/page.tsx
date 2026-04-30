@@ -184,7 +184,7 @@ export default function SplitAnalysisPage() {
 
   if (orderLoading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex flex-1 flex-col">
         <TopBar showBack onBack={handleBack} />
         <div className="flex items-stretch justify-between border-b border-black">
           <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
@@ -198,7 +198,7 @@ export default function SplitAnalysisPage() {
   if (!order && !orderLoading) notFound();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 flex-col">
       <TopBar showBack onBack={handleBack} />
 
       {/* Status bar */}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Icon } from "@/components/icon";
 
 interface TopBarProps {
@@ -26,9 +25,9 @@ export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-1 h-12">
-        <Image src="/logo-grocery.avif" alt="" width={36} height={36} className="object-contain" unoptimized />
-        <Image src="/logo-calculator.avif" alt="" width={36} height={36} className="object-contain" unoptimized />
-        <Image src="/logo-pizza.avif" alt="" width={36} height={36} className="object-contain" unoptimized />
+        <img src="/logo-grocery.avif" alt="" width={36} height={36} className="object-contain" />
+        <img src="/logo-calculator.avif" alt="" width={36} height={36} className="object-contain" />
+        <img src="/logo-pizza.avif" alt="" width={36} height={36} className="object-contain" />
       </div>
 
       <div className="w-12 shrink-0 flex items-stretch">{rightAction}</div>

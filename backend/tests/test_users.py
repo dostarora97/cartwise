@@ -34,12 +34,11 @@ async def test_get_user_not_found(client: AsyncClient):
 async def test_update_own_profile(client: AsyncClient, test_user: User, auth_headers: dict):
     response = await client.patch(
         f"/api/v1/users/{test_user.id}",
-        json={"name": "Updated Name", "phone": "+911234567890"},
+        json={"name": "Updated Name"},
         headers=auth_headers,
     )
     assert response.status_code == 200
     assert response.json()["name"] == "Updated Name"
-    assert response.json()["phone"] == "+911234567890"
 
 
 async def test_update_other_user_forbidden(

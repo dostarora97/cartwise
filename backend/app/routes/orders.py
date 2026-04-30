@@ -343,6 +343,9 @@ async def approve_order(
     }
 
     from app.services.splitwise import push_splits_audited
+    from app.services.vault import get_secret
+
+    payer_token = await get_secret(session, f"splitwise_token:{order.paid_by}")
 
     audits = await push_splits_audited(
         session=session,
@@ -350,6 +353,7 @@ async def approve_order(
         split_result=split_result,
         member_id_to_sw_id=member_id_to_sw_id,
         payer_sw_id=payer_sw_id,
+        token=payer_token,
     )
 
     # Update split statuses from audit results

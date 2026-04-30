@@ -16,6 +16,7 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   turbopack: {},
+  allowedDevOrigins: ["lr602lw45l.taile1dca.ts.net"],
   async redirects() {
     return [
       {

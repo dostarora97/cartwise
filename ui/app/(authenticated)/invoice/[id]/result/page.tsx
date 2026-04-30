@@ -60,7 +60,7 @@ export default function SplitResultPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex flex-1 flex-col">
         <TopBar showBack onBack={() => router.push("/meal-plan")} />
         <div className="flex items-center p-3 border-b border-black">
           <span className="text-2xl font-bold tracking-label uppercase leading-6">
@@ -74,7 +74,7 @@ export default function SplitResultPage() {
   if (!order && !isLoading) notFound();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 flex-col">
       <TopBar showBack onBack={() => router.push("/meal-plan")} />
 
       <div className="flex items-center p-3 border-b border-black">

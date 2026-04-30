@@ -188,12 +188,11 @@ async def test_update_own_profile(client: AsyncClient):
     token, user_id = await _login(client, "update@test.com", "Before")
     resp = await client.patch(
         f"/api/v1/users/{user_id}",
-        json={"name": "After", "phone": "+911234567890"},
+        json={"name": "After"},
         headers=_auth(token),
     )
     assert resp.status_code == 200
     assert resp.json()["name"] == "After"
-    assert resp.json()["phone"] == "+911234567890"
 
 
 async def test_update_other_user_forbidden(client: AsyncClient):

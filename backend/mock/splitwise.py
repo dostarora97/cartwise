@@ -12,9 +12,11 @@ For persistent verification, check the splitwise_audit_log table in the real DB.
 """
 
 import itertools
+import uuid
 from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request
+from starlette.responses import RedirectResponse
 
 app = FastAPI(title="Mock Splitwise", version="0.1.0")
 
@@ -202,3 +204,22 @@ async def reset_ledger():
     """Debug endpoint: clear all expenses."""
     _expenses.clear()
     return {"success": True, "message": "Ledger cleared"}
+
+
+# --- OAuth 2.0 mock endpoints ---
+
+
+@app.get("/oauth/authorize")
+async def mock_authorize(response_type: str, client_id: str, redirect_uri: str, state: str):
+    """Mock OAuth authorize — immediately redirects back with a code."""
+    code = f"mock_code_{uuid.uuid4().hex[:8]}"
+    return RedirectResponse(f"{redirect_uri}?code={code}&state={state}")
+
+
+@app.post("/oauth/token")
+async def mock_token():
+    """Mock token exchange — returns a fake access token."""
+    return {
+        "access_token": f"mock_token_{uuid.uuid4().hex[:8]}",
+        "token_type": "bearer",
+    }

@@ -82,7 +82,7 @@ function InvoiceSetupContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 flex-col">
       <TopBar showBack onBack={() => router.push("/meal-plan")} />
 
       <div className="flex items-center p-3 border-b border-black">

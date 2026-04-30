@@ -40,8 +40,11 @@ def _check_enabled() -> None:
         )
 
 
-def _headers() -> dict:
-    return {"Authorization": f"Bearer {settings.SPLITWISE_API_KEY}"}
+def _headers(token: str | None = None) -> dict:
+    auth_token = token or settings.get("SPLITWISE_API_KEY", "")
+    if not auth_token:
+        raise SplitwiseDisabledError("No Splitwise token available.")
+    return {"Authorization": f"Bearer {auth_token}"}
 
 
 def _payload_hash(payload: dict) -> str:
@@ -121,6 +124,7 @@ async def create_expense_audited(
     order_id: uuid.UUID | None = None,
     group_id: int = 0,
     details: str | None = None,
+    token: str | None = None,
 ) -> SplitwiseAuditLog:
     """Create an expense in Splitwise with full audit trail.
 
@@ -164,7 +168,7 @@ async def create_expense_audited(
 
     # Step 2: Call Splitwise API
     try:
-        resp = httpx.post(f"{_base_url()}/create_expense", headers=_headers(), json=payload)
+        resp = httpx.post(f"{_base_url()}/create_expense", headers=_headers(token), json=payload)
         resp.raise_for_status()
         data = resp.json()
 
@@ -192,6 +196,7 @@ async def delete_expense_audited(
     session: AsyncSession,
     splitwise_expense_id: int,
     order_id: uuid.UUID | None = None,
+    token: str | None = None,
 ) -> SplitwiseAuditLog:
     """Delete an expense from Splitwise with audit trail."""
     _check_enabled()
@@ -211,7 +216,7 @@ async def delete_expense_audited(
 
     try:
         resp = httpx.post(
-            f"{_base_url()}/delete_expense/{splitwise_expense_id}", headers=_headers()
+            f"{_base_url()}/delete_expense/{splitwise_expense_id}", headers=_headers(token)
         )
         resp.raise_for_status()
         data = resp.json()
@@ -244,6 +249,7 @@ async def push_splits_audited(
     member_id_to_sw_id: dict[str, int],
     payer_sw_id: int,
     group_id: int = 0,
+    token: str | None = None,
 ) -> list[SplitwiseAuditLog]:
     """Push all split groups to Splitwise with per-expense auditing.
 
@@ -288,6 +294,7 @@ async def push_splits_audited(
             order_id=order_id,
             group_id=group_id,
             details=details,
+            token=token,
         )
         audits.append(audit)
 
@@ -300,6 +307,7 @@ async def push_splits_audited(
 async def rollback_order_expenses(
     session: AsyncSession,
     order_id: uuid.UUID,
+    token: str | None = None,
 ) -> list[SplitwiseAuditLog]:
     """Delete all successfully created Splitwise expenses for an order.
 
@@ -323,6 +331,7 @@ async def rollback_order_expenses(
             session=session,
             splitwise_expense_id=audit_row.splitwise_expense_id,
             order_id=order_id,
+            token=token,
         )
         delete_audits.append(delete_audit)
 

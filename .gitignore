@@ -26,6 +26,7 @@ wheels/
 .claude/skills/
 .agents/
 skills-lock.json
+.mcp.json
 
 # Node (root — husky + lint-staged deps)
 node_modules/

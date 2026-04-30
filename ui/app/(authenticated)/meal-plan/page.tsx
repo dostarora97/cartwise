@@ -22,7 +22,7 @@ export default function MealPlanPage() {
   const hasItems = items.length > 0;
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex flex-1 flex-col">
       <TopBar />
 
       <div className="flex items-stretch justify-between border-b border-black">
