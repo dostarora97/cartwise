@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import apiClient from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshAppUser } = useAuth();
@@ -129,5 +129,13 @@ export default function OnboardingPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-dvh items-center justify-center"><p className="text-sm tracking-wider text-gray-600">Loading...</p></div>}>
+      <OnboardingContent />
+    </Suspense>
   );
 }
