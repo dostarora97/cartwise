@@ -166,3 +166,43 @@ async def test_unarchive_not_found(client: AsyncClient, auth_headers: dict):
         f"/api/v1/menu-items/{uuid.uuid4()}/unarchive", headers=auth_headers
     )
     assert response.status_code == 404
+
+
+async def test_update_other_users_item_returns_404(
+    client: AsyncClient, auth_headers: dict, session
+):
+    """Users cannot modify menu items they don't own."""
+    from app.auth.jwt import create_test_token
+    from app.models.user import User
+
+    created = await client.post(
+        "/api/v1/menu-items/",
+        json={"name": "Private", "body": "owner only"},
+        headers=auth_headers,
+    )
+    item_id = created.json()["id"]
+
+    other_user = User(
+        email="other@example.com",
+        name="Other",
+        oauth_provider="google",
+        oauth_id="other-oauth-id",
+    )
+    session.add(other_user)
+    await session.commit()
+    other_token = create_test_token(other_user.oauth_id, other_user.email)
+    other_headers = {"Authorization": f"Bearer {other_token}"}
+
+    assert (
+        await client.patch(
+            f"/api/v1/menu-items/{item_id}", json={"name": "Hacked"}, headers=other_headers
+        )
+    ).status_code == 404
+
+    assert (
+        await client.patch(f"/api/v1/menu-items/{item_id}/archive", headers=other_headers)
+    ).status_code == 404
+
+    assert (
+        await client.patch(f"/api/v1/menu-items/{item_id}/unarchive", headers=other_headers)
+    ).status_code == 404

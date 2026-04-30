@@ -13,6 +13,16 @@ from app.schemas.menu_item import MenuItemCreate, MenuItemResponse, MenuItemUpda
 router = APIRouter(prefix="/menu-items", tags=["menu-items"])
 
 
+async def _get_own_item(session, item_id: uuid.UUID, user_id: uuid.UUID) -> MenuItem:
+    result = await session.execute(
+        select(MenuItem).where(MenuItem.id == item_id, MenuItem.created_by == user_id)
+    )
+    item = result.scalar_one_or_none()
+    if not item:
+        raise HTTPException(status_code=404, detail="Menu item not found")
+    return item
+
+
 @router.post("/", response_model=MenuItemResponse, status_code=201)
 async def create_menu_item(
     data: MenuItemCreate,
@@ -59,9 +69,7 @@ async def update_menu_item(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    item = await session.get(MenuItem, item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Menu item not found")
+    item = await _get_own_item(session, item_id, current_user.id)
 
     update_data = data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -79,14 +87,11 @@ async def archive_menu_item(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    item = await session.get(MenuItem, item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Menu item not found")
+    item = await _get_own_item(session, item_id, current_user.id)
 
     item.status = "archived"
     item.updated_by = current_user.id
 
-    # Auto-remove from user's meal plan if present
     result = await session.execute(
         select(MealPlan)
         .where(MealPlan.user_id == current_user.id)
@@ -107,9 +112,7 @@ async def unarchive_menu_item(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    item = await session.get(MenuItem, item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Menu item not found")
+    item = await _get_own_item(session, item_id, current_user.id)
 
     item.status = "active"
     item.updated_by = current_user.id
