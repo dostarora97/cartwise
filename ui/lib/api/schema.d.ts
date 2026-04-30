@@ -20,7 +20,11 @@ export interface paths {
         get: operations["get_me_api_v1_auth_me_get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Account
+         * @description Permanently delete the current user's account and all associated data.
+         */
+        delete: operations["delete_account_api_v1_auth_me_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -420,6 +424,11 @@ export interface components {
             /** Participant Ids */
             participant_ids: string;
         };
+        /** DeleteAccountRequest */
+        DeleteAccountRequest: {
+            /** Action */
+            action: string;
+        };
         /** DevLoginRequest */
         DevLoginRequest: {
             /** Email */
@@ -693,6 +702,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    delete_account_api_v1_auth_me_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

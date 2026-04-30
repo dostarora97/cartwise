@@ -17,7 +17,7 @@ export default function AuthenticatedLayout({
     if (loading) return;
     if (!session) {
       router.replace("/login");
-    } else if (!appUser) {
+    } else if (!appUser || !appUser.splitwise_connected) {
       router.replace("/onboarding");
     } else {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -25,7 +25,7 @@ export default function AuthenticatedLayout({
     }
   }, [session, appUser, loading, router]);
 
-  if (!wasAuthed && (loading || !session || !appUser)) {
+  if (!wasAuthed && (loading || !session || !appUser || !appUser.splitwise_connected)) {
     return <div className="flex flex-1 flex-col" />;
   }
 
