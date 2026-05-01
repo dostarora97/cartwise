@@ -4,11 +4,19 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/icon";
 
+let loginRenderCount = 0;
+
 export default function LoginPage() {
+  loginRenderCount++;
+  console.log("[LoginPage] render #" + loginRenderCount);
+
   const supabase = createClient();
   const [error, setError] = useState("");
 
+  console.log("[LoginPage] state:", { error: error || "(none)" });
+
   async function handleGoogleLogin() {
+    console.log("[LoginPage] handleGoogleLogin START");
     setError("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -16,6 +24,7 @@ export default function LoginPage() {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
     });
+    console.log("[LoginPage] signInWithOAuth result:", { error: error?.message ?? "none" });
     if (error) {
       setError("Failed to sign in. Please try again.");
     }
