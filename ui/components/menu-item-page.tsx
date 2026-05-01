@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
-import { useAuth } from "@/lib/auth";
+import { useRequiredAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
@@ -19,7 +19,7 @@ interface MenuItemPageProps {
 }
 
 export function MenuItemPage({ itemId }: MenuItemPageProps) {
-  const { appUser } = useAuth();
+  const { appUser } = useRequiredAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const isNew = !itemId;
@@ -55,8 +55,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   const { data: mealPlan } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser?.id ?? "" } } },
-    { enabled: !!appUser },
+    { params: { path: { user_id: appUser.id } } },
   );
 
   const inPlan = mealPlan?.items.some((i) => i.menu_item.id === itemId) ?? false;
@@ -224,14 +223,14 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
                 {
                   params: {
                     path: {
-                      user_id: appUser!.id,
+                      user_id: appUser.id,
                       menu_item_id: itemId!,
                     },
                   },
                 },
               )
             : await apiClient.POST("/api/v1/meal-plans/{user_id}/items", {
-                params: { path: { user_id: appUser!.id } },
+                params: { path: { user_id: appUser.id } },
                 body: { menu_item_id: itemId! },
               });
           if (result.error) return;

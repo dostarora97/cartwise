@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { ONBOARDED_COOKIE, ONBOARDED_VALUE, ONBOARDED_COOKIE_OPTIONS } from "@/lib/cookies";
 
 function baseUrl(request: NextRequest): string {
   const proto = request.headers.get("x-forwarded-proto") || "http";
@@ -26,7 +27,9 @@ export async function GET(request: NextRequest) {
   });
 
   if (resp.ok) {
-    return NextResponse.redirect(new URL("/", origin));
+    const response = NextResponse.redirect(new URL("/", origin));
+    response.cookies.set(ONBOARDED_COOKIE, ONBOARDED_VALUE, ONBOARDED_COOKIE_OPTIONS);
+    return response;
   }
 
   return NextResponse.redirect(new URL("/onboarding?splitwise=error", origin));

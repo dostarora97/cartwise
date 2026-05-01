@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/lib/auth";
+import { useRequiredAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
@@ -10,18 +10,18 @@ import { Spinner } from "@/components/spinner";
 import { useRouter } from "next/navigation";
 
 export default function MealPlanPage() {
-  const { appUser } = useAuth();
+  const { appUser } = useRequiredAuth();
   const router = useRouter();
 
   const { data: mealPlan, isLoading } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser?.id ?? "" } }, enabled: !!appUser },
+    { params: { path: { user_id: appUser.id } } },
   );
 
   const items = mealPlan?.items ?? [];
   const hasItems = items.length > 0;
-  const ready = !!appUser && !isLoading;
+  const ready = !isLoading;
 
   return (
     <div className="flex flex-1 flex-col">

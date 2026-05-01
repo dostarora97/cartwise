@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/auth";
+import { useRequiredAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
 import { ChipInput, type ChipInputHandle } from "@/components/chip-input";
@@ -20,7 +20,7 @@ export default function InvoiceSetupPage() {
 }
 
 function InvoiceSetupContent() {
-  const { appUser, session } = useAuth();
+  const { appUser, session } = useRequiredAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -34,7 +34,7 @@ function InvoiceSetupContent() {
 
   const { data: users } = $api.useQuery("get", "/api/v1/users/");
   const otherUsers = (users ?? [])
-    .filter((u) => u.id !== appUser?.id)
+    .filter((u) => u.id !== appUser.id)
     .map((u) => ({ id: u.id, name: u.name }));
 
   // Pick up shared file from Web Share Target (cached by service worker)
@@ -52,11 +52,11 @@ function InvoiceSetupContent() {
   }, [searchParams]);
 
   async function handleAnalyse() {
-    if (!file || !session?.access_token || !appUser || selectedOthers.length === 0) return;
+    if (!file || !session?.access_token || selectedOthers.length === 0) return;
     setSubmitting(true);
 
     try {
-      const participantIds = [appUser!.id, ...selectedOthers];
+      const participantIds = [appUser.id, ...selectedOthers];
       const formData = new FormData();
       formData.append("file", file);
       formData.append("participant_ids", JSON.stringify(participantIds));

@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/icon";
 
-export default function LoginPage() {
+function LoginContent() {
   const supabase = createClient();
-  const [error, setError] = useState("");
+  const searchParams = useSearchParams();
+  const errorParam = searchParams.get("error");
+  const [error, setError] = useState(
+    errorParam ? "Something went wrong. Please try again." : "",
+  );
 
   async function handleGoogleLogin() {
     setError("");
@@ -39,5 +44,13 @@ export default function LoginPage() {
         <p className="mt-4 text-xs text-red-600 tracking-wider">{error}</p>
       )}
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }
