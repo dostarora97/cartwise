@@ -74,7 +74,10 @@ export default function ProfilePage() {
 
         <div className="mt-auto flex flex-col gap-3">
           <button
-            onClick={signOut}
+            onClick={async () => {
+              await signOut();
+              window.location.href = "/login";
+            }}
             className="flex items-center justify-center border border-black p-3 text-base font-bold tracking-label uppercase"
           >
             Sign Out
