@@ -396,15 +396,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/healthz": {
+    "/health": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Healthz */
-        get: operations["healthz_healthz_get"];
+        /** Health */
+        get: operations["health_health_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1450,7 +1450,7 @@ export interface operations {
             };
         };
     };
-    healthz_healthz_get: {
+    health_health_get: {
         parameters: {
             query?: never;
             header?: never;

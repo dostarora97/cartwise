@@ -101,12 +101,12 @@ async def _create_menu_item(client: AsyncClient, token: str, name: str, body: st
 
 
 # ================================================================
-# Tests — healthz
+# Tests — health
 # ================================================================
 
 
-async def test_healthz(client: AsyncClient):
-    resp = await client.get("/healthz")
+async def test_health(client: AsyncClient):
+    resp = await client.get("/health")
     assert resp.status_code == 200
     assert resp.json() == {"status": "ok"}
 

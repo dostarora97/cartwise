@@ -44,6 +44,6 @@ app.include_router(meal_plans.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
 
 
-@app.get("/healthz")
-async def healthz():
+@app.get("/health")
+async def health():
     return {"status": "ok"}

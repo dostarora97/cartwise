@@ -225,7 +225,7 @@ jobs:
         run: cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 &
 
       - name: Wait for backend
-        run: timeout 30 bash -c 'until curl -sf http://localhost:8000/healthz; do sleep 1; done'
+        run: timeout 30 bash -c 'until curl -sf http://localhost:8000/health; do sleep 1; done'
 
       - name: Generate fresh OpenAPI types
         run: bunx openapi-typescript@7.13.0 http://localhost:8000/openapi.json -o /tmp/schema.d.ts
