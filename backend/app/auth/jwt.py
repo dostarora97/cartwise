@@ -2,8 +2,8 @@
 Supabase JWT validation.
 
 Supabase Auth issues JWTs after OAuth login. Our backend validates them
-using JWKS (ES256) for production Supabase tokens, or the legacy shared
-secret (HS256) for dev/test tokens.
+using JWKS (ES256) when SUPABASE_JWKS_URL is configured, falling back to
+HS256 (shared secret) otherwise.
 
 Supabase JWT claims:
   - sub: Supabase Auth user UUID
@@ -36,11 +36,11 @@ class SupabaseUser:
 
 @lru_cache(maxsize=1)
 def _get_jwks_client() -> PyJWKClient | None:
-    """Get a PyJWKClient for the Supabase JWKS endpoint. Cached."""
-    supabase_url = settings.get("SUPABASE_URL", "")
-    if not supabase_url or "supabase.co" not in supabase_url:
+    """Get a PyJWKClient for the configured JWKS endpoint. Cached."""
+    jwks_url = settings.get("SUPABASE_JWKS_URL", "")
+    if not jwks_url:
         return None
-    return PyJWKClient(f"{supabase_url}/auth/v1/.well-known/jwks.json")
+    return PyJWKClient(jwks_url)
 
 
 def _decode_with_jwks(token: str) -> dict | None:
