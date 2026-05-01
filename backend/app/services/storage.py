@@ -11,9 +11,8 @@ import tempfile
 import uuid
 from pathlib import Path
 
-from supabase import create_client
-
 from app.config import settings
+from supabase import create_client
 
 BUCKET = "invoices"
 

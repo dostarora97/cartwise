@@ -20,6 +20,10 @@ FastAPI backend for grocery cost splitting with meal planning.
 ## Commands (run from `backend/`)
 
 ```bash
+# Local stack (Postgres, Auth, Storage, Studio)
+supabase start
+bash scripts/setup-local.sh
+
 # Dev server
 CARTWISE_ENV=development uv run uvicorn app.main:app --reload --port 8000
 
@@ -29,7 +33,7 @@ uv run uvicorn mock.splitwise:app --port 8001
 # Unit tests
 uv run pytest --ignore=tests/test_integration.py -v
 
-# Integration tests (needs Ollama + Docker postgres)
+# Integration tests (needs Ollama + local Supabase stack)
 uv run pytest tests/test_integration.py -v -s
 
 # Lint
@@ -38,6 +42,9 @@ uv run ruff check . && uv run ruff format --check .
 # Migrations
 CARTWISE_ENV=development uv run alembic revision --autogenerate -m "description"
 CARTWISE_ENV=development uv run alembic upgrade head
+
+# Stop local stack
+supabase stop
 ```
 
 ## Conventions

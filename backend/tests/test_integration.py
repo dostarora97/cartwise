@@ -5,7 +5,7 @@ Tests every endpoint, every flow, happy path and error cases.
 Real PostgreSQL, real Ollama, real PDF extraction.
 
 Requires:
-- Docker postgres-test running on port 5433
+- Supabase local postgres running on port 54322 (cartwise_test database)
 - Ollama running with qwen2.5:3b model
 - Test PDF at ../data/ORD95806394221/invoice.pdf
 
@@ -41,7 +41,7 @@ def _check_postgres():
     async def _try():
         try:
             conn = await asyncpg.connect(
-                "postgresql://postgres:postgres@localhost:5433/cartwise_test"
+                "postgresql://postgres:postgres@localhost:54322/cartwise_test"
             )
             await conn.close()
             return True
@@ -71,7 +71,7 @@ _ollama_ok = _check_ollama()
 _pdf_ok = _check_pdf()
 
 pytestmark = [
-    pytest.mark.skipif(not _pg_ok, reason="PostgreSQL test DB not reachable on port 5433"),
+    pytest.mark.skipif(not _pg_ok, reason="PostgreSQL test DB not reachable on port 54322"),
     pytest.mark.skipif(not _ollama_ok, reason="Ollama not running or qwen2.5:3b not available"),
     pytest.mark.skipif(not _pdf_ok, reason=f"Test PDF not found at {INVOICE_PDF}"),
 ]
