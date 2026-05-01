@@ -25,27 +25,7 @@ export default function MealPlanPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar
-        rightAction={
-          appUser ? (
-            <button
-              onClick={() => router.push("/profile")}
-              aria-label="Profile"
-              className="flex h-full w-full items-center justify-center"
-            >
-              {appUser.avatar_url ? (
-                <img
-                  src={appUser.avatar_url}
-                  alt=""
-                  className="h-9 w-9 rounded-full object-cover"
-                />
-              ) : (
-                <Icon name="account_circle" size={36} />
-              )}
-            </button>
-          ) : undefined
-        }
-      />
+      <TopBar />
 
       <div className="flex items-stretch justify-between border-b border-black">
         <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
