@@ -10,6 +10,7 @@ import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
 import { Icon } from "@/components/icon";
+import { Spinner } from "@/components/spinner";
 
 const MealPlanReorder = dynamic(() => import("@/components/meal-plan-reorder"));
 
@@ -158,7 +159,7 @@ export default function MealPlanEditPage() {
                 </p>
               )}
             </>
-          ) : null
+          ) : <Spinner />
         ) : (
           orderedItems && (
             <MealPlanReorder

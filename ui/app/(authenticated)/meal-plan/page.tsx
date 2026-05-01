@@ -6,6 +6,7 @@ import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
 import { Icon } from "@/components/icon";
+import { Spinner } from "@/components/spinner";
 import { useRouter } from "next/navigation";
 
 export default function MealPlanPage() {
@@ -60,7 +61,7 @@ export default function MealPlanPage() {
       <main
         className={cn("flex-1", ready && !hasItems && "flex items-center justify-center")}
       >
-        {!ready ? null : !hasItems ? (
+        {!ready ? <Spinner /> : !hasItems ? (
           <button
             onClick={() => router.push("/meal-plan/edit")}
             aria-label="Create meal plan"
