@@ -54,7 +54,8 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   const { data: mealPlan } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser!.id } } },
+    { params: { path: { user_id: appUser?.id ?? "" } } },
+    { enabled: !!appUser },
   );
 
   const inPlan = mealPlan?.items.some((i) => i.menu_item.id === itemId) ?? false;
@@ -370,7 +371,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
             className="flex-1 w-full resize-none bg-transparent text-base font-medium leading-6 outline-none placeholder:text-gray-300"
           />
         ) : (
-          <article className="prose prose-sm max-w-none font-mono">
+          <article className="prose prose-sm max-w-none">
             <Markdown>{body || "*No content yet*"}</Markdown>
           </article>
         )}
