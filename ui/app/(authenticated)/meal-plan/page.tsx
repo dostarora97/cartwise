@@ -18,30 +18,31 @@ export default function MealPlanPage() {
     { params: { path: { user_id: appUser?.id ?? "" } }, enabled: !!appUser },
   );
 
-  if (!appUser) return null;
-
   const items = mealPlan?.items ?? [];
   const hasItems = items.length > 0;
+  const ready = !!appUser && !isLoading;
 
   return (
     <div className="flex flex-1 flex-col">
       <TopBar
         rightAction={
-          <button
-            onClick={() => router.push("/profile")}
-            aria-label="Profile"
-            className="flex h-full w-full items-center justify-center"
-          >
-            {appUser.avatar_url ? (
-              <img
-                src={appUser.avatar_url}
-                alt=""
-                className="h-9 w-9 rounded-full object-cover"
-              />
-            ) : (
-              <Icon name="account_circle" size={36} />
-            )}
-          </button>
+          appUser ? (
+            <button
+              onClick={() => router.push("/profile")}
+              aria-label="Profile"
+              className="flex h-full w-full items-center justify-center"
+            >
+              {appUser.avatar_url ? (
+                <img
+                  src={appUser.avatar_url}
+                  alt=""
+                  className="h-9 w-9 rounded-full object-cover"
+                />
+              ) : (
+                <Icon name="account_circle" size={36} />
+              )}
+            </button>
+          ) : undefined
         }
       />
 
@@ -49,7 +50,7 @@ export default function MealPlanPage() {
         <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
           Meal Plan
         </span>
-        {hasItems && (
+        {ready && hasItems && (
           <button onClick={() => router.push("/meal-plan/edit")} aria-label="Edit meal plan" className="flex items-center justify-center p-3 bg-black">
             <Icon name="edit" size={24} className="text-white" />
           </button>
@@ -57,9 +58,9 @@ export default function MealPlanPage() {
       </div>
 
       <main
-        className={cn("flex-1", !hasItems && "flex items-center justify-center")}
+        className={cn("flex-1", ready && !hasItems && "flex items-center justify-center")}
       >
-        {isLoading ? null : !hasItems ? (
+        {!ready ? null : !hasItems ? (
           <button
             onClick={() => router.push("/meal-plan/edit")}
             aria-label="Create meal plan"
@@ -83,7 +84,7 @@ export default function MealPlanPage() {
         )}
       </main>
 
-      {hasItems && (
+      {ready && hasItems && (
         <button
           onClick={() => router.push("/invoice")}
           aria-label="New expense"
