@@ -3,10 +3,6 @@ import type { paths } from "./schema";
 
 let cachedToken: string | null = null;
 
-/**
- * Set the auth token for API calls. Called by the auth context
- * when a session is established via onAuthStateChange.
- */
 export function setAuthToken(token: string | null) {
   cachedToken = token;
 }
@@ -22,10 +18,6 @@ const authMiddleware: Middleware = {
     return request;
   },
   async onResponse({ response }) {
-    // On 401, clear the cached token. Don't hard-redirect — let
-    // Supabase attempt a token refresh via onAuthStateChange. If
-    // the session is truly gone, the proxy will redirect on next
-    // navigation and the auth context will update.
     if (response.status === 401) {
       cachedToken = null;
     }
@@ -34,7 +26,7 @@ const authMiddleware: Middleware = {
 };
 
 const client = createFetchClient<paths>({
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  baseUrl: process.env.NEXT_PUBLIC_API_URL!,
 });
 client.use(authMiddleware);
 

@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/onboarding?splitwise=error", origin));
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
   const redirectUri = `${origin}/auth/connect/splitwise`;
 
   const resp = await fetch(`${apiUrl}/api/v1/auth/splitwise/exchange`, {
@@ -25,8 +25,9 @@ export async function GET(request: NextRequest) {
     body: JSON.stringify({ code, state, redirect_uri: redirectUri }),
   });
 
-  const path = resp.ok
-    ? "/onboarding?splitwise=success"
-    : "/onboarding?splitwise=error";
-  return NextResponse.redirect(new URL(path, origin));
+  if (resp.ok) {
+    return NextResponse.redirect(new URL("/", origin));
+  }
+
+  return NextResponse.redirect(new URL("/onboarding?splitwise=error", origin));
 }

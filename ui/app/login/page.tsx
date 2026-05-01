@@ -1,26 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useAuth } from "@/lib/auth";
 import { Icon } from "@/components/icon";
 
 export default function LoginPage() {
   const supabase = createClient();
-  const { session, appUser, loading } = useAuth();
-  const router = useRouter();
-
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    if (loading) return;
-    if (session && appUser) {
-      router.replace("/");
-    } else if (session && !appUser) {
-      router.replace("/onboarding");
-    }
-  }, [session, appUser, loading, router]);
 
   async function handleGoogleLogin() {
     setError("");
@@ -33,10 +19,6 @@ export default function LoginPage() {
     if (error) {
       setError("Failed to sign in. Please try again.");
     }
-  }
-
-  if (loading || session) {
-    return <div className="flex min-h-dvh items-center justify-center" />;
   }
 
   return (
