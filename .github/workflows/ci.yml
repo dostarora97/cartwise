@@ -162,6 +162,30 @@ jobs:
       - name: Lint
         run: bunx eslint .
 
+  fe-test:
+    needs: [changes]
+    if: needs.changes.outputs.ui == 'true' || needs.changes.outputs.ci == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: bun run test:coverage
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          files: ui/coverage/lcov.info
+          flags: ui
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   fe-build:
     needs: [changes]
     if: needs.changes.outputs.ui == 'true' || needs.changes.outputs.ci == 'true'
@@ -290,6 +314,7 @@ jobs:
       - be-test
       - migration-check
       - fe-checks
+      - fe-test
       - fe-build
       - openapi-drift
       - dep-audit
@@ -304,6 +329,7 @@ jobs:
             "${{ needs.be-test.result }}"
             "${{ needs.migration-check.result }}"
             "${{ needs.fe-checks.result }}"
+            "${{ needs.fe-test.result }}"
             "${{ needs.fe-build.result }}"
             "${{ needs.openapi-drift.result }}"
             "${{ needs.dep-audit.result }}"
