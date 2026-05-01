@@ -27,13 +27,15 @@ export default function MealPlanEditPage() {
   const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
     "get",
     "/api/v1/menu-items/",
-    { params: { query: { status: "active", created_by: appUser!.id } } },
+    { params: { query: { status: "active", created_by: appUser?.id ?? "" } } },
+    { enabled: !!appUser },
   );
 
   const { data: mealPlan, isLoading: mealPlanLoading } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser!.id } } },
+    { params: { path: { user_id: appUser?.id ?? "" } } },
+    { enabled: !!appUser },
   );
 
   const initialIds = useMemo(() => {
