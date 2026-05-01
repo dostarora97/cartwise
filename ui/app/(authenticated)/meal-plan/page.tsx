@@ -39,7 +39,7 @@ export default function MealPlanPage() {
       </div>
 
       <main
-        className={cn("flex-1", ready && !hasItems && "flex items-center justify-center")}
+        className={cn("flex-1", (!ready || !hasItems) && "flex items-center justify-center")}
       >
         {!ready ? <Spinner /> : !hasItems ? (
           <button

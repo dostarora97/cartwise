@@ -10,6 +10,7 @@ import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
+import { Spinner } from "@/components/spinner";
 
 const Markdown = dynamic(() => import("react-markdown"));
 
@@ -276,6 +277,17 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   // Show edit button only in view mode for existing items
   const showEditButton = !isNew && !editing;
 
+  if (!isNew && !item) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <TopBar showBack onBack={handleBack} />
+        <main className="flex flex-1 items-center justify-center">
+          <Spinner />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col [overflow-anchor:none]">
       {/* TopBar — scrolls away (not sticky). The observer watches this
@@ -384,7 +396,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
             disabled={saving || !name.trim()}
             className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-30"
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Save"}
           </button>
       )}
 

@@ -62,7 +62,7 @@ export default function MealPlanEditPage() {
     );
   }, [menuItems, search]);
 
-  const dataReady = !menuItemsLoading && !mealPlanLoading;
+  const dataReady = !!appUser && !menuItemsLoading && !mealPlanLoading;
 
   function toggle(id: string) {
     const base = selected ?? initialIds;
@@ -137,7 +137,7 @@ export default function MealPlanEditPage() {
         )}
       </div>
 
-      <main className="flex-1">
+      <main className={`flex flex-1 flex-col ${!dataReady ? "items-center justify-center" : ""}`}>
         {mode === "select" ? (
           dataReady ? (
             <>
@@ -198,7 +198,7 @@ export default function MealPlanEditPage() {
             disabled={saving}
             className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Save"}
           </button>
         )}
       </div>

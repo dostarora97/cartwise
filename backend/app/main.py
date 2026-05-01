@@ -33,6 +33,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Dev-only: slow down API responses to test loading states
+if settings.DEBUG:
+    import asyncio
+
+    from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.requests import Request
+
+    DEV_DELAY_SECONDS = 1.5
+
+    class SlowMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: Request, call_next):
+            if DEV_DELAY_SECONDS and request.url.path != "/health":
+                await asyncio.sleep(DEV_DELAY_SECONDS)
+            return await call_next(request)
+
+    app.add_middleware(SlowMiddleware)
+
 # Error handlers
 register_error_handlers(app)
 
