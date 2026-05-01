@@ -19,8 +19,8 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
 const cspDirectives = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com",
-  "style-src 'self' 'unsafe-inline'",
-  "font-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob:",
   `connect-src 'self' https://*.supabase.co wss://*.supabase.co ${apiUrl} https://va.vercel-scripts.com https://vitals.vercel-insights.com`,
   "frame-ancestors 'none'",
@@ -48,15 +48,6 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: securityHeaders,
-      },
-      {
-        source: "/fonts/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
       },
       {
         source: "/sw.js",
