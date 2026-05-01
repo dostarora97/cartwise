@@ -70,12 +70,11 @@ export default function ProfilePage() {
           <p className="text-xs text-red-600 tracking-wider mt-3">{error}</p>
         )}
 
-        <details className="mt-auto group">
-          <summary className="flex items-center gap-2 p-3 h-12 border border-black cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <details className="mt-auto">
+          <summary className="flex items-center gap-2 h-12 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
             <Icon name="settings" size={20} />
-            <span className="text-base font-bold tracking-label uppercase">Settings</span>
           </summary>
-          <div className="flex flex-col gap-3 mt-3">
+          <div className="flex flex-col gap-3 pt-3">
             <a
               href="https://github.com/dostarora97/cartwise/issues/new/choose"
               target="_blank"
