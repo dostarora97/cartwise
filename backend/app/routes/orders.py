@@ -148,7 +148,12 @@ async def create_order(
 
     # Pipeline: extract → classify → correlate → split
     local_pdf = await asyncio.to_thread(download_to_temp, storage_path)
-    extracted = await asyncio.to_thread(extract, local_pdf)
+    try:
+        extracted = await asyncio.to_thread(extract, local_pdf)
+    finally:
+        from pathlib import Path
+
+        Path(local_pdf).unlink(missing_ok=True)
     classified = await classify(extracted)
 
     # Get only "item" category grocery items for correlation

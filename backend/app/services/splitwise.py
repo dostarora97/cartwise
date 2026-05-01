@@ -93,21 +93,21 @@ def _build_expense_payload(
 
 def get_current_user() -> dict:
     _check_enabled()
-    resp = httpx.get(f"{_base_url()}/get_current_user", headers=_headers())
+    resp = httpx.get(f"{_base_url()}/get_current_user", headers=_headers(), timeout=30)
     resp.raise_for_status()
     return resp.json()["user"]
 
 
 def get_friends() -> list[dict]:
     _check_enabled()
-    resp = httpx.get(f"{_base_url()}/get_friends", headers=_headers())
+    resp = httpx.get(f"{_base_url()}/get_friends", headers=_headers(), timeout=30)
     resp.raise_for_status()
     return resp.json()["friends"]
 
 
 def get_groups() -> list[dict]:
     _check_enabled()
-    resp = httpx.get(f"{_base_url()}/get_groups", headers=_headers())
+    resp = httpx.get(f"{_base_url()}/get_groups", headers=_headers(), timeout=30)
     resp.raise_for_status()
     return resp.json()["groups"]
 
@@ -168,7 +168,9 @@ async def create_expense_audited(
 
     # Step 2: Call Splitwise API
     try:
-        resp = httpx.post(f"{_base_url()}/create_expense", headers=_headers(token), json=payload)
+        resp = httpx.post(
+            f"{_base_url()}/create_expense", headers=_headers(token), json=payload, timeout=30
+        )
         resp.raise_for_status()
         data = resp.json()
 
@@ -216,7 +218,9 @@ async def delete_expense_audited(
 
     try:
         resp = httpx.post(
-            f"{_base_url()}/delete_expense/{splitwise_expense_id}", headers=_headers(token)
+            f"{_base_url()}/delete_expense/{splitwise_expense_id}",
+            headers=_headers(token),
+            timeout=30,
         )
         resp.raise_for_status()
         data = resp.json()
