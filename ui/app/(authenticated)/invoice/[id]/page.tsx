@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/lib/auth";
+import { useRequiredAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
@@ -22,7 +22,7 @@ export default function SplitAnalysisPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { appUser } = useAuth();
+  const { appUser } = useRequiredAuth();
 
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [submitting, setSubmitting] = useState(false);
@@ -49,8 +49,8 @@ export default function SplitAnalysisPage() {
     () =>
       (order?.participants ?? [])
         .map((p) => ({ id: p.user_id, name: userMap.get(p.user_id) ?? p.user_id }))
-        .filter((u) => u.id !== appUser?.id)
-        .concat(appUser ? [{ id: appUser.id, name: appUser.name }] : []),
+        .filter((u) => u.id !== appUser.id)
+        .concat([{ id: appUser.id, name: appUser.name }]),
     [order, userMap, appUser],
   );
 

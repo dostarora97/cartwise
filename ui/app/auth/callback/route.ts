@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { ONBOARDED_COOKIE, ONBOARDED_VALUE, ONBOARDED_COOKIE_OPTIONS } from "@/lib/cookies";
 
 function baseUrl(request: NextRequest): string {
   const proto = request.headers.get("x-forwarded-proto") || "http";
@@ -24,16 +25,24 @@ export async function GET(request: NextRequest) {
   }
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL!;
-  const meResp = await fetch(`${apiUrl}/api/v1/auth/me`, {
-    headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
-  });
+  let meResp: Response;
+  try {
+    meResp = await fetch(`${apiUrl}/api/v1/auth/me`, {
+      headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+    });
+  } catch {
+    return NextResponse.redirect(new URL("/login?error=backend", origin));
+  }
 
   if (meResp.ok) {
     const user = await meResp.json();
     if (user.splitwise_connected) {
-      return NextResponse.redirect(new URL("/", origin));
+      const response = NextResponse.redirect(new URL("/", origin));
+      response.cookies.set(ONBOARDED_COOKIE, ONBOARDED_VALUE, ONBOARDED_COOKIE_OPTIONS);
+      return response;
     }
+    return NextResponse.redirect(new URL("/onboarding", origin));
   }
 
-  return NextResponse.redirect(new URL("/onboarding", origin));
+  return NextResponse.redirect(new URL("/login?error=backend", origin));
 }

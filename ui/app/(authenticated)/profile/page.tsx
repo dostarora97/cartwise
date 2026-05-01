@@ -2,21 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth";
+import { useRequiredAuth } from "@/lib/auth";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import apiClient from "@/lib/api/client";
 
 export default function ProfilePage() {
-  const { appUser, signOut } = useAuth();
+  const { appUser, signOut } = useRequiredAuth();
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState("");
-
-  if (!appUser) return null;
 
   async function handleDelete() {
     setDeleting(true);

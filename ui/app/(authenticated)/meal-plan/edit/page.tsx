@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
-import { useAuth } from "@/lib/auth";
+import { useRequiredAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
@@ -17,7 +17,7 @@ const MealPlanReorder = dynamic(() => import("@/components/meal-plan-reorder"));
 type Mode = "select" | "reorder";
 
 export default function MealPlanEditPage() {
-  const { appUser } = useAuth();
+  const { appUser } = useRequiredAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<Mode>("select");
@@ -28,15 +28,13 @@ export default function MealPlanEditPage() {
   const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
     "get",
     "/api/v1/menu-items/",
-    { params: { query: { status: "active", created_by: appUser?.id ?? "" } } },
-    { enabled: !!appUser },
+    { params: { query: { status: "active", created_by: appUser.id } } },
   );
 
   const { data: mealPlan, isLoading: mealPlanLoading } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser?.id ?? "" } } },
-    { enabled: !!appUser },
+    { params: { path: { user_id: appUser.id } } },
   );
 
   const initialIds = useMemo(() => {
@@ -62,7 +60,7 @@ export default function MealPlanEditPage() {
     );
   }, [menuItems, search]);
 
-  const dataReady = !!appUser && !menuItemsLoading && !mealPlanLoading;
+  const dataReady = !menuItemsLoading && !mealPlanLoading;
 
   function toggle(id: string) {
     const base = selected ?? initialIds;
@@ -94,7 +92,7 @@ export default function MealPlanEditPage() {
     const { error: apiError } = await apiClient.PUT(
       "/api/v1/meal-plans/{user_id}",
       {
-        params: { path: { user_id: appUser!.id } },
+        params: { path: { user_id: appUser.id } },
         body: { menu_item_ids: orderedItems.map((i) => i.id) },
       },
     );
