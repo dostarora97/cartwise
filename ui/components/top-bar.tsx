@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 import { Icon } from "@/components/icon";
 
 interface TopBarProps {
@@ -11,6 +12,25 @@ interface TopBarProps {
 
 export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
   const router = useRouter();
+  const { appUser } = useAuth();
+
+  const defaultRight = appUser ? (
+    <button
+      onClick={() => router.push("/profile")}
+      aria-label="Profile"
+      className="flex h-full w-full items-center justify-center"
+    >
+      {appUser.avatar_url ? (
+        <img
+          src={appUser.avatar_url}
+          alt=""
+          className="h-9 w-9 rounded-full object-cover"
+        />
+      ) : (
+        <Icon name="account_circle" size={36} />
+      )}
+    </button>
+  ) : undefined;
 
   return (
     <header className="flex items-stretch justify-between border-b border-black">
@@ -30,7 +50,7 @@ export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
         <img src="/logo-pizza.avif" alt="" width={36} height={36} className="object-contain" />
       </div>
 
-      <div className="w-12 shrink-0 flex items-stretch">{rightAction}</div>
+      <div className="w-12 shrink-0 flex items-stretch">{rightAction ?? defaultRight}</div>
     </header>
   );
 }

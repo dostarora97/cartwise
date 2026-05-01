@@ -10,6 +10,7 @@ import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
 import { Icon } from "@/components/icon";
+import { Spinner } from "@/components/spinner";
 
 const MealPlanReorder = dynamic(() => import("@/components/meal-plan-reorder"));
 
@@ -27,13 +28,15 @@ export default function MealPlanEditPage() {
   const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
     "get",
     "/api/v1/menu-items/",
-    { params: { query: { status: "active", created_by: appUser!.id } } },
+    { params: { query: { status: "active", created_by: appUser?.id ?? "" } } },
+    { enabled: !!appUser },
   );
 
   const { data: mealPlan, isLoading: mealPlanLoading } = $api.useQuery(
     "get",
     "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser!.id } } },
+    { params: { path: { user_id: appUser?.id ?? "" } } },
+    { enabled: !!appUser },
   );
 
   const initialIds = useMemo(() => {
@@ -59,7 +62,7 @@ export default function MealPlanEditPage() {
     );
   }, [menuItems, search]);
 
-  const dataReady = !menuItemsLoading && !mealPlanLoading;
+  const dataReady = !!appUser && !menuItemsLoading && !mealPlanLoading;
 
   function toggle(id: string) {
     const base = selected ?? initialIds;
@@ -134,7 +137,7 @@ export default function MealPlanEditPage() {
         )}
       </div>
 
-      <main className="flex-1">
+      <main className={`flex flex-1 flex-col ${!dataReady ? "items-center justify-center" : ""}`}>
         {mode === "select" ? (
           dataReady ? (
             <>
@@ -156,7 +159,7 @@ export default function MealPlanEditPage() {
                 </p>
               )}
             </>
-          ) : null
+          ) : <Spinner />
         ) : (
           orderedItems && (
             <MealPlanReorder
@@ -195,7 +198,7 @@ export default function MealPlanEditPage() {
             disabled={saving}
             className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save"}
+            {saving ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Save"}
           </button>
         )}
       </div>
