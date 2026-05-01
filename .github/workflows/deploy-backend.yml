@@ -65,4 +65,4 @@ jobs:
             --max-instances 3 \
             --timeout 60 \
             --cpu-boost \
-            --set-env-vars "CARTWISE_ENV=production"
+            --update-env-vars "CARTWISE_ENV=production"
