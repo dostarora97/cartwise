@@ -38,7 +38,8 @@ jobs:
         run: uv run alembic upgrade head
         env:
           CARTWISE_ENV: production
-          CARTWISE_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CARTWISE_DATABASE_URL_MIGRATE: ${{ secrets.DATABASE_URL_MIGRATE }}
+          CARTWISE_DATABASE_URL: ${{ secrets.DATABASE_URL_MIGRATE }}
           CARTWISE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
 
       - name: Configure Docker for Artifact Registry
