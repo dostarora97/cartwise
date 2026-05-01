@@ -75,13 +75,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    const timeout = setTimeout(() => {
-      setLoading((prev) => (prev ? false : prev));
-    }, 3000);
-
     return () => {
       subscription.unsubscribe();
-      clearTimeout(timeout);
     };
   }, [supabase, fetchAppUser]);
 

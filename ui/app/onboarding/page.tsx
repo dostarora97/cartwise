@@ -41,6 +41,15 @@ function OnboardingContent() {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
+      const { data: me } = await apiClient.GET("/api/v1/auth/me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (me && (me as unknown as { splitwise_connected: boolean }).splitwise_connected) {
+        router.replace("/meal-plan");
+        return;
+      }
+
       setStatus("connecting");
       const { data, error: apiError } = await apiClient.POST(
         "/api/v1/auth/splitwise/connect",
@@ -56,7 +65,7 @@ function OnboardingContent() {
     }
 
     run();
-  }, [session, swParam]);
+  }, [session, swParam, router]);
 
   async function handleRetry() {
     if (!session) return;
