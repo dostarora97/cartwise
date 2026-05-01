@@ -21,10 +21,11 @@ async def store_secret(
         text("SELECT id FROM vault.secrets WHERE name = :name"),
         {"name": name},
     )
-    if existing.scalar_one_or_none():
+    row_id = existing.scalar_one_or_none()
+    if row_id:
         await session.execute(
-            text("UPDATE vault.secrets SET secret = :secret WHERE name = :name"),
-            {"name": name, "secret": secret},
+            text("SELECT vault.update_secret(:id, :secret)"),
+            {"id": row_id, "secret": secret},
         )
     else:
         await session.execute(

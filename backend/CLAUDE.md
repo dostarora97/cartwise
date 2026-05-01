@@ -48,3 +48,7 @@ CARTWISE_ENV=development uv run alembic upgrade head
 - Config via Dynaconf: `settings.toml` (committed) + `.secrets.toml` (gitignored).
 - Conventional Commits enforced by pre-commit hook.
 - Tests: pytest + httpx + pytest-asyncio. Mock LLM via `app.ai.client.generate`.
+- **Never run migrations manually against production.** Migrations run automatically via GitHub Actions on deploy. Only run locally against dev/test databases.
+- **Never run mutating database queries against production.** No manual INSERTs, UPDATEs, GRANTs, etc. All schema and permission changes go through Alembic migrations. Read-only queries are OK for debugging (with user approval).
+- **Secrets go in GCP Secret Manager**, not plaintext Cloud Run env vars. Cloud Run env vars are only for non-secret config overrides.
+- **Keep container startup minimal.** No migrations, no heavy init. Just start uvicorn.
