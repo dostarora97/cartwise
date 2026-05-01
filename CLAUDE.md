@@ -32,6 +32,6 @@ ui/        — Frontend (Next.js + React + Tailwind)
 | Frontend | Vercel | Push to `main` (auto) |
 | Database + Auth + Storage | Supabase | Managed |
 
-- Backend URL: `https://cartwise-backend-x5fqzyd4qa-uc.a.run.app`
+- Backend URL: `https://cartwise-backend-477485410657.asia-south1.run.app`
 - Frontend URL: `https://cartwise-amber.vercel.app`
 - Supabase project: `zwtqhrwsbmbuhwqcvrmj`
