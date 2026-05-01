@@ -55,6 +55,6 @@ SPLITWISE_BASE_URL = "https://secure.splitwise.com/api/v3.0"
 SPLITWISE_OAUTH_BASE_URL = "https://secure.splitwise.com"
 # AI — Gemini Flash via Google AI Studio
 AI_PROVIDER = "gemini"
-AI_MODEL = "gemini-2.0-flash"
+AI_MODEL = "gemini-3-flash-preview"
 AI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 # CORS_ORIGINS, FRONTEND_URL set via CARTWISE_* env vars
