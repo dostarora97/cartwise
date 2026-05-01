@@ -10,10 +10,3 @@ settings = Dynaconf(
         Validator("SUPABASE_URL", must_exist=True),
     ],
 )
-
-
-def get_async_database_url() -> str:
-    url = settings.DATABASE_URL
-    if url.startswith("postgresql://"):
-        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-    return url

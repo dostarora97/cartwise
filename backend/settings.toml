@@ -14,8 +14,9 @@ SUPABASE_URL = ""
 SUPABASE_ANON_KEY = ""
 SUPABASE_JWT_SECRET = ""
 
-# Database — actual connection string in .secrets.toml
+# Database — actual connection strings in .secrets.toml
 DATABASE_URL = ""
+DATABASE_URL_MIGRATE = ""
 
 # Splitwise — actual values in .secrets.toml (gitignored)
 # SPLITWISE_ENABLED must be explicitly true to allow API calls
