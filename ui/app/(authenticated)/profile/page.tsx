@@ -73,7 +73,6 @@ export default function ProfilePage() {
         <details className="mt-auto border border-black">
           <summary className="flex items-center gap-2 p-3 h-12 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
             <Icon name="settings" size={20} />
-            <span className="text-base font-bold tracking-label uppercase">Settings</span>
           </summary>
           <div className="flex flex-col gap-3 border-t border-black p-3">
             <a
