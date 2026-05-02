@@ -156,6 +156,23 @@ async def health(request: Request):
     return JSONResponse({"status": "ok", "service": "mock-swiggy-mcp"})
 
 
+async def register(request: Request):
+    """Mock RFC 7591 dynamic client registration."""
+    body = await request.json()
+    return JSONResponse(
+        {
+            "client_id": "swiggy-mcp",
+            "client_name": body.get("client_name", "Unknown"),
+            "redirect_uris": body.get("redirect_uris", []),
+            "grant_types": body.get("grant_types", ["authorization_code"]),
+            "response_types": body.get("response_types", ["code"]),
+            "token_endpoint_auth_method": body.get("token_endpoint_auth_method", "none"),
+            "client_id_issued_at": int(time.time()),
+        },
+        status_code=201,
+    )
+
+
 async def list_canned_orders(request: Request):
     """Debug: see all canned orders."""
     return JSONResponse({"orders": ORDERS, "track_data": TRACK_DATA})
@@ -171,6 +188,7 @@ app = Starlette(
     routes=[
         Route("/auth/authorize", authorize, methods=["GET"]),
         Route("/auth/token", token, methods=["POST"]),
+        Route("/auth/register", register, methods=["POST"]),
         Route("/_health", health, methods=["GET"]),
         Route("/_orders", list_canned_orders, methods=["GET"]),
         Mount("/", app=mcp_http),

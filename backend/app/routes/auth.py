@@ -246,6 +246,8 @@ async def swiggy_connect(current_user: CurrentUser):
     import base64
     import hashlib
 
+    from app.services.swiggy.registration import ensure_client_registered
+
     code_verifier = secrets.token_urlsafe(64)
     digest = hashlib.sha256(code_verifier.encode()).digest()
     code_challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
@@ -253,10 +255,12 @@ async def swiggy_connect(current_user: CurrentUser):
     state = _sign_state(str(current_user.id), secrets.token_urlsafe(16))
     redirect_uri = f"{settings.FRONTEND_URL}/auth/connect/swiggy"
 
+    client_id = await ensure_client_registered(redirect_uri)
+
     authorize_url = (
         f"{settings.SWIGGY_MCP_SERVER_URL}/auth/authorize?"
         f"response_type=code&"
-        f"client_id={settings.SWIGGY_MCP_CLIENT_ID}&"
+        f"client_id={client_id}&"
         f"code_challenge={code_challenge}&"
         f"code_challenge_method=S256&"
         f"redirect_uri={redirect_uri}&"
