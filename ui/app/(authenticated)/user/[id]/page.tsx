@@ -1,22 +1,29 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useRequiredAuth } from "@/lib/auth";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import apiClient from "@/lib/api/client";
 
-export default function ProfilePage() {
+export default function UserPage() {
   const { appUser, signOut } = useRequiredAuth();
   const router = useRouter();
+  const params = useParams<{ id: string }>();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (params.id !== appUser.id) {
+      router.replace("/me");
+    }
+  }, [params.id, appUser.id, router]);
 
   useEffect(() => {
     if (!settingsOpen) return;
@@ -46,6 +53,8 @@ export default function ProfilePage() {
     await signOut();
     router.replace("/login");
   }
+
+  if (params.id !== appUser.id) return null;
 
   return (
     <div className="flex flex-1 flex-col">

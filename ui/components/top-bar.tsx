@@ -16,7 +16,7 @@ export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
 
   const defaultRight = appUser ? (
     <button
-      onClick={() => router.push("/profile")}
+      onClick={() => router.push("/me")}
       aria-label="Profile"
       className="flex h-full w-full items-center justify-center"
     >
