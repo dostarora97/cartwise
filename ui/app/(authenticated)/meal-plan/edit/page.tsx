@@ -46,6 +46,15 @@ export default function MealPlanEditPage() {
   const [selected, setSelected] = useState<Set<string> | null>(null);
   const current = selected ?? initialIds;
 
+  const isDirty = useMemo(() => {
+    if (selected === null) return false;
+    if (selected.size !== initialIds.size) return true;
+    for (const id of selected) {
+      if (!initialIds.has(id)) return true;
+    }
+    return false;
+  }, [selected, initialIds]);
+
   const [orderedItems, setOrderedItems] = useState<
     { id: string; name: string }[] | null
   >(null);
@@ -186,7 +195,7 @@ export default function MealPlanEditPage() {
         {mode === "select" ? (
           <button
             onClick={handleNext}
-            disabled={current.size === 0}
+            disabled={current.size === 0 || !isDirty}
             className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-30"
           >
             Next
