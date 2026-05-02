@@ -134,12 +134,18 @@ async def authorize(request: Request):
     """Mock OAuth authorize — immediately redirects back with a code."""
     redirect_uri = request.query_params.get("redirect_uri", "")
     state = request.query_params.get("state", "")
+    client_id = request.query_params.get("client_id", "")
     code = f"mock_swiggy_code_{uuid.uuid4().hex[:8]}"
+    print(
+        f"[MOCK] /auth/authorize: client_id={client_id}, redirect_uri={redirect_uri}, state={state[:30]}..."
+    )
     return RedirectResponse(f"{redirect_uri}?code={code}&state={state}")
 
 
 async def token(request: Request):
     """Mock token exchange — returns a fake JWT access token."""
+    body = await request.body()
+    print(f"[MOCK] /auth/token: body={body.decode()}")
     access_token = _make_jwt()
     refresh_token = f"mock_refresh_{uuid.uuid4().hex[:8]}"
     return JSONResponse(
@@ -154,6 +160,24 @@ async def token(request: Request):
 
 async def health(request: Request):
     return JSONResponse({"status": "ok", "service": "mock-swiggy-mcp"})
+
+
+async def register(request: Request):
+    """Mock RFC 7591 dynamic client registration."""
+    body = await request.json()
+    print(f"[MOCK] /auth/register: body={json.dumps(body, indent=2)}")
+    return JSONResponse(
+        {
+            "client_id": "swiggy-mcp",
+            "client_name": body.get("client_name", "Unknown"),
+            "redirect_uris": body.get("redirect_uris", []),
+            "grant_types": body.get("grant_types", ["authorization_code"]),
+            "response_types": body.get("response_types", ["code"]),
+            "token_endpoint_auth_method": body.get("token_endpoint_auth_method", "none"),
+            "client_id_issued_at": int(time.time()),
+        },
+        status_code=201,
+    )
 
 
 async def list_canned_orders(request: Request):
@@ -171,6 +195,7 @@ app = Starlette(
     routes=[
         Route("/auth/authorize", authorize, methods=["GET"]),
         Route("/auth/token", token, methods=["POST"]),
+        Route("/auth/register", register, methods=["POST"]),
         Route("/_health", health, methods=["GET"]),
         Route("/_orders", list_canned_orders, methods=["GET"]),
         Mount("/", app=mcp_http),

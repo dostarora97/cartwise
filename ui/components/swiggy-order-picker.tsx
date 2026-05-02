@@ -46,6 +46,7 @@ function ConnectCTA({ message }: { message?: string }) {
   async function handleConnect() {
     if (!session?.access_token) return;
     setConnecting(true);
+    console.log("[SwiggyConnect] handleConnect: starting OAuth flow");
 
     try {
       const resp = await fetch(`${API_BASE}/api/v1/auth/swiggy/connect`, {
@@ -53,16 +54,33 @@ function ConnectCTA({ message }: { message?: string }) {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
-      if (!resp.ok) throw new Error("Failed to start connection");
+      console.log("[SwiggyConnect] /auth/swiggy/connect response:", {
+        status: resp.status,
+        statusText: resp.statusText,
+        headers: Object.fromEntries(resp.headers.entries()),
+      });
+
+      if (!resp.ok) {
+        const errorBody = await resp.text();
+        console.error("[SwiggyConnect] connect failed:", { status: resp.status, body: errorBody });
+        throw new Error("Failed to start connection");
+      }
 
       const data = await resp.json();
+      console.log("[SwiggyConnect] connect response data:", {
+        authorize_url: data.authorize_url,
+        redirect_uri: data.redirect_uri,
+        code_verifier_length: data.code_verifier?.length,
+      });
 
       // Store code_verifier in cookie for the callback
       document.cookie = `swiggy_code_verifier=${data.code_verifier}; path=/; max-age=600; SameSite=Lax`;
+      console.log("[SwiggyConnect] code_verifier stored in cookie, redirecting to:", data.authorize_url);
 
       // Redirect to Swiggy OAuth
       window.location.href = data.authorize_url;
-    } catch {
+    } catch (e) {
+      console.error("[SwiggyConnect] handleConnect error:", e);
       setConnecting(false);
     }
   }
@@ -105,25 +123,39 @@ function OrderList({
     setLoading(true);
     setError(null);
     setNeedsReauth(false);
+    console.log("[SwiggyOrders] fetchOrders: starting");
 
     try {
       const resp = await fetch(`${API_BASE}/api/v1/orders/swiggy/orders`, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
+      console.log("[SwiggyOrders] /orders/swiggy/orders response:", {
+        status: resp.status,
+        statusText: resp.statusText,
+        headers: Object.fromEntries(resp.headers.entries()),
+      });
+
       if (resp.status === 422) {
         const body = await resp.json().catch(() => ({}));
+        console.log("[SwiggyOrders] 422 response body:", body);
         if (body.provider === "swiggy") {
           setNeedsReauth(true);
           return;
         }
       }
 
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      if (!resp.ok) {
+        const errorBody = await resp.text();
+        console.error("[SwiggyOrders] fetch failed:", { status: resp.status, body: errorBody });
+        throw new Error(`HTTP ${resp.status}`);
+      }
 
       const data = await resp.json();
+      console.log("[SwiggyOrders] orders received:", { count: data.length, orders: data });
       setOrders(data);
     } catch (e) {
+      console.error("[SwiggyOrders] fetchOrders error:", e);
       setError(e instanceof Error ? e.message : "Failed to fetch orders");
     } finally {
       setLoading(false);
