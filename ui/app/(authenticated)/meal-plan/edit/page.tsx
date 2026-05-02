@@ -165,7 +165,7 @@ export default function MealPlanEditPage() {
       <div className={`flex items-center border-b border-black ${mode === "select" ? "p-3" : ""}`}>
         {mode === "select" ? (
           <>
-            <Icon name="search" size={24} className="shrink-0 text-gray-300 mr-3" />
+            <Icon name="search" size={24} className="shrink-0 mr-3" />
             <input
               id="search"
               name="search"
@@ -179,7 +179,7 @@ export default function MealPlanEditPage() {
         ) : (
           <span className="flex items-center text-2xl font-bold tracking-label uppercase leading-6">
             <span className="flex items-center justify-center p-3 shrink-0">
-              <Icon name="check" size={24} className="text-gray-300" />
+              <Icon name="check" size={24} />
             </span>
             <span>{orderedItems?.length ?? 0} item(s)</span>
           </span>

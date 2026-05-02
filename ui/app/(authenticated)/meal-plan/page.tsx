@@ -28,6 +28,7 @@ export default function MealPlanPage() {
 
       <div className="flex items-stretch justify-between border-b border-black">
         <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
+          <Icon name="fork_spoon" size={24} className="shrink-0 mr-3" />
           Meal Plan
         </span>
         {ready && hasItems && (
