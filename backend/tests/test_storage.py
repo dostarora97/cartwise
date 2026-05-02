@@ -54,11 +54,10 @@ class _FakeSettings:
 
     def __init__(self, storage_dir: str):
         self._storage_dir = storage_dir
-        self.SUPABASE_URL = "http://test"  # Not https:// → triggers local fallback
 
     def get(self, key, default=None):
-        if key == "SUPABASE_URL":
-            return self.SUPABASE_URL
+        if key == "STORAGE_LOCAL":
+            return True
         if key == "STORAGE_DIR":
             return self._storage_dir
         return default

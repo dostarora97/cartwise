@@ -17,7 +17,12 @@ class Order(Base):
     paid_by: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE")
     )
-    invoice_filename: Mapped[str] = mapped_column(String(500))
+    source_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("order_sources.id", ondelete="SET NULL"),
+        unique=True,
+        nullable=True,
+    )
     status: Mapped[str] = mapped_column(String(20), default="draft")
     snapshot: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     result: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
@@ -25,6 +30,7 @@ class Order(Base):
 
     # Relationships
     payer: Mapped[User] = relationship(foreign_keys=[paid_by])
+    source: Mapped[OrderSource | None] = relationship(back_populates="order")
     participants: Mapped[list[OrderParticipant]] = relationship(
         back_populates="order", cascade="all, delete-orphan"
     )

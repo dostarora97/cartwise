@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class OrderCreate(BaseModel):
+    source_id: uuid.UUID
     participant_ids: list[uuid.UUID]
 
 
@@ -30,7 +31,7 @@ class OrderResponse(BaseModel):
 
     id: uuid.UUID
     paid_by: uuid.UUID
-    invoice_filename: str
+    source_id: uuid.UUID | None
     status: str
     snapshot: dict | None
     result: dict | None

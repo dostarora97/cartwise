@@ -109,7 +109,7 @@ export const ChipInput = forwardRef<ChipInputHandle, ChipInputProps>(
             }}
             onFocus={() => setOpen(true)}
             onBlur={() => setTimeout(closeDropdown, 150)}
-            placeholder={selected.length === 0 ? "Add member..." : ""}
+            placeholder={selected.length === 0 ? "..." : ""}
             className="h-6 min-w-[4rem] flex-1 text-xs font-bold tracking-label uppercase leading-4 outline-none bg-transparent placeholder:text-gray-400 placeholder:font-normal placeholder:normal-case placeholder:tracking-normal"
           />
         </div>

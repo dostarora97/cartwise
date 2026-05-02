@@ -32,6 +32,11 @@ SPLITWISE_CONSUMER_SECRET = ""
 # Frontend URL (for OAuth callback redirects)
 FRONTEND_URL = "http://localhost:3000"
 
+# Swiggy MCP
+SWIGGY_MCP_SERVER_URL = "https://mcp.swiggy.com"
+SWIGGY_MCP_ENDPOINT = "https://mcp.swiggy.com/im"
+SWIGGY_MCP_CLIENT_ID = "swiggy-mcp"
+
 # Session/signing secret — set in .secrets.toml
 SESSION_SECRET_KEY = ""
 
@@ -40,13 +45,17 @@ MOCK_SERVER_PORT = 8001
 
 [development]
 DEBUG = true
+STORAGE_LOCAL = true
 SPLITWISE_ENABLED = true
 CORS_ORIGINS = ["http://localhost:3000"]
 FRONTEND_URL = "http://localhost:3000"
 SESSION_SECRET_KEY = "dev-session-secret-not-for-production"
+SWIGGY_MCP_SERVER_URL = "http://localhost:8002"
+SWIGGY_MCP_ENDPOINT = "http://localhost:8002/mcp"
 
 [testing]
 DEBUG = true
+STORAGE_LOCAL = true
 SPLITWISE_ENABLED = true
 SESSION_SECRET_KEY = "test-session-secret"
 

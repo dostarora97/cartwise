@@ -1,15 +1,15 @@
 """
-Order routes — upload PDF, run pipeline, manage splits, approve to Splitwise.
+Order routes — create sources, initiate splits, manage orders, approve to Splitwise.
 """
 
 from __future__ import annotations
 
 import asyncio
-import json
 import uuid
+from collections import defaultdict
 from typing import Annotated
 
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -18,14 +18,15 @@ from app.database import SessionDep
 from app.models.meal_plan import MealPlan
 from app.models.menu_item import MenuItem
 from app.models.order import Order, OrderParticipant
+from app.models.order_source import OrderSource
 from app.models.split import Split
 from app.models.user import User
-from app.schemas.order import EditSplitsRequest, OrderResponse
-from app.services.classify import classify
+from app.schemas.order import EditSplitsRequest, OrderCreate, OrderResponse
+from app.schemas.order_source import OrderSourceCreate, OrderSourceResponse, UploadResponse
 from app.services.correlate import correlate
-from app.services.extract import extract
+from app.services.extraction import run_extraction
 from app.services.split import compute_splits
-from app.services.storage import download_to_temp, save_upload
+from app.services.storage import save_source_upload
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -49,12 +50,7 @@ async def _snapshot_meal_plans(
     session,
     participant_ids: list[uuid.UUID],
 ) -> tuple[dict[str, list[str]], list[dict]]:
-    """Snapshot participants' meal plans and collect all menu items.
-
-    Returns:
-        members: {user_id_str: [menu_item_id_str, ...]}
-        menu_items: [{id, name, body}, ...]
-    """
+    """Snapshot participants' meal plans and collect all menu items."""
     members: dict[str, list[str]] = {}
     seen_menu_item_ids: set[uuid.UUID] = set()
     all_menu_items: list[dict] = []
@@ -105,73 +101,156 @@ def _create_split_rows(order_id: uuid.UUID, result: dict) -> list[Split]:
     return splits
 
 
-@router.post("/", response_model=OrderResponse, status_code=201)
-async def create_order(
+# --- Swiggy order listing ---
+
+
+@router.get("/swiggy/orders")
+async def list_swiggy_orders(
+    session: SessionDep,
+    current_user: CurrentUser,
+    count: int = Query(default=10, le=20),
+):
+    """Fetch recent Swiggy orders for the order picker UI.
+
+    Calls the Swiggy MCP get_orders tool and returns parsed order summaries.
+    Raises 422 (ProblemDetailError) if re-authentication is required.
+    """
+    import json
+
+    from app.services.swiggy.auth import get_valid_token
+    from app.services.swiggy.client import call_tool
+    from app.services.swiggy.extract import _extract_text
+
+    token = await get_valid_token(session, str(current_user.id))
+    result = await call_tool(token, "get_orders", {"count": count})
+    text = _extract_text(result)
+    data = json.loads(text)
+    orders = data.get("orders", data.get("data", {}).get("orders", []))
+    return orders
+
+
+# --- Source endpoints ---
+
+
+@router.post("/sources/upload", response_model=UploadResponse, status_code=201)
+async def upload_source(
     session: SessionDep,
     current_user: CurrentUser,
     file: Annotated[UploadFile, File()],
-    participant_ids: Annotated[str, Form()],
 ):
-    """Upload a PDF invoice and run the full splitting pipeline.
+    """Upload a file (PDF invoice) and create an invoice source."""
+    source = OrderSource(
+        type="invoice",
+        created_by=current_user.id,
+    )
+    session.add(source)
+    await session.flush()
 
-    Creates a draft order with split rows. Use PATCH /{id}/approve to push to Splitwise.
+    content = await file.read()
+    filename = file.filename or f"source_{source.id}.pdf"
+    storage_path = await asyncio.to_thread(save_source_upload, content, source.id, filename)
+
+    source.raw_data = {"storage_path": storage_path, "filename": filename}
+    await session.commit()
+
+    return UploadResponse(source_id=source.id, storage_path=storage_path)
+
+
+@router.post("/sources/", response_model=OrderSourceResponse, status_code=201)
+async def create_source(
+    body: OrderSourceCreate,
+    session: SessionDep,
+    current_user: CurrentUser,
+):
+    """Create an order source (e.g., swiggy_order with order ID)."""
+    source = OrderSource(
+        type=body.type,
+        raw_data=body.raw_data,
+        created_by=current_user.id,
+    )
+    session.add(source)
+    await session.commit()
+    await session.refresh(source)
+    return source
+
+
+# --- Order endpoints ---
+
+
+@router.post("/", response_model=OrderResponse, status_code=201)
+async def create_order(
+    body: OrderCreate,
+    session: SessionDep,
+    current_user: CurrentUser,
+):
+    """Initiate the splitting pipeline from a source.
+
+    Two-phase flow: source was created earlier (fast write),
+    this endpoint runs the full pipeline (extract → correlate → split).
+    Idempotent: if an order already exists for this source, returns it.
     """
-    # Parse participant IDs
-    try:
-        parsed_ids = [uuid.UUID(pid) for pid in json.loads(participant_ids)]
-    except (json.JSONDecodeError, ValueError) as e:
-        raise HTTPException(status_code=400, detail=f"Invalid participant_ids: {e}") from None
+    # Load source
+    source = await session.get(OrderSource, body.source_id)
+    if not source:
+        raise HTTPException(status_code=404, detail="Source not found")
+    if source.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your source")
 
-    # Ensure current user is included
+    # Idempotent: check if order already exists for this source
+    existing = await session.execute(
+        select(Order).where(Order.source_id == body.source_id).options(*_order_load_options())
+    )
+    existing_order = existing.scalar_one_or_none()
+    if existing_order:
+        return existing_order
+
+    # Ensure current user is included in participants
+    parsed_ids = list(body.participant_ids)
     if current_user.id not in parsed_ids:
         parsed_ids.append(current_user.id)
 
-    # Create order record
-    order = Order(
-        paid_by=current_user.id,
-        invoice_filename=file.filename or "invoice.pdf",
-    )
-    session.add(order)
-    await session.flush()
+    # Run extraction (uses checkpoint if available)
+    items = await run_extraction(session, source)
 
-    # Add participants
-    for pid in parsed_ids:
-        session.add(OrderParticipant(order_id=order.id, user_id=pid))
-    await session.flush()
-
-    # Save PDF to storage
-    content = await file.read()
-    storage_path = await asyncio.to_thread(save_upload, content, order.id)
+    # Build classified dict for compute_splits
+    item_total = sum(i["total"] for i in items if i["category"] == "item")
+    fee_total = sum(i["total"] for i in items if i["category"] == "fee")
+    classified = {
+        "summary": {
+            "item_total": item_total,
+            "fee_total": fee_total,
+            "grand_total": item_total + fee_total,
+        },
+        "items": items,
+    }
 
     # Snapshot meal plans
     members, menu_items = await _snapshot_meal_plans(session, parsed_ids)
 
-    # Pipeline: extract → classify → correlate → split
-    local_pdf = await asyncio.to_thread(download_to_temp, storage_path)
-    try:
-        extracted = await asyncio.to_thread(extract, local_pdf)
-    finally:
-        from pathlib import Path
-
-        Path(local_pdf).unlink(missing_ok=True)
-    classified = await classify(extracted)
-
-    # Get only "item" category grocery items for correlation
-    grocery_items = [g for g in classified["items"] if g["category"] == "item"]
+    # Correlate: which menu items use which grocery items
+    grocery_items = [i for i in items if i["category"] == "item"]
     uses = await correlate(menu_items, grocery_items)
 
+    # Compute splits
     result = compute_splits(classified, members, uses, str(current_user.id))
 
-    # Store snapshot, result, and create split rows
-    order.snapshot = {"members": members, "uses": uses, "menu_items": menu_items}
-    order.result = result
+    # Create order + participants + splits in one commit
+    order = Order(
+        paid_by=current_user.id,
+        source_id=source.id,
+        snapshot={"members": members, "uses": uses, "menu_items": menu_items},
+        result=result,
+    )
+    session.add(order)
+    await session.flush()
+
+    for pid in parsed_ids:
+        session.add(OrderParticipant(order_id=order.id, user_id=pid))
 
     for split in _create_split_rows(order.id, result):
         session.add(split)
 
     await session.commit()
-
-    # Reload with participants + splits
     return await _get_order_or_404(session, order.id)
 
 
@@ -237,12 +316,7 @@ async def edit_splits(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    """Edit split assignments for a draft order. Backend recomputes amounts.
-
-    The client sends who-gets-what (member assignments per grocery item UPC).
-    The backend groups by identical member sets and recalculates amounts from
-    the original invoice prices stored in order.result.
-    """
+    """Edit split assignments for a draft order. Backend recomputes amounts."""
     order = await _get_order_or_404(session, order_id)
 
     if order.paid_by != current_user.id:
@@ -263,8 +337,6 @@ async def edit_splits(
             upc_to_item[item["upc"]] = item
 
     # Group assignments by identical member set → recompute splits
-    from collections import defaultdict
-
     groups: dict[frozenset, list[dict]] = defaultdict(list)
     for assignment in data.assignments:
         if assignment.upc not in upc_to_item:
@@ -302,10 +374,7 @@ async def approve_order(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    """Approve a draft order — push splits to Splitwise.
-
-    Looks up each participant's splitwise_user_id and calls push_splits_audited().
-    """
+    """Approve a draft order — push splits to Splitwise."""
     order = await _get_order_or_404(session, order_id)
 
     if order.paid_by != current_user.id:
