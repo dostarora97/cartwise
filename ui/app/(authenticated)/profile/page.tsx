@@ -98,7 +98,7 @@ export default function ProfilePage() {
                 href="https://github.com/dostarora97/cartwise/issues/new/choose"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-black text-white p-3 text-base font-bold tracking-label uppercase h-12"
+                className="flex items-center gap-2 bg-black text-white p-3 text-base font-bold tracking-label uppercase h-12"
               >
                 <Icon name="open_in_new" size={20} />
                 Feedback
@@ -106,7 +106,7 @@ export default function ProfilePage() {
               <button
                 onClick={() => setShowDeleteDialog(true)}
                 disabled={signingOut}
-                className="flex items-center justify-center gap-2 bg-black text-red-400 p-3 text-base font-bold tracking-label uppercase h-12"
+                className="flex items-center gap-2 bg-black text-red-400 p-3 text-base font-bold tracking-label uppercase h-12"
               >
                 <Icon name="delete" size={20} />
                 Delete Account
