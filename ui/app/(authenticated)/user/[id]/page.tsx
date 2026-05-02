@@ -8,8 +8,10 @@ import { Icon } from "@/components/icon";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import apiClient from "@/lib/api/client";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export default function UserPage() {
-  const { appUser, signOut } = useRequiredAuth();
+  const { appUser, signOut, session, refreshAppUser } = useRequiredAuth();
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -17,6 +19,8 @@ export default function UserPage() {
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [disconnecting, setDisconnecting] = useState<string | null>(null);
+  const [confirmDisconnect, setConfirmDisconnect] = useState<string | null>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,7 +58,54 @@ export default function UserPage() {
     router.replace("/login");
   }
 
+  async function handleDisconnect(provider: string) {
+    if (!session?.access_token) return;
+    setDisconnecting(provider);
+
+    try {
+      const resp = await fetch(`${API_BASE}/api/v1/auth/${provider}/disconnect`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (!resp.ok) throw new Error("Failed to disconnect");
+      await refreshAppUser();
+    } catch {
+      setError(`Failed to disconnect ${provider}.`);
+    } finally {
+      setDisconnecting(null);
+      setConfirmDisconnect(null);
+    }
+  }
+
+  async function handleConnect(provider: string) {
+    if (!session?.access_token) return;
+
+    try {
+      const resp = await fetch(`${API_BASE}/api/v1/auth/${provider}/connect`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (!resp.ok) throw new Error("Failed to start connection");
+      const data = await resp.json();
+
+      if (provider === "swiggy") {
+        document.cookie = `swiggy_code_verifier=${data.code_verifier}; path=/; max-age=600; SameSite=Lax`;
+      }
+
+      window.location.href = data.authorize_url;
+    } catch {
+      setError(`Failed to connect ${provider}.`);
+    }
+  }
+
   if (params.id !== appUser.id) return null;
+
+  const connections = [
+    { id: "swiggy", label: "Swiggy", connected: appUser.swiggy_connected },
+    { id: "splitwise", label: "Splitwise", connected: appUser.splitwise_connected },
+  ];
 
   return (
     <div className="flex flex-1 flex-col">
@@ -81,11 +132,41 @@ export default function UserPage() {
       <main className="flex flex-1 flex-col p-3">
         <p className="text-sm text-gray-600">{appUser.email}</p>
 
-        <div className="flex items-center gap-2 mt-3">
-          <Icon name={appUser.splitwise_connected ? "check_circle" : "cancel"} size={20} className={appUser.splitwise_connected ? "text-green-600" : ""} />
-          <span className="text-sm tracking-wider">
-            {appUser.splitwise_connected ? "Splitwise connected" : "Splitwise not connected"}
-          </span>
+        {/* Connections section */}
+        <div className="mt-3">
+          <div className="border border-gray-200">
+            {connections.map((conn) => (
+              <div
+                key={conn.id}
+                className="flex items-center h-12 px-3 border-b border-gray-200 last:border-b-0"
+              >
+                <span className="flex-1 text-sm tracking-wider">
+                  {conn.label}
+                </span>
+                {disconnecting === conn.id ? (
+                  <div className="size-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                ) : (
+                  <button
+                    onClick={() =>
+                      conn.connected
+                        ? setConfirmDisconnect(conn.id)
+                        : handleConnect(conn.id)
+                    }
+                    aria-label={`${conn.connected ? "Disconnect" : "Connect"} ${conn.label}`}
+                    className={`relative w-10 h-5 rounded-full transition-colors ${
+                      conn.connected ? "bg-black" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 size-4 rounded-full bg-white transition-transform ${
+                        conn.connected ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {error && (
@@ -131,6 +212,31 @@ export default function UserPage() {
           onCancel={() => setShowDeleteDialog(false)}
           loading={deleting}
         />
+      )}
+
+      {/* Disconnect confirmation dialog */}
+      {confirmDisconnect && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white border border-black p-6 mx-6 max-w-sm w-full">
+            <p className="text-base font-bold tracking-label uppercase mb-4">
+              Disconnect {connections.find((c) => c.id === confirmDisconnect)?.label}?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleDisconnect(confirmDisconnect)}
+                className="flex-1 h-12 border border-black text-base font-bold tracking-label uppercase"
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => setConfirmDisconnect(null)}
+                className="flex-1 h-12 bg-black text-white text-base font-bold tracking-label uppercase"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -340,6 +340,16 @@ async def swiggy_exchange(body: SwiggyExchangeRequest, session: SessionDep):
     return {"success": True}
 
 
+@router.post("/swiggy/disconnect")
+async def swiggy_disconnect(session: SessionDep, current_user: CurrentUser):
+    """Disconnect Swiggy — delete stored token and clear user fields."""
+    await delete_secret(session, f"swiggy_token:{current_user.id}")
+    current_user.swiggy_user_id = None
+    current_user.swiggy_connected_at = None
+    await session.commit()
+    return {"success": True}
+
+
 def _extract_sub(token: str) -> str | None:
     """Extract sub claim from JWT without verification."""
     import base64

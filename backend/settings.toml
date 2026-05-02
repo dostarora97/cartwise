@@ -49,6 +49,8 @@ SPLITWISE_ENABLED = true
 CORS_ORIGINS = ["http://localhost:3000"]
 FRONTEND_URL = "http://localhost:3000"
 SESSION_SECRET_KEY = "dev-session-secret-not-for-production"
+SWIGGY_MCP_SERVER_URL = "http://localhost:8002"
+SWIGGY_MCP_ENDPOINT = "http://localhost:8002/mcp"
 
 [testing]
 DEBUG = true

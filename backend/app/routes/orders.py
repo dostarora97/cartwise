@@ -101,6 +101,34 @@ def _create_split_rows(order_id: uuid.UUID, result: dict) -> list[Split]:
     return splits
 
 
+# --- Swiggy order listing ---
+
+
+@router.get("/swiggy/orders")
+async def list_swiggy_orders(
+    session: SessionDep,
+    current_user: CurrentUser,
+    count: int = Query(default=10, le=20),
+):
+    """Fetch recent Swiggy orders for the order picker UI.
+
+    Calls the Swiggy MCP get_orders tool and returns parsed order summaries.
+    Raises 422 (ProblemDetailError) if re-authentication is required.
+    """
+    import json
+
+    from app.services.swiggy.auth import get_valid_token
+    from app.services.swiggy.client import call_tool
+    from app.services.swiggy.extract import _extract_text
+
+    token = await get_valid_token(session, str(current_user.id))
+    result = await call_tool(token, "get_orders", {"count": count})
+    text = _extract_text(result)
+    data = json.loads(text)
+    orders = data.get("orders", data.get("data", {}).get("orders", []))
+    return orders
+
+
 # --- Source endpoints ---
 
 

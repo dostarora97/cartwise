@@ -20,6 +20,8 @@ interface AppUser {
   avatar_url: string | null;
   splitwise_user_id: number | null;
   splitwise_connected: boolean;
+  swiggy_user_id: string | null;
+  swiggy_connected: boolean;
 }
 
 interface AuthContextType {
