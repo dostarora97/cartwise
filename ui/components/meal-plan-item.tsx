@@ -1,3 +1,5 @@
+import { Icon } from "@/components/icon";
+
 type Mode = "view" | "select";
 
 interface MealPlanItemProps {
@@ -38,9 +40,12 @@ export function MealPlanItem({
       {onTap ? (
         <button
           onClick={onTap}
-          className="flex-1 min-w-0 py-3 pr-3 text-left text-2xl font-medium tracking-item leading-6 truncate"
+          className="flex flex-1 items-center min-w-0 py-3 pr-3 text-left active:bg-gray-100"
         >
-          {name}
+          <span className="flex-1 min-w-0 text-2xl font-medium tracking-item leading-6 truncate">
+            {name}
+          </span>
+          <Icon name="chevron_right" size={20} className="shrink-0 text-gray-400 ml-2" />
         </button>
       ) : (
         <span className="flex-1 min-w-0 py-3 pr-3 text-2xl font-medium tracking-item leading-6 truncate">
