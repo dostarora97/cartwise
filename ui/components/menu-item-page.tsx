@@ -339,7 +339,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
           {editing && (
             <button
               onClick={handleSave}
-              disabled={saving || !name.trim()}
+              disabled={saving || !name.trim() || !body.trim()}
               aria-label="Save"
               className="flex h-12 w-12 items-center justify-center bg-black shrink-0 disabled:bg-neutral-400"
             >
