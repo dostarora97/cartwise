@@ -17,7 +17,7 @@ const MealPlanReorder = dynamic(() => import("@/components/meal-plan-reorder"));
 type Mode = "select" | "reorder";
 
 export default function MealPlanEditPage() {
-  const { appUser } = useRequiredAuth();
+  useRequiredAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<Mode>("select");
@@ -28,7 +28,7 @@ export default function MealPlanEditPage() {
   const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
     "get",
     "/api/v1/menu-items/",
-    { params: { query: { status: "active", created_by: appUser.id } } },
+    { params: { query: { status: "active" } } },
     { staleTime: 0 },
   );
 

@@ -473,6 +473,16 @@ export interface components {
             /** Status */
             status: string;
             /**
+             * Created By
+             * Format: uuid
+             */
+            created_by: string;
+            /**
+             * Updated By
+             * Format: uuid
+             */
+            updated_by: string;
+            /**
              * Created At
              * Format: date-time
              */
@@ -888,7 +898,6 @@ export interface operations {
         parameters: {
             query?: {
                 status?: string;
-                created_by?: string | null;
             };
             header?: never;
             path?: never;
