@@ -17,7 +17,7 @@ ui/        — Frontend (Next.js + React + Tailwind)
 
 ## Important Principles
 
-- **Never justify cutting corners (security, architecture, best practices) by citing project size, user count, or cost or any excuse. Do things the right way.
+- **Never justify cutting corners (security, architecture, best practices) by citing project size, user count, or cost or any excuse. Do things the right way. Never ever justify this with small app, poc, locally usable etc.
 - **Secrets are secrets.** Store them in proper secret management (Secret Manager, or some XYZ vault), not plaintext env vars. This applies regardless of who has access today.
 - **Each system owns only its secrets.** GitHub Secrets hold only what CI needs. Cloud Run / Secret Manager hold only what runtime needs. No duplication.
 - **Never run migrations manually against production.** Migrations run via GitHub Actions on deploy. Only run locally against dev/test databases.
