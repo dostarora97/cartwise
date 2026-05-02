@@ -273,8 +273,6 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
 
   // Show more button only for existing saved items
   const showMoreButton = !isNew;
-  // Show edit button only in view mode for existing items
-  const showEditButton = !isNew && !editing;
 
   if (!isNew && !item) {
     return (
@@ -321,8 +319,8 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
             </h1>
           )}
 
-          {/* More button — for existing saved items in view mode */}
-          {showMoreButton && (
+          {/* More button — view mode only */}
+          {showMoreButton && !editing && (
             <button
               onClick={() => (moreLoading ? null : setMoreOpen(!moreOpen))}
               aria-label="More options"
@@ -335,24 +333,36 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
               )}
             </button>
           )}
+
+          {/* Save button — edit mode only, replaces the more button */}
+          {editing && (
+            <button
+              onClick={handleSave}
+              disabled={saving || !name.trim()}
+              aria-label="Save"
+              className="flex h-12 items-center justify-center px-3 bg-black shrink-0 disabled:opacity-30"
+            >
+              {saving ? (
+                <div className="size-4 animate-spin motion-reduce:animate-none rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                <Icon name="check" size={24} className="text-white" />
+              )}
+            </button>
+          )}
         </div>
 
         {/* More popup — anchored top-right to the more button */}
         {moreOpen && (
           <div className="absolute right-0 top-full z-50 border border-neutral-800 bg-white p-4 shadow-lg">
             <div className="flex flex-col gap-3">
-              {showEditButton && (
-                <>
-                  <button
-                    onClick={() => { setMoreOpen(false); handleEdit(); }}
-                    className="flex items-center gap-3 text-xs font-bold tracking-label uppercase cursor-pointer"
-                  >
-                    <Icon name="edit" size={16} />
-                    Edit
-                  </button>
-                  <hr className="border-neutral-200" />
-                </>
-              )}
+              <button
+                onClick={() => { setMoreOpen(false); handleEdit(); }}
+                className="flex items-center gap-3 text-xs font-bold tracking-label uppercase cursor-pointer"
+              >
+                <Icon name="edit" size={16} />
+                Edit
+              </button>
+              <hr className="border-neutral-200" />
               <label className={`flex items-center gap-3 text-xs font-bold tracking-label uppercase ${isArchived ? "opacity-30" : "cursor-pointer"}`}>
                 <input
                   type="checkbox"
@@ -392,17 +402,6 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
           </article>
         )}
       </main>
-
-      {/* Save bar — only in edit mode */}
-      {editing && (
-        <button
-            onClick={handleSave}
-            disabled={saving || !name.trim()}
-            className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-30"
-          >
-            {saving ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Save"}
-          </button>
-      )}
 
       {/* Click outside to close more popup */}
       {moreOpen && (
