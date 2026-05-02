@@ -45,7 +45,7 @@ export function ConfirmDeleteDialog({ onConfirm, onCancel, loading }: ConfirmDel
           <button
             onClick={onConfirm}
             disabled={input !== "delete" || loading}
-            className="flex-1 flex items-center justify-center bg-black p-3 text-base font-bold tracking-label uppercase text-white disabled:opacity-30"
+            className="flex-1 flex items-center justify-center bg-black p-3 text-base font-bold tracking-label uppercase text-white disabled:bg-neutral-400"
           >
             {loading ? <div className="size-5 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Delete"}
           </button>
