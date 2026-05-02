@@ -28,7 +28,7 @@ export default function MealPlanEditPage() {
   const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
     "get",
     "/api/v1/menu-items/",
-    { params: { query: { status: "active" } } },
+    { params: { query: { status: "active,archived" } } },
     { staleTime: 0 },
   );
 
@@ -51,18 +51,53 @@ export default function MealPlanEditPage() {
     { id: string; name: string }[] | null
   >(null);
 
+  const archivedIds = useMemo(() => {
+    if (!menuItems) return new Set<string>();
+    return new Set(menuItems.filter((i) => i.status === "archived").map((i) => i.id));
+  }, [menuItems]);
+
+  const sortedItems = useMemo(() => {
+    if (!menuItems || !mealPlan) return [];
+
+    const planRank = new Map(
+      mealPlan.items.map((i) => [i.menu_item.id, i.rank]),
+    );
+
+    const inPlan: typeof menuItems = [];
+    const activeNotInPlan: typeof menuItems = [];
+    const archived: typeof menuItems = [];
+
+    for (const item of menuItems) {
+      if (planRank.has(item.id)) {
+        inPlan.push(item);
+      } else if (item.status === "active") {
+        activeNotInPlan.push(item);
+      } else {
+        archived.push(item);
+      }
+    }
+
+    inPlan.sort((a, b) => (planRank.get(a.id) ?? 0) - (planRank.get(b.id) ?? 0));
+    activeNotInPlan.sort(
+      (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+    );
+    archived.sort(
+      (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+    );
+
+    return [...inPlan, ...activeNotInPlan, ...archived];
+  }, [menuItems, mealPlan]);
+
   const filtered = useMemo(() => {
-    if (!menuItems) return [];
-    const items = [...menuItems].sort((a, b) => a.name.localeCompare(b.name));
-    if (!search) return items;
+    if (!search) return sortedItems;
     const q = search.toLowerCase();
-    return items.filter(
+    return sortedItems.filter(
       (i) =>
         i.name.toLowerCase().includes(q) || i.body.toLowerCase().includes(q),
     );
-  }, [menuItems, search]);
+  }, [sortedItems, search]);
 
-  const dataReady = !menuItemsLoading && !mealPlanLoading;
+  const dataReady = !menuItemsLoading && !mealPlanLoading && !!menuItems && !!mealPlan;
 
   function toggle(id: string) {
     const base = selected ?? initialIds;
@@ -91,11 +126,22 @@ export default function MealPlanEditPage() {
     setSaving(true);
     setError("");
 
+    const toUnarchive = orderedItems.filter((i) => archivedIds.has(i.id));
+    for (const item of toUnarchive) {
+      const { error: unarchiveError } = await apiClient.PATCH(
+        "/api/v1/menu-items/{item_id}/unarchive",
+        { params: { path: { item_id: item.id } } },
+      );
+      if (unarchiveError) {
+        setError("Failed to unarchive items. Please try again.");
+        setSaving(false);
+        return;
+      }
+    }
+
     const { error: apiError } = await apiClient.PUT(
       "/api/v1/meal-plans",
-      {
-        body: { menu_item_ids: orderedItems.map((i) => i.id) },
-      },
+      { body: { menu_item_ids: orderedItems.map((i) => i.id) } },
     );
 
     if (apiError) {
@@ -104,9 +150,8 @@ export default function MealPlanEditPage() {
       return;
     }
 
-    await queryClient.invalidateQueries({
-      queryKey: ["get", "/api/v1/meal-plans"],
-    });
+    await queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/meal-plans"] });
+    await queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/menu-items/"] });
     router.replace("/meal-plan");
   }
 
@@ -152,6 +197,7 @@ export default function MealPlanEditPage() {
                     name={item.name}
                     mode="select"
                     checked={current.has(item.id)}
+                    archived={archivedIds.has(item.id)}
                     onToggle={() => toggle(item.id)}
                     onTap={() => router.push(`/menu-items/${item.id}`)}
                   />

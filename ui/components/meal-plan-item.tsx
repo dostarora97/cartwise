@@ -1,4 +1,5 @@
 import { Icon } from "@/components/icon";
+import { cn } from "@/lib/utils";
 
 type Mode = "view" | "select";
 
@@ -6,6 +7,7 @@ interface MealPlanItemProps {
   name: string;
   mode: Mode;
   checked?: boolean;
+  archived?: boolean;
   onToggle?: () => void;
   onTap?: () => void;
 }
@@ -14,6 +16,7 @@ export function MealPlanItem({
   name,
   mode,
   checked,
+  archived,
   onToggle,
   onTap,
 }: MealPlanItemProps) {
@@ -24,7 +27,10 @@ export function MealPlanItem({
           onClick={onTap}
           className={`flex flex-1 items-center min-w-0 py-3 text-left active:bg-gray-100 ${mode === "select" ? "pl-3" : "pl-3 pr-3"}`}
         >
-          <span className="flex-1 min-w-0 text-2xl font-medium tracking-item leading-6 truncate">
+          <span className={cn(
+            "flex-1 min-w-0 text-2xl font-medium tracking-item leading-6 truncate",
+            archived && !checked && "line-through text-neutral-400",
+          )}>
             {name}
           </span>
           {mode === "view" && (
@@ -32,7 +38,11 @@ export function MealPlanItem({
           )}
         </button>
       ) : (
-        <span className={`flex-1 min-w-0 py-3 pr-3 text-2xl font-medium tracking-item leading-6 truncate ${mode === "view" ? "pl-3" : "pl-3"}`}>
+        <span className={cn(
+          "flex-1 min-w-0 py-3 pr-3 text-2xl font-medium tracking-item leading-6 truncate",
+          mode === "view" ? "pl-3" : "pl-3",
+          archived && !checked && "line-through text-neutral-400",
+        )}>
           {name}
         </span>
       )}
