@@ -147,7 +147,7 @@ async def upload_source(
     await session.flush()
 
     content = await file.read()
-    filename = file.filename or "invoice.pdf"
+    filename = file.filename or f"source_{source.id}.pdf"
     storage_path = await asyncio.to_thread(save_source_upload, content, source.id, filename)
 
     source.raw_data = {"storage_path": storage_path, "filename": filename}

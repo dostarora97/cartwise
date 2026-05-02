@@ -28,7 +28,7 @@ def test_save_source_upload_local(tmp_path):
     content = b"%PDF-1.4 fake content"
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=False),
+        patch("app.services.storage._use_remote_storage", return_value=False),
         patch("app.services.storage.settings") as mock_settings,
     ):
         mock_settings.get.return_value = str(tmp_path)
@@ -48,7 +48,7 @@ def test_delete_source_files_local(tmp_path):
     (source_dir / "invoice.pdf").write_bytes(b"content")
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=False),
+        patch("app.services.storage._use_remote_storage", return_value=False),
         patch("app.services.storage.settings") as mock_settings,
     ):
         mock_settings.get.return_value = str(tmp_path)
@@ -62,7 +62,7 @@ def test_delete_source_files_no_dir(tmp_path):
     sid = uuid.uuid4()
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=False),
+        patch("app.services.storage._use_remote_storage", return_value=False),
         patch("app.services.storage.settings") as mock_settings,
     ):
         mock_settings.get.return_value = str(tmp_path)
@@ -94,7 +94,7 @@ def test_save_upload_supabase():
     mock_client.storage.from_.return_value = mock_bucket
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=True),
+        patch("app.services.storage._use_remote_storage", return_value=True),
         patch("app.services.storage._get_supabase_client", return_value=mock_client),
     ):
         result = save_upload(content, oid)
@@ -113,7 +113,7 @@ def test_save_upload_local(tmp_path):
     content = b"%PDF-1.4 local"
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=False),
+        patch("app.services.storage._use_remote_storage", return_value=False),
         patch("app.services.storage.settings") as mock_settings,
     ):
         mock_settings.get.return_value = str(tmp_path)
@@ -133,7 +133,7 @@ def test_download_to_temp_supabase():
     mock_client.storage.from_.return_value = mock_bucket
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=True),
+        patch("app.services.storage._use_remote_storage", return_value=True),
         patch("app.services.storage._get_supabase_client", return_value=mock_client),
     ):
         result = download_to_temp("orders/abc/invoice.pdf")
@@ -149,7 +149,7 @@ def test_download_to_temp_supabase():
 
 def test_download_to_temp_local():
     """download_to_temp returns path directly when not real Supabase."""
-    with patch("app.services.storage._is_real_supabase", return_value=False):
+    with patch("app.services.storage._use_remote_storage", return_value=False):
         result = download_to_temp("/some/local/path.pdf")
     assert result == "/some/local/path.pdf"
 
@@ -163,7 +163,7 @@ def test_delete_order_files_supabase():
     mock_client.storage.from_.return_value = mock_bucket
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=True),
+        patch("app.services.storage._use_remote_storage", return_value=True),
         patch("app.services.storage._get_supabase_client", return_value=mock_client),
     ):
         delete_order_files(oid)
@@ -180,7 +180,7 @@ def test_delete_order_files_local(tmp_path):
     (order_dir / "invoice.pdf").write_bytes(b"data")
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=False),
+        patch("app.services.storage._use_remote_storage", return_value=False),
         patch("app.services.storage.settings") as mock_settings,
     ):
         mock_settings.get.return_value = str(tmp_path)
@@ -199,7 +199,7 @@ def test_save_source_upload_supabase():
     mock_client.storage.from_.return_value = mock_bucket
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=True),
+        patch("app.services.storage._use_remote_storage", return_value=True),
         patch("app.services.storage._get_supabase_client", return_value=mock_client),
     ):
         result = save_source_upload(content, sid, "receipt.pdf")
@@ -220,7 +220,7 @@ def test_delete_source_files_supabase():
     mock_client.storage.from_.return_value = mock_bucket
 
     with (
-        patch("app.services.storage._is_real_supabase", return_value=True),
+        patch("app.services.storage._use_remote_storage", return_value=True),
         patch("app.services.storage._get_supabase_client", return_value=mock_client),
     ):
         delete_source_files(sid)

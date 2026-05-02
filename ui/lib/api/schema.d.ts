@@ -100,6 +100,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/swiggy/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Swiggy Connect
+         * @description Start the Swiggy OAuth 2.1 + PKCE flow.
+         *
+         *     Returns authorize_url, redirect_uri, and code_verifier.
+         *     The frontend stores code_verifier and sends it back during exchange.
+         */
+        post: operations["swiggy_connect_api_v1_auth_swiggy_connect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/swiggy/exchange": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Swiggy Exchange
+         * @description Exchange a Swiggy authorization code for tokens.
+         *
+         *     The frontend sends code, state, code_verifier, and redirect_uri.
+         *     Backend exchanges for tokens, stores them in Vault, and updates the user.
+         */
+        post: operations["swiggy_exchange_api_v1_auth_swiggy_exchange_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/swiggy/disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Swiggy Disconnect
+         * @description Disconnect Swiggy — delete stored token and clear user fields.
+         */
+        post: operations["swiggy_disconnect_api_v1_auth_swiggy_disconnect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/dev-login": {
         parameters: {
             query?: never;
@@ -246,6 +312,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/swiggy/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Swiggy Orders
+         * @description Fetch recent Swiggy orders for the order picker UI.
+         *
+         *     Calls the Swiggy MCP get_orders tool and returns parsed order summaries.
+         *     Raises 422 (ProblemDetailError) if re-authentication is required.
+         */
+        get: operations["list_swiggy_orders_api_v1_orders_swiggy_orders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/sources/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Source
+         * @description Upload a file (PDF invoice) and create an invoice source.
+         */
+        post: operations["upload_source_api_v1_orders_sources_upload_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/sources/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Source
+         * @description Create an order source (e.g., swiggy_order with order ID).
+         */
+        post: operations["create_source_api_v1_orders_sources__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders/": {
         parameters: {
             query?: never;
@@ -265,9 +394,11 @@ export interface paths {
         put?: never;
         /**
          * Create Order
-         * @description Upload a PDF invoice and run the full splitting pipeline.
+         * @description Initiate the splitting pipeline from a source.
          *
-         *     Creates a draft order with split rows. Use PATCH /{id}/approve to push to Splitwise.
+         *     Two-phase flow: source was created earlier (fast write),
+         *     this endpoint runs the full pipeline (extract → correlate → split).
+         *     Idempotent: if an order already exists for this source, returns it.
          */
         post: operations["create_order_api_v1_orders__post"];
         delete?: never;
@@ -327,10 +458,6 @@ export interface paths {
         /**
          * Edit Splits
          * @description Edit split assignments for a draft order. Backend recomputes amounts.
-         *
-         *     The client sends who-gets-what (member assignments per grocery item UPC).
-         *     The backend groups by identical member sets and recalculates amounts from
-         *     the original invoice prices stored in order.result.
          */
         put: operations["edit_splits_api_v1_orders__order_id__splits_put"];
         post?: never;
@@ -352,8 +479,6 @@ export interface paths {
         /**
          * Approve Order
          * @description Approve a draft order — push splits to Splitwise.
-         *
-         *     Looks up each participant's splitwise_user_id and calls push_splits_audited().
          */
         post: operations["approve_order_api_v1_orders__order_id__approve_post"];
         delete?: never;
@@ -383,12 +508,10 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Body_create_order_api_v1_orders__post */
-        Body_create_order_api_v1_orders__post: {
+        /** Body_upload_source_api_v1_orders_sources_upload_post */
+        Body_upload_source_api_v1_orders_sources_upload_post: {
             /** File */
             file: string;
-            /** Participant Ids */
-            participant_ids: string;
         };
         /** DeleteAccountRequest */
         DeleteAccountRequest: {
@@ -500,6 +623,16 @@ export interface components {
             /** Body */
             body?: string | null;
         };
+        /** OrderCreate */
+        OrderCreate: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Participant Ids */
+            participant_ids: string[];
+        };
         /** OrderParticipantResponse */
         OrderParticipantResponse: {
             /**
@@ -520,8 +653,8 @@ export interface components {
              * Format: uuid
              */
             paid_by: string;
-            /** Invoice Filename */
-            invoice_filename: string;
+            /** Source Id */
+            source_id: string | null;
             /** Status */
             status: string;
             /** Snapshot */
@@ -542,6 +675,44 @@ export interface components {
             /** Splits */
             splits: components["schemas"]["SplitResponse"][];
         };
+        /** OrderSourceCreate */
+        OrderSourceCreate: {
+            type: components["schemas"]["OrderSourceType"];
+            /** Raw Data */
+            raw_data?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** OrderSourceResponse */
+        OrderSourceResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            type: components["schemas"]["OrderSourceType"];
+            /** Raw Data */
+            raw_data: {
+                [key: string]: unknown;
+            } | null;
+            /** Items */
+            items: unknown[] | null;
+            /**
+             * Created By
+             * Format: uuid
+             */
+            created_by: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * OrderSourceType
+         * @enum {string}
+         */
+        OrderSourceType: "invoice" | "swiggy_order";
         /**
          * SplitAssignment
          * @description One grocery item's member assignment for the edit-splits endpoint.
@@ -588,6 +759,36 @@ export interface components {
             /** Redirect Uri */
             redirect_uri: string;
         };
+        /** SwiggyConnectResponse */
+        SwiggyConnectResponse: {
+            /** Authorize Url */
+            authorize_url: string;
+            /** Redirect Uri */
+            redirect_uri: string;
+            /** Code Verifier */
+            code_verifier: string;
+        };
+        /** SwiggyExchangeRequest */
+        SwiggyExchangeRequest: {
+            /** Code */
+            code: string;
+            /** State */
+            state: string;
+            /** Code Verifier */
+            code_verifier: string;
+            /** Redirect Uri */
+            redirect_uri: string;
+        };
+        /** UploadResponse */
+        UploadResponse: {
+            /**
+             * Source Id
+             * Format: uuid
+             */
+            source_id: string;
+            /** Storage Path */
+            storage_path: string;
+        };
         /** UserResponse */
         UserResponse: {
             /**
@@ -607,6 +808,10 @@ export interface components {
             splitwise_user_id: number | null;
             /** Splitwise Connected */
             splitwise_connected: boolean;
+            /** Swiggy User Id */
+            swiggy_user_id: string | null;
+            /** Swiggy Connected */
+            swiggy_connected: boolean;
             /** Is Active */
             is_active: boolean;
             /**
@@ -771,6 +976,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    swiggy_connect_api_v1_auth_swiggy_connect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwiggyConnectResponse"];
+                };
+            };
+        };
+    };
+    swiggy_exchange_api_v1_auth_swiggy_exchange_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwiggyExchangeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    swiggy_disconnect_api_v1_auth_swiggy_disconnect_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };
@@ -1139,6 +1417,103 @@ export interface operations {
             };
         };
     };
+    list_swiggy_orders_api_v1_orders_swiggy_orders_get: {
+        parameters: {
+            query?: {
+                count?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_source_api_v1_orders_sources_upload_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_source_api_v1_orders_sources_upload_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_source_api_v1_orders_sources__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderSourceCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderSourceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_orders_api_v1_orders__get: {
         parameters: {
             query?: {
@@ -1180,7 +1555,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_create_order_api_v1_orders__post"];
+                "application/json": components["schemas"]["OrderCreate"];
             };
         };
         responses: {

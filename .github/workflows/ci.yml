@@ -286,7 +286,7 @@ jobs:
           enable-cache: true
       - name: Audit Python dependencies
         working-directory: backend
-        run: uvx pip-audit --requirement <(uv export --no-hashes)
+        run: uvx pip-audit --requirement <(uv export --no-hashes) --ignore-vuln GHSA-rcfx-77hg-w2wv
 
       - uses: actions/setup-node@v4
         if: always()

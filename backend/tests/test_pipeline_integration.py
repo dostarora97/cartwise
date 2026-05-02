@@ -260,7 +260,11 @@ async def test_swiggy_pipeline_happy_path(
             side_effect=_mock_call_tool_side_effect("SWG999"),
         ),
         patch(
-            "app.ai.client.generate",
+            "app.services.classify.generate",
+            side_effect=_make_mock_generate(menu_items_and_plans),
+        ),
+        patch(
+            "app.services.correlate.generate",
             side_effect=_make_mock_generate(menu_items_and_plans),
         ),
     ):
@@ -348,9 +352,15 @@ async def test_invoice_pipeline_with_mocked_ai(
     assert upload_resp.status_code == 201
     source_id = upload_resp.json()["source_id"]
 
-    with patch(
-        "app.ai.client.generate",
-        side_effect=_make_mock_generate(menu_items_and_plans),
+    with (
+        patch(
+            "app.services.classify.generate",
+            side_effect=_make_mock_generate(menu_items_and_plans),
+        ),
+        patch(
+            "app.services.correlate.generate",
+            side_effect=_make_mock_generate(menu_items_and_plans),
+        ),
     ):
         order_resp = await client.post(
             "/api/v1/orders/",
