@@ -321,14 +321,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
             </h1>
           )}
 
-          {/* Edit button — only in view mode for existing items */}
-          {showEditButton && (
-            <button onClick={handleEdit} aria-label="Edit item" className="flex h-12 items-center justify-center px-3 bg-black shrink-0">
-              <Icon name="edit" size={24} className="text-white" />
-            </button>
-          )}
-
-          {/* More button — only for existing saved items */}
+          {/* More button — for existing saved items in view mode */}
           {showMoreButton && (
             <button
               onClick={() => (moreLoading ? null : setMoreOpen(!moreOpen))}
@@ -348,6 +341,18 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
         {moreOpen && (
           <div className="absolute right-0 top-full z-50 border border-neutral-800 bg-white p-4 shadow-lg">
             <div className="flex flex-col gap-3">
+              {showEditButton && (
+                <>
+                  <button
+                    onClick={() => { setMoreOpen(false); handleEdit(); }}
+                    className="flex items-center gap-3 text-xs font-bold tracking-label uppercase cursor-pointer"
+                  >
+                    <Icon name="edit" size={16} />
+                    Edit
+                  </button>
+                  <hr className="border-neutral-200" />
+                </>
+              )}
               <label className={`flex items-center gap-3 text-xs font-bold tracking-label uppercase ${isArchived ? "opacity-30" : "cursor-pointer"}`}>
                 <input
                   type="checkbox"
