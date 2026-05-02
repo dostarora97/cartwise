@@ -16,6 +16,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Annotated
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 from itsdangerous import BadSignature, URLSafeTimedSerializer
@@ -31,6 +32,8 @@ from app.models.user import User
 from app.schemas.user import UserResponse
 from app.services.storage import delete_order_files
 from app.services.vault import delete_secret, store_secret
+
+logger = structlog.get_logger()
 
 _signer = URLSafeTimedSerializer(settings.SESSION_SECRET_KEY)
 STATE_MAX_AGE = 600  # 10 minutes
@@ -248,6 +251,13 @@ async def swiggy_connect(current_user: CurrentUser):
 
     from app.services.swiggy.registration import ensure_client_registered
 
+    logger.info(
+        "swiggy_connect_start",
+        user_id=str(current_user.id),
+        frontend_url=settings.FRONTEND_URL,
+        swiggy_mcp_server_url=settings.SWIGGY_MCP_SERVER_URL,
+    )
+
     code_verifier = secrets.token_urlsafe(64)
     digest = hashlib.sha256(code_verifier.encode()).digest()
     code_challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
@@ -255,7 +265,17 @@ async def swiggy_connect(current_user: CurrentUser):
     state = _sign_state(str(current_user.id), secrets.token_urlsafe(16))
     redirect_uri = f"{settings.FRONTEND_URL}/auth/connect/swiggy"
 
+    logger.info(
+        "swiggy_connect_redirect_uri",
+        redirect_uri=redirect_uri,
+    )
+
     client_id = await ensure_client_registered(redirect_uri)
+
+    logger.info(
+        "swiggy_connect_registration_done",
+        client_id=client_id,
+    )
 
     authorize_url = (
         f"{settings.SWIGGY_MCP_SERVER_URL}/auth/authorize?"
@@ -266,6 +286,12 @@ async def swiggy_connect(current_user: CurrentUser):
         f"redirect_uri={redirect_uri}&"
         f"state={state}&"
         f"scope=mcp:tools+mcp:resources+mcp:prompts"
+    )
+
+    logger.info(
+        "swiggy_connect_complete",
+        authorize_url=authorize_url,
+        redirect_uri=redirect_uri,
     )
 
     return {
@@ -286,31 +312,78 @@ async def swiggy_exchange(body: SwiggyExchangeRequest, session: SessionDep):
 
     import httpx
 
+    logger.info(
+        "swiggy_exchange_start",
+        code=body.code[:20] + "..." if body.code else None,
+        state=body.state[:30] + "..." if body.state else None,
+        redirect_uri=body.redirect_uri,
+        code_verifier_present=bool(body.code_verifier),
+        code_verifier_length=len(body.code_verifier) if body.code_verifier else 0,
+    )
+
     user_id = _verify_state(body.state)
     if not user_id:
+        logger.error("swiggy_exchange_invalid_state", state=body.state)
         raise HTTPException(status_code=400, detail="Invalid state")
+
+    logger.info("swiggy_exchange_state_verified", user_id=user_id)
+
+    token_url = f"{settings.SWIGGY_MCP_SERVER_URL}/auth/token"
+    token_request_data = {
+        "grant_type": "authorization_code",
+        "client_id": settings.SWIGGY_MCP_CLIENT_ID,
+        "code": body.code,
+        "code_verifier": body.code_verifier,
+        "redirect_uri": body.redirect_uri,
+    }
+
+    logger.info(
+        "swiggy_exchange_token_request",
+        url=token_url,
+        grant_type="authorization_code",
+        client_id=settings.SWIGGY_MCP_CLIENT_ID,
+        redirect_uri=body.redirect_uri,
+        code_length=len(body.code) if body.code else 0,
+    )
 
     async with httpx.AsyncClient() as client:
         resp = await client.post(
-            f"{settings.SWIGGY_MCP_SERVER_URL}/auth/token",
-            data={
-                "grant_type": "authorization_code",
-                "client_id": settings.SWIGGY_MCP_CLIENT_ID,
-                "code": body.code,
-                "code_verifier": body.code_verifier,
-                "redirect_uri": body.redirect_uri,
-            },
+            token_url,
+            data=token_request_data,
             headers={"Content-Type": "application/x-www-form-urlencoded"},
             timeout=10.0,
         )
 
+    logger.info(
+        "swiggy_exchange_token_response",
+        status_code=resp.status_code,
+        headers=dict(resp.headers),
+        body=resp.text[:500],
+    )
+
     if resp.status_code != 200:
+        logger.error(
+            "swiggy_exchange_token_failed",
+            status_code=resp.status_code,
+            response_body=resp.text,
+        )
         raise HTTPException(status_code=502, detail="Swiggy token exchange failed")
 
     token_data = resp.json()
     access_token = token_data.get("access_token")
     refresh_token = token_data.get("refresh_token")
+
+    logger.info(
+        "swiggy_exchange_token_parsed",
+        has_access_token=bool(access_token),
+        has_refresh_token=bool(refresh_token),
+        token_type=token_data.get("token_type"),
+        expires_in=token_data.get("expires_in"),
+        scope=token_data.get("scope"),
+    )
+
     if not access_token:
+        logger.error("swiggy_exchange_no_access_token", token_data_keys=list(token_data.keys()))
         raise HTTPException(status_code=502, detail="No access token received from Swiggy")
 
     # Decode JWT to get sub (Swiggy user ID) and exp
@@ -318,6 +391,12 @@ async def swiggy_exchange(body: SwiggyExchangeRequest, session: SessionDep):
 
     swiggy_user_id = _extract_sub(access_token)
     expires_at = _extract_exp(access_token)
+
+    logger.info(
+        "swiggy_exchange_jwt_decoded",
+        swiggy_user_id=swiggy_user_id,
+        expires_at=expires_at,
+    )
 
     # Store tokens in vault
     vault_data = json.dumps(
@@ -334,6 +413,8 @@ async def swiggy_exchange(body: SwiggyExchangeRequest, session: SessionDep):
         f"Swiggy MCP tokens for user {user_id}",
     )
 
+    logger.info("swiggy_exchange_vault_stored", user_id=user_id)
+
     # Update user record
     user = await session.get(User, uuid.UUID(user_id))
     if user:
@@ -341,16 +422,25 @@ async def swiggy_exchange(body: SwiggyExchangeRequest, session: SessionDep):
         user.swiggy_connected_at = datetime.now(UTC)
     await session.commit()
 
+    logger.info(
+        "swiggy_exchange_complete",
+        user_id=user_id,
+        swiggy_user_id=swiggy_user_id,
+        user_found=user is not None,
+    )
+
     return {"success": True}
 
 
 @router.post("/swiggy/disconnect")
 async def swiggy_disconnect(session: SessionDep, current_user: CurrentUser):
     """Disconnect Swiggy — delete stored token and clear user fields."""
+    logger.info("swiggy_disconnect_start", user_id=str(current_user.id))
     await delete_secret(session, f"swiggy_token:{current_user.id}")
     current_user.swiggy_user_id = None
     current_user.swiggy_connected_at = None
     await session.commit()
+    logger.info("swiggy_disconnect_complete", user_id=str(current_user.id))
     return {"success": True}
 
 

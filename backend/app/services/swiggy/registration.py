@@ -22,6 +22,11 @@ async def ensure_client_registered(redirect_uri: str) -> str:
     redirect_uri per process lifetime.
     """
     if redirect_uri in _registered_clients:
+        logger.info(
+            "swiggy_registration_cache_hit",
+            redirect_uri=redirect_uri,
+            cached_client_id=_registered_clients[redirect_uri],
+        )
         return _registered_clients[redirect_uri]
 
     registration_url = f"{settings.SWIGGY_MCP_SERVER_URL}/auth/register"
@@ -35,6 +40,12 @@ async def ensure_client_registered(redirect_uri: str) -> str:
         "scope": "mcp:tools mcp:resources mcp:prompts",
     }
 
+    logger.info(
+        "swiggy_registration_request",
+        url=registration_url,
+        payload=payload,
+    )
+
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             registration_url,
@@ -42,11 +53,18 @@ async def ensure_client_registered(redirect_uri: str) -> str:
             timeout=10.0,
         )
 
+    logger.info(
+        "swiggy_registration_response",
+        status_code=resp.status_code,
+        headers=dict(resp.headers),
+        body=resp.text,
+    )
+
     if resp.status_code not in (200, 201):
         logger.error(
             "swiggy_registration_failed",
             status=resp.status_code,
-            body=resp.text[:200],
+            body=resp.text,
         )
         raise httpx.HTTPStatusError(
             f"Swiggy client registration failed: {resp.status_code}",
@@ -62,6 +80,7 @@ async def ensure_client_registered(redirect_uri: str) -> str:
         "swiggy_client_registered",
         client_id=client_id,
         redirect_uri=redirect_uri,
+        full_response_data=data,
     )
 
     return client_id
