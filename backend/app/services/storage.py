@@ -99,3 +99,47 @@ def delete_order_files(order_id: uuid.UUID) -> None:
     local_dir = Path(settings.get("STORAGE_DIR", "./storage")) / "orders" / str(order_id)
     if local_dir.exists():
         shutil.rmtree(local_dir)
+
+
+def _source_storage_path(source_id: uuid.UUID, filename: str) -> str:
+    return f"sources/{source_id}/{filename}"
+
+
+def save_source_upload(content: bytes, source_id: uuid.UUID, filename: str = "invoice.pdf") -> str:
+    """Save uploaded file to storage under sources/{source_id}/.
+
+    Sync function — call via asyncio.to_thread() in async context.
+    """
+    if _is_real_supabase():
+        client = _get_supabase_client()
+        path = _source_storage_path(source_id, filename)
+        client.storage.from_(BUCKET).upload(
+            path,
+            content,
+            file_options={"content-type": "application/pdf"},
+        )
+        return path
+
+    local_dir = Path(settings.get("STORAGE_DIR", "./storage")) / "sources" / str(source_id)
+    local_dir.mkdir(parents=True, exist_ok=True)
+    local_path = local_dir / filename
+    local_path.write_bytes(content)
+    return str(local_path)
+
+
+def delete_source_files(source_id: uuid.UUID) -> None:
+    """Delete all stored files for a source.
+
+    Sync function — call via asyncio.to_thread() in async context.
+    """
+    import shutil
+
+    if _is_real_supabase():
+        client = _get_supabase_client()
+        path = _source_storage_path(source_id, "invoice.pdf")
+        client.storage.from_(BUCKET).remove([path])
+        return
+
+    local_dir = Path(settings.get("STORAGE_DIR", "./storage")) / "sources" / str(source_id)
+    if local_dir.exists():
+        shutil.rmtree(local_dir)

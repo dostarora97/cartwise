@@ -220,6 +220,139 @@ async def splitwise_exchange(body: SplitwiseExchangeRequest, session: SessionDep
     return {"success": True}
 
 
+# --- Swiggy OAuth 2.1 + PKCE ---
+
+
+class SwiggyConnectResponse(BaseModel):
+    authorize_url: str
+    redirect_uri: str
+    code_verifier: str
+
+
+class SwiggyExchangeRequest(BaseModel):
+    code: str
+    state: str
+    code_verifier: str
+    redirect_uri: str
+
+
+@router.post("/swiggy/connect", response_model=SwiggyConnectResponse)
+async def swiggy_connect(current_user: CurrentUser):
+    """Start the Swiggy OAuth 2.1 + PKCE flow.
+
+    Returns authorize_url, redirect_uri, and code_verifier.
+    The frontend stores code_verifier and sends it back during exchange.
+    """
+    import base64
+    import hashlib
+
+    code_verifier = secrets.token_urlsafe(64)
+    digest = hashlib.sha256(code_verifier.encode()).digest()
+    code_challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
+
+    state = _sign_state(str(current_user.id), secrets.token_urlsafe(16))
+    redirect_uri = f"{settings.FRONTEND_URL}/auth/connect/swiggy"
+
+    authorize_url = (
+        f"{settings.SWIGGY_MCP_SERVER_URL}/auth/authorize?"
+        f"response_type=code&"
+        f"client_id={settings.SWIGGY_MCP_CLIENT_ID}&"
+        f"code_challenge={code_challenge}&"
+        f"code_challenge_method=S256&"
+        f"redirect_uri={redirect_uri}&"
+        f"state={state}&"
+        f"scope=mcp:tools+mcp:resources+mcp:prompts"
+    )
+
+    return {
+        "authorize_url": authorize_url,
+        "redirect_uri": redirect_uri,
+        "code_verifier": code_verifier,
+    }
+
+
+@router.post("/swiggy/exchange")
+async def swiggy_exchange(body: SwiggyExchangeRequest, session: SessionDep):
+    """Exchange a Swiggy authorization code for tokens.
+
+    The frontend sends code, state, code_verifier, and redirect_uri.
+    Backend exchanges for tokens, stores them in Vault, and updates the user.
+    """
+    import json
+
+    import httpx
+
+    user_id = _verify_state(body.state)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Invalid state")
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            f"{settings.SWIGGY_MCP_SERVER_URL}/auth/token",
+            data={
+                "grant_type": "authorization_code",
+                "client_id": settings.SWIGGY_MCP_CLIENT_ID,
+                "code": body.code,
+                "code_verifier": body.code_verifier,
+                "redirect_uri": body.redirect_uri,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10.0,
+        )
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="Swiggy token exchange failed")
+
+    token_data = resp.json()
+    access_token = token_data.get("access_token")
+    refresh_token = token_data.get("refresh_token")
+    if not access_token:
+        raise HTTPException(status_code=502, detail="No access token received from Swiggy")
+
+    # Decode JWT to get sub (Swiggy user ID) and exp
+    from app.services.swiggy.auth import _extract_exp
+
+    swiggy_user_id = _extract_sub(access_token)
+    expires_at = _extract_exp(access_token)
+
+    # Store tokens in vault
+    vault_data = json.dumps(
+        {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "expires_at": expires_at,
+        }
+    )
+    await store_secret(
+        session,
+        f"swiggy_token:{user_id}",
+        vault_data,
+        f"Swiggy MCP tokens for user {user_id}",
+    )
+
+    # Update user record
+    user = await session.get(User, uuid.UUID(user_id))
+    if user:
+        user.swiggy_user_id = swiggy_user_id
+        user.swiggy_connected_at = datetime.now(UTC)
+    await session.commit()
+
+    return {"success": True}
+
+
+def _extract_sub(token: str) -> str | None:
+    """Extract sub claim from JWT without verification."""
+    import base64
+    import json
+
+    parts = token.split(".")
+    if len(parts) != 3:
+        return None
+    payload = parts[1] + "=" * (4 - len(parts[1]) % 4)
+    claims = json.loads(base64.urlsafe_b64decode(payload))
+    return claims.get("sub")
+
+
 # --- Dev-only endpoints (DEBUG=true) ---
 
 

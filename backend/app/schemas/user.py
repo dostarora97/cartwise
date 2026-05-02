@@ -14,6 +14,8 @@ class UserResponse(BaseModel):
     oauth_provider: str
     splitwise_user_id: int | None
     splitwise_connected: bool
+    swiggy_user_id: str | None
+    swiggy_connected: bool
     is_active: bool
     created_at: datetime
     updated_at: datetime

@@ -14,7 +14,6 @@ async def _create_draft_order(session: AsyncSession, payer_id: uuid.UUID) -> Ord
     """Create a draft order directly in the DB for testing."""
     order = Order(
         paid_by=payer_id,
-        invoice_filename="test.pdf",
         result={"paidBy": str(payer_id), "splits": []},
         snapshot={"members": {}, "uses": {}, "menu_items": []},
     )

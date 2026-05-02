@@ -23,6 +23,10 @@ class User(Base):
     splitwise_connected_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    swiggy_user_id: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    swiggy_connected_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -38,3 +42,7 @@ class User(Base):
     @property
     def splitwise_connected(self) -> bool:
         return self.splitwise_connected_at is not None
+
+    @property
+    def swiggy_connected(self) -> bool:
+        return self.swiggy_connected_at is not None

@@ -11,10 +11,20 @@ from httpx import ConnectError, TimeoutException
 from pdfminer.pdfparser import PDFSyntaxError
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.errors import ProblemDetailError
+
 logger = structlog.get_logger()
 
 
 def register_error_handlers(app: FastAPI) -> None:
+    @app.exception_handler(ProblemDetailError)
+    async def problem_detail_handler(request: Request, exc: ProblemDetailError) -> JSONResponse:
+        return JSONResponse(
+            status_code=exc.status,
+            content=exc.to_dict(),
+            media_type="application/problem+json",
+        )
+
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
         return JSONResponse(
