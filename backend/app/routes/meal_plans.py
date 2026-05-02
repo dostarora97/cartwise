@@ -8,11 +8,7 @@ from app.auth.dependencies import CurrentUser
 from app.database import SessionDep
 from app.models.meal_plan import MealPlan, MealPlanItem
 from app.models.menu_item import MenuItem
-from app.schemas.meal_plan import (
-    MealPlanAddItem,
-    MealPlanResponse,
-    MealPlanSet,
-)
+from app.schemas.meal_plan import MealPlanResponse, MealPlanSet
 from app.schemas.menu_item import MenuItemResponse
 
 router = APIRouter(prefix="/meal-plans", tags=["meal-plans"])
@@ -22,7 +18,6 @@ def _plan_response(plan: MealPlan) -> dict:
     """Build a MealPlanResponse dict from a loaded MealPlan with eager-loaded items + menu_items."""
     return {
         "id": plan.id,
-        "user_id": plan.user_id,
         "updated_at": plan.updated_at,
         "items": [
             {
@@ -64,79 +59,44 @@ async def _reload_plan(session, plan_id: uuid.UUID) -> MealPlan:
     return result.scalar_one()
 
 
-def _check_ownership(user_id: uuid.UUID, current_user_id: uuid.UUID) -> None:
-    if user_id != current_user_id:
-        raise HTTPException(status_code=403, detail="Cannot modify another user's meal plan")
-
-
-@router.get("/{user_id}", response_model=MealPlanResponse)
-async def get_meal_plan(user_id: uuid.UUID, session: SessionDep):
-    plan = await _get_or_create_plan(session, user_id)
+@router.get("", response_model=MealPlanResponse)
+async def get_meal_plan(session: SessionDep, current_user: CurrentUser):
+    plan = await _get_or_create_plan(session, current_user.id)
     await session.commit()
     return _plan_response(plan)
 
 
-@router.put("/{user_id}", response_model=MealPlanResponse)
+@router.put("", response_model=MealPlanResponse)
 async def set_meal_plan(
-    user_id: uuid.UUID,
     data: MealPlanSet,
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    _check_ownership(user_id, current_user.id)
-    plan = await _get_or_create_plan(session, user_id)
-
+    plan = await _get_or_create_plan(session, current_user.id)
     plan.items.clear()
 
-    for rank, menu_item_id in enumerate(data.menu_item_ids):
-        item = await session.get(MenuItem, menu_item_id)
-        if not item:
-            raise HTTPException(status_code=404, detail=f"Menu item {menu_item_id} not found")
-        plan.items.append(MealPlanItem(menu_item_id=menu_item_id, rank=rank))
+    if data.menu_item_ids:
+        stmt = select(MenuItem).where(MenuItem.id.in_(data.menu_item_ids))
+        result = await session.execute(stmt)
+        found_items = {item.id: item for item in result.scalars().all()}
+
+        missing = [str(mid) for mid in data.menu_item_ids if mid not in found_items]
+        if missing:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Menu items not found: {', '.join(missing)}",
+            )
+
+        archived = [str(mid) for mid in data.menu_item_ids if found_items[mid].status == "archived"]
+        if archived:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Menu items are archived: {', '.join(archived)}",
+            )
+
+        for rank, menu_item_id in enumerate(data.menu_item_ids):
+            plan.items.append(MealPlanItem(menu_item_id=menu_item_id, rank=rank))
 
     await session.commit()
-    plan = await _reload_plan(session, plan.id)
-    return _plan_response(plan)
-
-
-@router.post("/{user_id}/items", response_model=MealPlanResponse)
-async def add_item_to_meal_plan(
-    user_id: uuid.UUID,
-    data: MealPlanAddItem,
-    session: SessionDep,
-    current_user: CurrentUser,
-):
-    _check_ownership(user_id, current_user.id)
-    plan = await _get_or_create_plan(session, user_id)
-
-    existing = [i for i in plan.items if i.menu_item_id == data.menu_item_id]
-    if existing:
-        return _plan_response(plan)
-
-    item = await session.get(MenuItem, data.menu_item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Menu item not found")
-
-    next_rank = max((i.rank for i in plan.items), default=-1) + 1
-    plan.items.append(MealPlanItem(menu_item_id=data.menu_item_id, rank=next_rank))
-    await session.commit()
-
-    plan = await _reload_plan(session, plan.id)
-    return _plan_response(plan)
-
-
-@router.delete("/{user_id}/items/{menu_item_id}", response_model=MealPlanResponse)
-async def remove_item_from_meal_plan(
-    user_id: uuid.UUID,
-    menu_item_id: uuid.UUID,
-    session: SessionDep,
-    current_user: CurrentUser,
-):
-    _check_ownership(user_id, current_user.id)
-    plan = await _get_or_create_plan(session, user_id)
-
-    plan.items = [i for i in plan.items if i.menu_item_id != menu_item_id]
-    await session.commit()
-
     plan = await _reload_plan(session, plan.id)
     return _plan_response(plan)

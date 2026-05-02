@@ -34,8 +34,7 @@ export default function MealPlanEditPage() {
 
   const { data: mealPlan, isLoading: mealPlanLoading } = $api.useQuery(
     "get",
-    "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser.id } } },
+    "/api/v1/meal-plans",
   );
 
   const initialIds = useMemo(() => {
@@ -93,9 +92,8 @@ export default function MealPlanEditPage() {
     setError("");
 
     const { error: apiError } = await apiClient.PUT(
-      "/api/v1/meal-plans/{user_id}",
+      "/api/v1/meal-plans",
       {
-        params: { path: { user_id: appUser.id } },
         body: { menu_item_ids: orderedItems.map((i) => i.id) },
       },
     );
@@ -107,7 +105,7 @@ export default function MealPlanEditPage() {
     }
 
     await queryClient.invalidateQueries({
-      queryKey: ["get", "/api/v1/meal-plans/{user_id}"],
+      queryKey: ["get", "/api/v1/meal-plans"],
     });
     router.replace("/meal-plan");
   }

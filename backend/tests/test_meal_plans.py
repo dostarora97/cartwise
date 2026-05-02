@@ -14,16 +14,32 @@ async def _create_item(client: AsyncClient, auth_headers: dict, name: str = "Ite
     return resp.json()["id"]
 
 
+async def _archive_item(client: AsyncClient, auth_headers: dict, item_id: str):
+    await client.patch(f"/api/v1/menu-items/{item_id}/archive", headers=auth_headers)
+
+
+async def test_get_requires_auth(client: AsyncClient):
+    response = await client.get("/api/v1/meal-plans")
+    assert response.status_code == 401
+
+
+async def test_put_requires_auth(client: AsyncClient):
+    response = await client.put("/api/v1/meal-plans", json={"menu_item_ids": []})
+    assert response.status_code == 401
+
+
 async def test_get_empty_meal_plan(client: AsyncClient, auth_headers: dict, test_user):
-    response = await client.get(f"/api/v1/meal-plans/{test_user.id}")
+    response = await client.get("/api/v1/meal-plans", headers=auth_headers)
     assert response.status_code == 200
-    assert response.json()["items"] == []
+    data = response.json()
+    assert data["items"] == []
+    assert "id" in data
+    assert "updated_at" in data
 
 
-async def test_get_meal_plan_no_auth_required(client: AsyncClient, auth_headers: dict, test_user):
-    """GET is public — anyone can view any user's meal plan."""
-    response = await client.get(f"/api/v1/meal-plans/{test_user.id}")
-    assert response.status_code == 200
+async def test_response_has_no_user_id(client: AsyncClient, auth_headers: dict, test_user):
+    response = await client.get("/api/v1/meal-plans", headers=auth_headers)
+    assert "user_id" not in response.json()
 
 
 async def test_set_meal_plan(client: AsyncClient, auth_headers: dict, test_user):
@@ -31,7 +47,7 @@ async def test_set_meal_plan(client: AsyncClient, auth_headers: dict, test_user)
     id2 = await _create_item(client, auth_headers, "B")
 
     response = await client.put(
-        f"/api/v1/meal-plans/{test_user.id}",
+        "/api/v1/meal-plans",
         json={"menu_item_ids": [id1, id2]},
         headers=auth_headers,
     )
@@ -49,11 +65,11 @@ async def test_set_meal_plan(client: AsyncClient, auth_headers: dict, test_user)
 
 async def test_set_meal_plan_nonexistent_item(client: AsyncClient, auth_headers: dict, test_user):
     response = await client.put(
-        f"/api/v1/meal-plans/{test_user.id}",
+        "/api/v1/meal-plans",
         json={"menu_item_ids": [str(uuid.uuid4())]},
         headers=auth_headers,
     )
-    assert response.status_code == 404
+    assert response.status_code == 400
 
 
 async def test_set_meal_plan_replaces_previous(client: AsyncClient, auth_headers: dict, test_user):
@@ -61,12 +77,12 @@ async def test_set_meal_plan_replaces_previous(client: AsyncClient, auth_headers
     id2 = await _create_item(client, auth_headers, "New")
 
     await client.put(
-        f"/api/v1/meal-plans/{test_user.id}",
+        "/api/v1/meal-plans",
         json={"menu_item_ids": [id1]},
         headers=auth_headers,
     )
     response = await client.put(
-        f"/api/v1/meal-plans/{test_user.id}",
+        "/api/v1/meal-plans",
         json={"menu_item_ids": [id2]},
         headers=auth_headers,
     )
@@ -76,97 +92,34 @@ async def test_set_meal_plan_replaces_previous(client: AsyncClient, auth_headers
     assert items[0]["rank"] == 0
 
 
-async def test_set_other_users_plan_forbidden(client: AsyncClient, auth_headers: dict, test_user):
-    """Cannot modify another user's meal plan."""
-    other_id = uuid.uuid4()
+async def test_put_archived_item_rejected(client: AsyncClient, auth_headers: dict, test_user):
+    item_id = await _create_item(client, auth_headers, "Archivable")
+    await _archive_item(client, auth_headers, item_id)
+
     response = await client.put(
-        f"/api/v1/meal-plans/{other_id}",
+        "/api/v1/meal-plans",
+        json={"menu_item_ids": [item_id]},
+        headers=auth_headers,
+    )
+    assert response.status_code == 400
+    assert "archived" in response.json()["detail"].lower()
+
+
+async def test_put_empty_array_clears_plan(client: AsyncClient, auth_headers: dict, test_user):
+    item_id = await _create_item(client, auth_headers, "Temp")
+
+    await client.put(
+        "/api/v1/meal-plans",
+        json={"menu_item_ids": [item_id]},
+        headers=auth_headers,
+    )
+    response = await client.put(
+        "/api/v1/meal-plans",
         json={"menu_item_ids": []},
         headers=auth_headers,
     )
-    assert response.status_code == 403
-
-
-async def test_add_item_to_plan(client: AsyncClient, auth_headers: dict, test_user):
-    item_id = await _create_item(client, auth_headers)
-
-    response = await client.post(
-        f"/api/v1/meal-plans/{test_user.id}/items",
-        json={"menu_item_id": item_id},
-        headers=auth_headers,
-    )
     assert response.status_code == 200
-    items = response.json()["items"]
-    assert len(items) == 1
-    assert items[0]["rank"] == 0
-
-
-async def test_add_item_idempotent(client: AsyncClient, auth_headers: dict, test_user):
-    item_id = await _create_item(client, auth_headers)
-
-    await client.post(
-        f"/api/v1/meal-plans/{test_user.id}/items",
-        json={"menu_item_id": item_id},
-        headers=auth_headers,
-    )
-    response = await client.post(
-        f"/api/v1/meal-plans/{test_user.id}/items",
-        json={"menu_item_id": item_id},
-        headers=auth_headers,
-    )
-    assert len(response.json()["items"]) == 1
-
-
-async def test_add_nonexistent_item(client: AsyncClient, auth_headers: dict, test_user):
-    response = await client.post(
-        f"/api/v1/meal-plans/{test_user.id}/items",
-        json={"menu_item_id": str(uuid.uuid4())},
-        headers=auth_headers,
-    )
-    assert response.status_code == 404
-
-
-async def test_remove_item_from_plan(client: AsyncClient, auth_headers: dict, test_user):
-    id1 = await _create_item(client, auth_headers, "Keep")
-    id2 = await _create_item(client, auth_headers, "Remove")
-
-    await client.put(
-        f"/api/v1/meal-plans/{test_user.id}",
-        json={"menu_item_ids": [id1, id2]},
-        headers=auth_headers,
-    )
-    response = await client.delete(
-        f"/api/v1/meal-plans/{test_user.id}/items/{id2}", headers=auth_headers
-    )
-    assert response.status_code == 200
-    items = response.json()["items"]
-    assert len(items) == 1
-    assert items[0]["menu_item"]["id"] == id1
-
-
-async def test_add_and_remove_meal_plan_item(client: AsyncClient, auth_headers: dict, test_user):
-    """Add two items, remove one."""
-    id1 = await _create_item(client, auth_headers, "A")
-    id2 = await _create_item(client, auth_headers, "B")
-
-    await client.post(
-        f"/api/v1/meal-plans/{test_user.id}/items",
-        json={"menu_item_id": id1},
-        headers=auth_headers,
-    )
-    resp = await client.post(
-        f"/api/v1/meal-plans/{test_user.id}/items",
-        json={"menu_item_id": id2},
-        headers=auth_headers,
-    )
-    assert len(resp.json()["items"]) == 2
-
-    resp = await client.delete(
-        f"/api/v1/meal-plans/{test_user.id}/items/{id1}", headers=auth_headers
-    )
-    items = resp.json()["items"]
-    assert len(items) == 1
-    assert items[0]["menu_item"]["id"] == id2
+    assert response.json()["items"] == []
 
 
 async def test_meal_plan_order_preserved(client: AsyncClient, auth_headers: dict, test_user):
@@ -176,38 +129,16 @@ async def test_meal_plan_order_preserved(client: AsyncClient, auth_headers: dict
     id3 = await _create_item(client, auth_headers, "Third")
 
     await client.put(
-        f"/api/v1/meal-plans/{test_user.id}",
+        "/api/v1/meal-plans",
         json={"menu_item_ids": [id3, id1, id2]},
         headers=auth_headers,
     )
 
-    response = await client.get(f"/api/v1/meal-plans/{test_user.id}")
+    response = await client.get("/api/v1/meal-plans", headers=auth_headers)
     items = response.json()["items"]
     assert items[0]["menu_item"]["id"] == id3
     assert items[0]["rank"] == 0
     assert items[1]["menu_item"]["id"] == id1
     assert items[1]["rank"] == 1
     assert items[2]["menu_item"]["id"] == id2
-    assert items[2]["rank"] == 2
-
-
-async def test_add_item_appends_at_end(client: AsyncClient, auth_headers: dict, test_user):
-    """Adding an item puts it after existing items."""
-    id1 = await _create_item(client, auth_headers, "First")
-    id2 = await _create_item(client, auth_headers, "Second")
-    id3 = await _create_item(client, auth_headers, "Third")
-
-    await client.put(
-        f"/api/v1/meal-plans/{test_user.id}",
-        json={"menu_item_ids": [id1, id2]},
-        headers=auth_headers,
-    )
-    response = await client.post(
-        f"/api/v1/meal-plans/{test_user.id}/items",
-        json={"menu_item_id": id3},
-        headers=auth_headers,
-    )
-    items = response.json()["items"]
-    assert len(items) == 3
-    assert items[2]["menu_item"]["id"] == id3
     assert items[2]["rank"] == 2
