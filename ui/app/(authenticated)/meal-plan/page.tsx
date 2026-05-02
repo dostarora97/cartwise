@@ -45,7 +45,7 @@ export default function MealPlanPage() {
           <button
             onClick={() => router.push("/meal-plan/edit")}
             aria-label="Create meal plan"
-            className="flex h-14 w-14 items-center justify-center bg-black text-white text-4xl"
+            className="flex h-14 w-14 items-center justify-center bg-black text-white text-4xl shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
           >
             +
           </button>
@@ -69,7 +69,7 @@ export default function MealPlanPage() {
         <button
           onClick={() => router.push("/invoice")}
           aria-label="New expense"
-          className="fixed bottom-12 right-12 flex h-14 w-14 items-center justify-center bg-black text-white"
+          className="fixed bottom-12 right-12 flex h-14 w-14 items-center justify-center bg-black text-white shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
         >
           <Icon name="receipt_long" size={24} />
         </button>

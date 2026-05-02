@@ -130,7 +130,7 @@ export default function MealPlanEditPage() {
           />
         ) : (
           <span className="text-2xl font-bold tracking-label uppercase leading-6">
-            {orderedItems?.length ?? 0} items selected
+            {orderedItems?.length ?? 0} item(s) selected
           </span>
         )}
       </div>
@@ -172,7 +172,7 @@ export default function MealPlanEditPage() {
         <button
           onClick={() => router.push("/menu-items/new")}
           aria-label="New menu item"
-          className="fixed bottom-24 right-12 flex h-14 w-14 items-center justify-center bg-black text-white"
+          className="fixed bottom-24 right-12 flex h-14 w-14 items-center justify-center bg-black text-white shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
         >
           <Icon name="add" size={24} />
         </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRequiredAuth } from "@/lib/auth";
 import { TopBar } from "@/components/top-bar";
@@ -15,6 +15,19 @@ export default function ProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+    function handleMouseDown(e: MouseEvent) {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleMouseDown);
+    return () => document.removeEventListener("mousedown", handleMouseDown);
+  }, [settingsOpen]);
 
   async function handleDelete() {
     setDeleting(true);
@@ -70,29 +83,37 @@ export default function ProfilePage() {
           <p className="text-xs text-red-600 tracking-wider mt-3">{error}</p>
         )}
 
-        <details className="mt-auto">
-          <summary className="flex items-center gap-2 h-12 cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+        <div ref={settingsRef} className="mt-auto">
+          <button
+            onClick={() => setSettingsOpen(!settingsOpen)}
+            className="flex w-full items-center h-12 px-3 border border-black cursor-pointer"
+          >
             <Icon name="settings" size={20} />
-          </summary>
-          <div className="flex flex-col gap-3 pt-3">
-            <a
-              href="https://github.com/dostarora97/cartwise/issues/new/choose"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 border border-black p-3 text-base font-bold tracking-label uppercase h-12"
-            >
-              <Icon name="feedback" size={20} />
-              Feedback
-            </a>
-            <button
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={signingOut}
-              className="flex items-center justify-center border border-black p-3 text-base font-bold tracking-label uppercase text-red-600 h-12"
-            >
-              Delete Account
-            </button>
-          </div>
-        </details>
+            <span className="ml-2 text-base font-bold tracking-label uppercase">Settings</span>
+            <Icon name={settingsOpen ? "expand_less" : "expand_more"} size={24} className="ml-auto" />
+          </button>
+          {settingsOpen && (
+            <div className="flex flex-col gap-3 p-3 border-x border-b border-black">
+              <a
+                href="https://github.com/dostarora97/cartwise/issues/new/choose"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-black text-white p-3 text-base font-bold tracking-label uppercase h-12"
+              >
+                <Icon name="open_in_new" size={20} />
+                Feedback
+              </a>
+              <button
+                onClick={() => setShowDeleteDialog(true)}
+                disabled={signingOut}
+                className="flex items-center justify-center gap-2 bg-black text-red-400 p-3 text-base font-bold tracking-label uppercase h-12"
+              >
+                <Icon name="delete" size={20} />
+                Delete Account
+              </button>
+            </div>
+          )}
+        </div>
       </main>
 
       {showDeleteDialog && (
