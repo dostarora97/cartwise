@@ -10,13 +10,12 @@ import { Spinner } from "@/components/spinner";
 import { useRouter } from "next/navigation";
 
 export default function MealPlanPage() {
-  const { appUser } = useRequiredAuth();
+  useRequiredAuth();
   const router = useRouter();
 
   const { data: mealPlan, isLoading } = $api.useQuery(
     "get",
-    "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser.id } } },
+    "/api/v1/meal-plans",
   );
 
   const items = mealPlan?.items ?? [];

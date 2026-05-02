@@ -19,7 +19,7 @@ interface MenuItemPageProps {
 }
 
 export function MenuItemPage({ itemId }: MenuItemPageProps) {
-  const { appUser } = useRequiredAuth();
+  useRequiredAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const isNew = !itemId;
@@ -54,8 +54,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   // Fetch meal plan to check if item is in plan
   const { data: mealPlan } = $api.useQuery(
     "get",
-    "/api/v1/meal-plans/{user_id}",
-    { params: { path: { user_id: appUser.id } } },
+    "/api/v1/meal-plans",
   );
 
   const inPlan = mealPlan?.items.some((i) => i.menu_item.id === itemId) ?? false;
@@ -217,25 +216,17 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
 
       try {
         if (action === "togglePlan") {
-          const result = inPlan
-            ? await apiClient.DELETE(
-                "/api/v1/meal-plans/{user_id}/items/{menu_item_id}",
-                {
-                  params: {
-                    path: {
-                      user_id: appUser.id,
-                      menu_item_id: itemId!,
-                    },
-                  },
-                },
-              )
-            : await apiClient.POST("/api/v1/meal-plans/{user_id}/items", {
-                params: { path: { user_id: appUser.id } },
-                body: { menu_item_id: itemId! },
-              });
+          if (!mealPlan) return;
+          const currentIds = mealPlan.items.map((i) => i.menu_item.id);
+          const newIds = inPlan
+            ? currentIds.filter((id) => id !== itemId)
+            : [...currentIds, itemId!];
+          const result = await apiClient.PUT("/api/v1/meal-plans", {
+            body: { menu_item_ids: newIds },
+          });
           if (result.error) return;
           await queryClient.invalidateQueries({
-            queryKey: ["get", "/api/v1/meal-plans/{user_id}"],
+            queryKey: ["get", "/api/v1/meal-plans"],
           });
         } else {
           const { error } = isArchived
@@ -251,14 +242,14 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
             queryKey: ["get", "/api/v1/menu-items/{item_id}"],
           });
           await queryClient.invalidateQueries({
-            queryKey: ["get", "/api/v1/meal-plans/{user_id}"],
+            queryKey: ["get", "/api/v1/meal-plans"],
           });
         }
       } finally {
         setMoreLoading(false);
       }
     },
-    [appUser, itemId, inPlan, isArchived, queryClient],
+    [mealPlan, itemId, inPlan, isArchived, queryClient],
   );
 
   function handleBack() {

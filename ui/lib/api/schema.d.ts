@@ -228,7 +228,7 @@ export interface paths {
         patch: operations["unarchive_menu_item_api_v1_menu_items__item_id__unarchive_patch"];
         trace?: never;
     };
-    "/api/v1/meal-plans/{user_id}": {
+    "/api/v1/meal-plans": {
         parameters: {
             query?: never;
             header?: never;
@@ -236,45 +236,11 @@ export interface paths {
             cookie?: never;
         };
         /** Get Meal Plan */
-        get: operations["get_meal_plan_api_v1_meal_plans__user_id__get"];
+        get: operations["get_meal_plan_api_v1_meal_plans_get"];
         /** Set Meal Plan */
-        put: operations["set_meal_plan_api_v1_meal_plans__user_id__put"];
+        put: operations["set_meal_plan_api_v1_meal_plans_put"];
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/meal-plans/{user_id}/items": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Add Item To Meal Plan */
-        post: operations["add_item_to_meal_plan_api_v1_meal_plans__user_id__items_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/meal-plans/{user_id}/items/{menu_item_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove Item From Meal Plan */
-        delete: operations["remove_item_from_meal_plan_api_v1_meal_plans__user_id__items__menu_item_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -460,14 +426,6 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** MealPlanAddItem */
-        MealPlanAddItem: {
-            /**
-             * Menu Item Id
-             * Format: uuid
-             */
-            menu_item_id: string;
-        };
         /** MealPlanItemResponse */
         MealPlanItemResponse: {
             /** Rank */
@@ -481,11 +439,6 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            /**
-             * User Id
-             * Format: uuid
-             */
-            user_id: string;
             /**
              * Updated At
              * Format: date-time
@@ -1124,13 +1077,11 @@ export interface operations {
             };
         };
     };
-    get_meal_plan_api_v1_meal_plans__user_id__get: {
+    get_meal_plan_api_v1_meal_plans_get: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                user_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -1144,24 +1095,13 @@ export interface operations {
                     "application/json": components["schemas"]["MealPlanResponse"];
                 };
             };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
         };
     };
-    set_meal_plan_api_v1_meal_plans__user_id__put: {
+    set_meal_plan_api_v1_meal_plans_put: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                user_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -1169,73 +1109,6 @@ export interface operations {
                 "application/json": components["schemas"]["MealPlanSet"];
             };
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MealPlanResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    add_item_to_meal_plan_api_v1_meal_plans__user_id__items_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MealPlanAddItem"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MealPlanResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    remove_item_from_meal_plan_api_v1_meal_plans__user_id__items__menu_item_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-                menu_item_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {

@@ -159,18 +159,18 @@ async def test_archive_removes_from_meal_plan(client: AsyncClient, auth_headers:
     item_id = item_resp.json()["id"]
 
     await client.put(
-        f"/api/v1/meal-plans/{test_user.id}",
+        "/api/v1/meal-plans",
         json={"menu_item_ids": [item_id]},
         headers=auth_headers,
     )
 
     # Verify it's in the plan
-    plan_resp = await client.get(f"/api/v1/meal-plans/{test_user.id}")
+    plan_resp = await client.get("/api/v1/meal-plans", headers=auth_headers)
     assert len(plan_resp.json()["items"]) == 1
 
     # Archive it
     await client.patch(f"/api/v1/menu-items/{item_id}/archive", headers=auth_headers)
 
     # Verify it's removed from plan
-    plan_resp2 = await client.get(f"/api/v1/meal-plans/{test_user.id}")
+    plan_resp2 = await client.get("/api/v1/meal-plans", headers=auth_headers)
     assert len(plan_resp2.json()["items"]) == 0
