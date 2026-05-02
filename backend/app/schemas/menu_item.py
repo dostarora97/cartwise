@@ -21,5 +21,7 @@ class MenuItemResponse(BaseModel):
     name: str
     body: str
     status: str
+    created_by: uuid.UUID
+    updated_by: uuid.UUID
     created_at: datetime
     updated_at: datetime

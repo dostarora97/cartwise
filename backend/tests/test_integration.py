@@ -225,27 +225,23 @@ async def test_create_menu_item(client: AsyncClient):
 
 
 async def test_list_menu_items_with_filters(client: AsyncClient):
-    token, user_id = await _login(client, "filter@test.com", "Filter")
+    token, _ = await _login(client, "filter@test.com", "Filter")
     await _create_menu_item(client, token, "Active1", "body")
     id2 = await _create_menu_item(client, token, "Active2", "body")
 
     # Archive one
     await client.patch(f"/api/v1/menu-items/{id2}/archive", headers=_auth(token))
 
-    # Default listing (active only)
-    resp = await client.get("/api/v1/menu-items/")
+    # Default listing (active only, scoped to user)
+    resp = await client.get("/api/v1/menu-items/", headers=_auth(token))
     names = [i["name"] for i in resp.json()]
     assert "Active1" in names
     assert "Active2" not in names
 
     # Archived listing
-    resp = await client.get("/api/v1/menu-items/?status=archived")
+    resp = await client.get("/api/v1/menu-items/?status=archived", headers=_auth(token))
     names = [i["name"] for i in resp.json()]
     assert "Active2" in names
-
-    # Filter by creator
-    resp = await client.get(f"/api/v1/menu-items/?created_by={user_id}")
-    assert len(resp.json()) >= 1
 
 
 async def test_get_menu_item_by_id(client: AsyncClient):

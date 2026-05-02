@@ -12,15 +12,19 @@ from app.schemas.menu_item import MenuItemCreate, MenuItemResponse, MenuItemUpda
 
 router = APIRouter(prefix="/menu-items", tags=["menu-items"])
 
+VALID_STATUSES = {"active", "archived"}
 
-async def _get_own_item(session, item_id: uuid.UUID, user_id: uuid.UUID) -> MenuItem:
-    result = await session.execute(
-        select(MenuItem).where(MenuItem.id == item_id, MenuItem.created_by == user_id)
-    )
-    item = result.scalar_one_or_none()
+
+async def _get_item_or_404(session, item_id: uuid.UUID) -> MenuItem:
+    item = await session.get(MenuItem, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Menu item not found")
     return item
+
+
+def _check_owner(item: MenuItem, user_id: uuid.UUID):
+    if item.created_by != user_id:
+        raise HTTPException(status_code=403, detail="Not allowed to modify this item")
 
 
 @router.post("/", response_model=MenuItemResponse, status_code=201)
@@ -44,22 +48,25 @@ async def create_menu_item(
 @router.get("/", response_model=list[MenuItemResponse])
 async def list_menu_items(
     session: SessionDep,
+    current_user: CurrentUser,
     status: str = Query(default="active"),
-    created_by: uuid.UUID | None = Query(default=None),
 ):
-    stmt = select(MenuItem).where(MenuItem.status == status)
-    if created_by:
-        stmt = stmt.where(MenuItem.created_by == created_by)
+    statuses = [s.strip() for s in status.split(",")]
+    invalid = [s for s in statuses if s not in VALID_STATUSES]
+    if invalid:
+        raise HTTPException(status_code=400, detail=f"Invalid status: {', '.join(invalid)}")
+
+    stmt = select(MenuItem).where(
+        MenuItem.created_by == current_user.id,
+        MenuItem.status.in_(statuses),
+    )
     result = await session.execute(stmt)
     return result.scalars().all()
 
 
 @router.get("/{item_id}", response_model=MenuItemResponse)
 async def get_menu_item(item_id: uuid.UUID, session: SessionDep):
-    item = await session.get(MenuItem, item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Menu item not found")
-    return item
+    return await _get_item_or_404(session, item_id)
 
 
 @router.patch("/{item_id}", response_model=MenuItemResponse)
@@ -69,7 +76,8 @@ async def update_menu_item(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    item = await _get_own_item(session, item_id, current_user.id)
+    item = await _get_item_or_404(session, item_id)
+    _check_owner(item, current_user.id)
 
     update_data = data.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -87,7 +95,8 @@ async def archive_menu_item(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    item = await _get_own_item(session, item_id, current_user.id)
+    item = await _get_item_or_404(session, item_id)
+    _check_owner(item, current_user.id)
 
     item.status = "archived"
     item.updated_by = current_user.id
@@ -112,7 +121,8 @@ async def unarchive_menu_item(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    item = await _get_own_item(session, item_id, current_user.id)
+    item = await _get_item_or_404(session, item_id)
+    _check_owner(item, current_user.id)
 
     item.status = "active"
     item.updated_by = current_user.id
