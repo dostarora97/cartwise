@@ -29,6 +29,7 @@ export default function MealPlanEditPage() {
     "get",
     "/api/v1/menu-items/",
     { params: { query: { status: "active", created_by: appUser.id } } },
+    { staleTime: 0 },
   );
 
   const { data: mealPlan, isLoading: mealPlanLoading } = $api.useQuery(
