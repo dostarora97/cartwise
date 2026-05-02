@@ -63,7 +63,7 @@ export default function ProfilePage() {
           }}
           disabled={signingOut}
           aria-label="Sign out"
-          className="flex h-12 w-12 shrink-0 items-center justify-center bg-black"
+          className="flex h-12 w-12 shrink-0 items-center justify-center bg-black disabled:bg-neutral-400"
         >
           {signingOut ? <div className="size-5 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : <Icon name="logout" size={24} className="text-white translate-x-px" />}
         </button>

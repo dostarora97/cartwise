@@ -175,7 +175,6 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   }
 
   async function handleSave() {
-    if (saving) return;
     setSaving(true);
 
     if (isNew) {
@@ -324,8 +323,9 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
           {showMoreButton && !editing && (
             <button
               onClick={() => (moreLoading ? null : setMoreOpen(!moreOpen))}
+              disabled={moreLoading}
               aria-label="More options"
-              className="flex h-12 items-center justify-center px-3 bg-black shrink-0"
+              className="flex h-12 items-center justify-center px-3 bg-black shrink-0 disabled:bg-neutral-400"
             >
               {moreLoading ? (
                 <div className="size-4 animate-spin motion-reduce:animate-none rounded-full border-2 border-white border-t-transparent" />
@@ -339,9 +339,9 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
           {editing && (
             <button
               onClick={handleSave}
-              disabled={!name.trim()}
+              disabled={saving || !name.trim()}
               aria-label="Save"
-              className="flex h-12 w-12 items-center justify-center bg-black shrink-0 disabled:opacity-30"
+              className="flex h-12 w-12 items-center justify-center bg-black shrink-0 disabled:bg-neutral-400"
             >
               {saving ? (
                 <div className="size-5 animate-spin motion-reduce:animate-none rounded-full border-2 border-white border-t-transparent" />

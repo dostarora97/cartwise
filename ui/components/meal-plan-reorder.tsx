@@ -25,6 +25,9 @@ function SortableItem({
         isDragging && "opacity-50",
       )}
     >
+      <span className="flex-1 min-w-0 py-3 pl-3 text-2xl font-medium tracking-item leading-6 truncate">
+        {name}
+      </span>
       <button
         ref={handleRef}
         type="button"
@@ -33,9 +36,6 @@ function SortableItem({
       >
         <Icon name="drag_indicator" size={24} className="text-neutral-400" />
       </button>
-      <span className="flex-1 min-w-0 py-3 pr-3 text-2xl font-medium tracking-item leading-6 truncate">
-        {name}
-      </span>
     </li>
   );
 }

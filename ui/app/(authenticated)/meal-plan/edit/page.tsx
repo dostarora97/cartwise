@@ -46,14 +46,7 @@ export default function MealPlanEditPage() {
   const [selected, setSelected] = useState<Set<string> | null>(null);
   const current = selected ?? initialIds;
 
-  const isDirty = useMemo(() => {
-    if (selected === null) return false;
-    if (selected.size !== initialIds.size) return true;
-    for (const id of selected) {
-      if (!initialIds.has(id)) return true;
-    }
-    return false;
-  }, [selected, initialIds]);
+  const isDirty = selected !== null;
 
   const [orderedItems, setOrderedItems] = useState<
     { id: string; name: string }[] | null
@@ -126,21 +119,26 @@ export default function MealPlanEditPage() {
         onBack={mode === "reorder" ? () => setMode("select") : undefined}
       />
 
-      <div className="flex items-center p-3 border-b border-black">
+      <div className={`flex items-center border-b border-black ${mode === "select" ? "p-3" : ""}`}>
         {mode === "select" ? (
-          <input
-            id="search"
-            name="search"
-            type="text"
-            autoComplete="off"
-            placeholder="SEARCH ITEMS..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full h-6 bg-transparent text-2xl font-medium tracking-item leading-6 outline-none placeholder:text-gray-300 placeholder:uppercase"
-          />
+          <>
+            <Icon name="search" size={24} className="shrink-0 text-gray-300 mr-3" />
+            <input
+              id="search"
+              name="search"
+              type="text"
+              autoComplete="off"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full h-6 bg-transparent text-2xl font-medium tracking-item leading-6 outline-none"
+            />
+          </>
         ) : (
-          <span className="text-2xl font-bold tracking-label uppercase leading-6">
-            {orderedItems?.length ?? 0} item(s) selected
+          <span className="flex items-center text-2xl font-bold tracking-label uppercase leading-6">
+            <span className="flex items-center justify-center p-3 shrink-0">
+              <Icon name="check" size={24} className="text-gray-300" />
+            </span>
+            <span>{orderedItems?.length ?? 0} item(s)</span>
           </span>
         )}
       </div>
@@ -205,7 +203,7 @@ export default function MealPlanEditPage() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-50"
+            className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
           >
             {saving ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Save"}
           </button>

@@ -143,30 +143,23 @@ function InvoiceSetupContent() {
               aria-label="Remove file"
               className="flex items-center justify-center p-3"
             >
-              <Icon name="close" size={24} />
+              <Icon name="delete" size={24} />
             </button>
           )}
         </div>
       </main>
 
       {/* Bottom button */}
-      <button
-        onClick={handleAnalyse}
-        disabled={!file || selectedOthers.length === 0 || submitting}
-        className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-30"
-      >
-        Add
-      </button>
-
-      {submitting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white border border-black p-3">
-            <span className="text-2xl font-bold tracking-label uppercase leading-6">
-              Adding...
-            </span>
-          </div>
-        </div>
+      {file && selectedOthers.length > 0 && (
+        <button
+          onClick={handleAnalyse}
+          disabled={submitting}
+          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
+        >
+          {submitting ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Add"}
+        </button>
       )}
+
 
       {error && (
         <ErrorModal
