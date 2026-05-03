@@ -109,7 +109,7 @@ export default function UserPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar showBack onBack={() => router.push("/meal-plan", { transitionTypes: ["nav-back"] })} />
+      <TopBar showBack onBack={() => router.push("/meal-plan")} />
 
       <div className="flex h-12 items-center border-b border-black">
         <span className="flex-1 p-3 text-2xl font-bold tracking-label uppercase leading-6">
