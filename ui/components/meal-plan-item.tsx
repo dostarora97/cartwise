@@ -37,7 +37,6 @@ export function MealPlanItem({
               "flex-1 min-w-0 text-2xl font-medium tracking-item leading-6 truncate",
               archived && !checked && "line-through text-neutral-400",
             )}
-            style={id && mode === "view" ? { viewTransitionName: `menu-title-${id}` } : undefined}
           >
             {name}
           </span>
