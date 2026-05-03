@@ -72,17 +72,17 @@
 }
 
 ::view-transition-old(.slide-forward) {
-  animation: 120ms ease-in both vt-fade-out, 250ms ease-in-out both vt-slide-to-left;
+  animation: 150ms ease-in both vt-fade-out, 250ms ease-in-out both vt-slide-to-left;
 }
 ::view-transition-new(.slide-forward) {
-  animation: 160ms ease-out 80ms both vt-fade-in, 250ms ease-in-out both vt-slide-from-right;
+  animation: 200ms ease-out 150ms both vt-fade-in, 250ms ease-in-out both vt-slide-from-right;
 }
 
 ::view-transition-old(.slide-back) {
-  animation: 120ms ease-in both vt-fade-out, 250ms ease-in-out both vt-slide-to-right;
+  animation: 150ms ease-in both vt-fade-out, 250ms ease-in-out both vt-slide-to-right;
 }
 ::view-transition-new(.slide-back) {
-  animation: 160ms ease-out 80ms both vt-fade-in, 250ms ease-in-out both vt-slide-from-left;
+  animation: 200ms ease-out 150ms both vt-fade-in, 250ms ease-in-out both vt-slide-from-left;
 }
 
 @keyframes vt-fade-in {
