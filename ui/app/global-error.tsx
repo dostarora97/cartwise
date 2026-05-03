@@ -25,7 +25,7 @@ export default function GlobalError({
       <head>
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_circle,add,arrow_back_ios_new,check,chevron_right,close,delete,drag_indicator,edit,fork_spoon,login,logout,more_horiz,open_in_new,receipt_long,search,settings&display=swap"
         />
       </head>
       <body className="min-h-full flex flex-col font-mono bg-white text-black">
