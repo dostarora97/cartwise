@@ -2,8 +2,6 @@
 
 import { useAuth } from "@/lib/auth";
 import { Spinner } from "@/components/spinner";
-import { ViewTransition } from "react";
-import { usePathname } from "next/navigation";
 
 export default function AuthenticatedLayout({
   children,
@@ -11,7 +9,6 @@ export default function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const { appUser, loading, error, refreshAppUser } = useAuth();
-  const pathname = usePathname();
 
   if (loading || (!appUser && !error)) {
     return (
@@ -37,26 +34,5 @@ export default function AuthenticatedLayout({
     );
   }
 
-  return (
-    <div className="flex flex-1 flex-col">
-      <ViewTransition
-        key={pathname}
-        enter={{
-          "nav-forward": "slide-forward",
-          "nav-back": "slide-back",
-          "mode-switch": "auto",
-          default: "none",
-        }}
-        exit={{
-          "nav-forward": "slide-forward",
-          "nav-back": "slide-back",
-          "mode-switch": "auto",
-          default: "none",
-        }}
-        default="none"
-      >
-        {children}
-      </ViewTransition>
-    </div>
-  );
+  return <div className="flex flex-1 flex-col">{children}</div>;
 }

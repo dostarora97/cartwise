@@ -118,7 +118,7 @@ function InvoiceSetupContent() {
         }
 
         const order = await orderResp.json();
-        router.push(`/invoice/${order.id}`, { transitionTypes: ["nav-forward"] });
+        router.push(`/invoice/${order.id}`);
       } else if (file) {
         // Invoice flow: existing multipart upload
         const participantIds = [appUser.id, ...selectedOthers];
@@ -138,7 +138,7 @@ function InvoiceSetupContent() {
         }
 
         const data = await resp.json();
-        router.push(`/invoice/${data.id}`, { transitionTypes: ["nav-forward"] });
+        router.push(`/invoice/${data.id}`);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
@@ -149,7 +149,7 @@ function InvoiceSetupContent() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <TopBar showBack onBack={() => router.push("/meal-plan", { transitionTypes: ["nav-back"] })} />
+      <TopBar showBack onBack={() => router.push("/meal-plan")} />
 
       {/* Expense heading */}
       <div className="flex items-center p-3 border-b border-black">
@@ -230,7 +230,7 @@ function InvoiceSetupContent() {
           message={error}
           onDismiss={() => {
             setError(null);
-            router.replace("/meal-plan", { transitionTypes: ["nav-back"] });
+            router.replace("/meal-plan");
           }}
         />
       )}

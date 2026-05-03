@@ -61,7 +61,7 @@ export default function SplitResultPage() {
   if (isLoading) {
     return (
       <div className="flex flex-1 flex-col">
-        <TopBar showBack onBack={() => router.push("/meal-plan", { transitionTypes: ["nav-back"] })} />
+        <TopBar showBack onBack={() => router.push("/meal-plan")} />
         <div className="flex items-center p-3 border-b border-black">
           <span className="text-2xl font-bold tracking-label uppercase leading-6">
             Split result
@@ -119,7 +119,7 @@ export default function SplitResultPage() {
       </main>
 
       <button
-        onClick={() => router.push("/meal-plan", { transitionTypes: ["nav-back"] })}
+        onClick={() => router.push("/meal-plan")}
         className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white"
       >
         OK

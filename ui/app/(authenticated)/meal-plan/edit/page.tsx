@@ -152,7 +152,7 @@ export default function MealPlanEditPage() {
 
     await queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/meal-plans"] });
     await queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/menu-items/"] });
-    router.replace("/meal-plan", { transitionTypes: ["mode-switch"] });
+    router.replace("/meal-plan");
   }
 
   return (
@@ -194,13 +194,12 @@ export default function MealPlanEditPage() {
                 {filtered.map((item) => (
                   <MealPlanItem
                     key={item.id}
-                    id={item.id}
                     name={item.name}
                     mode="select"
                     checked={current.has(item.id)}
                     archived={archivedIds.has(item.id)}
                     onToggle={() => toggle(item.id)}
-                    onTap={() => router.push(`/menu-items/${item.id}`, { transitionTypes: ["nav-forward"] })}
+                    onTap={() => router.push(`/menu-items/${item.id}`)}
                   />
                 ))}
               </ul>
@@ -223,7 +222,7 @@ export default function MealPlanEditPage() {
 
       {mode === "select" && (
         <button
-          onClick={() => router.push("/menu-items/new", { transitionTypes: ["nav-forward"] })}
+          onClick={() => router.push("/menu-items/new")}
           aria-label="New menu item"
           className="fixed bottom-24 right-12 flex h-14 w-14 items-center justify-center bg-black text-white shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
         >
