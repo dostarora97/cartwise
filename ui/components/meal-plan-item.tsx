@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 type Mode = "view" | "select";
 
 interface MealPlanItemProps {
+  id?: string;
   name: string;
   mode: Mode;
   checked?: boolean;
@@ -13,6 +14,7 @@ interface MealPlanItemProps {
 }
 
 export function MealPlanItem({
+  id,
   name,
   mode,
   checked,
@@ -21,16 +23,22 @@ export function MealPlanItem({
   onTap,
 }: MealPlanItemProps) {
   return (
-    <li className="flex items-center border-b border-gray-200 last:border-b-0">
+    <li
+      className="flex items-center border-b border-gray-200 last:border-b-0"
+      style={id ? { viewTransitionName: `meal-item-${id}`, viewTransitionClass: "meal-item" } : undefined}
+    >
       {onTap ? (
         <button
           onClick={onTap}
           className={`flex flex-1 items-center min-w-0 py-3 text-left active:bg-gray-100 ${mode === "select" ? "pl-3" : "pl-3 pr-3"}`}
         >
-          <span className={cn(
-            "flex-1 min-w-0 text-2xl font-medium tracking-item leading-6 truncate",
-            archived && !checked && "line-through text-neutral-400",
-          )}>
+          <span
+            className={cn(
+              "flex-1 min-w-0 text-2xl font-medium tracking-item leading-6 truncate",
+              archived && !checked && "line-through text-neutral-400",
+            )}
+            style={id && mode === "view" ? { viewTransitionName: `menu-title-${id}` } : undefined}
+          >
             {name}
           </span>
           {mode === "view" && (

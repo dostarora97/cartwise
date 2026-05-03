@@ -14,9 +14,17 @@ export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
   const router = useRouter();
   const { appUser } = useAuth();
 
+  function handleBack() {
+    if (onBack) {
+      onBack();
+    } else {
+      router.back();
+    }
+  }
+
   const defaultRight = appUser ? (
     <button
-      onClick={() => router.push("/me")}
+      onClick={() => router.push(`/user/${appUser.id}`, { transitionTypes: ["nav-forward"] })}
       aria-label="Profile"
       className="flex h-full w-full items-center justify-center"
     >
@@ -33,7 +41,7 @@ export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
   ) : undefined;
 
   return (
-    <header className="flex items-stretch justify-between border-b border-black">
+    <header className="flex items-stretch justify-between border-b border-black" style={{ viewTransitionName: "site-header" }}>
       <div className="shrink-0">
         {showBack ? (
           <button onClick={onBack ?? (() => router.back())} aria-label="Go back" className="flex h-full items-center justify-center p-3 bg-black">

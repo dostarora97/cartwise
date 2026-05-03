@@ -47,6 +47,7 @@ const nextConfig: NextConfig = {
     },
   },
   experimental: {
+    viewTransition: true,
     optimizePackageImports: ["@supabase/supabase-js", "@tanstack/react-query"],
   },
   allowedDevOrigins: ["lr602lw45l.taile1dca.ts.net"],

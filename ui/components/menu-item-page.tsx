@@ -27,8 +27,12 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   // Mode
   const [editing, setEditing] = useState(isNew);
 
-  // Form state
-  const [name, setName] = useState("");
+  // Form state — seed name from meal-plan cache for instant display during morph
+  const [name, setName] = useState(() => {
+    if (!itemId) return "";
+    const cached = queryClient.getQueryData<{ items: { menu_item: { id: string; name: string } }[] }>(["get", "/api/v1/meal-plans"]);
+    return cached?.items.find((i) => i.menu_item.id === itemId)?.menu_item.name ?? "";
+  });
   const [body, setBody] = useState("");
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -263,18 +267,10 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
   }
 
   // Show more button only for existing saved items
-  const showMoreButton = !isNew;
+  const showMoreButton = !isNew && !!item;
 
-  if (!isNew && !item) {
-    return (
-      <div className="flex flex-1 flex-col">
-        <TopBar showBack onBack={handleBack} />
-        <main className="flex flex-1 items-center justify-center">
-          <Spinner />
-        </main>
-      </div>
-    );
-  }
+  // Still loading item data
+  const itemLoading = !isNew && !item;
 
   return (
     <div className="flex flex-1 flex-col [overflow-anchor:none]">
@@ -305,6 +301,7 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
             <h1
               ref={headingRef}
               className="flex-1 min-w-0 p-3 text-2xl font-bold tracking-heading leading-6 break-words"
+              style={itemId ? { viewTransitionName: `menu-title-${itemId}` } : undefined}
             >
               {name || "Untitled"}
             </h1>
@@ -380,20 +377,26 @@ export function MenuItemPage({ itemId }: MenuItemPageProps) {
       </div>
 
       {/* Content */}
-      <main className={cn("flex-1 p-3", editing && "flex flex-col")}>
-        {editing ? (
-          <textarea
-            value={body}
-            onChange={(e) => handleFormChange("body", e.target.value)}
-            placeholder="Recipe..."
-            className="flex-1 w-full resize-none bg-transparent text-base font-medium leading-6 outline-none placeholder:text-gray-300"
-          />
-        ) : (
-          <article className="prose prose-sm max-w-none">
-            <Markdown>{body || "*No content yet*"}</Markdown>
-          </article>
-        )}
-      </main>
+      {itemLoading ? (
+        <main className="flex flex-1 items-center justify-center">
+          <Spinner />
+        </main>
+      ) : (
+        <main className={cn("flex-1 p-3", editing && "flex flex-col")}>
+          {editing ? (
+            <textarea
+              value={body}
+              onChange={(e) => handleFormChange("body", e.target.value)}
+              placeholder="Recipe..."
+              className="flex-1 w-full resize-none bg-transparent text-base font-medium leading-6 outline-none placeholder:text-gray-300"
+            />
+          ) : (
+            <article className="prose prose-sm max-w-none">
+              <Markdown>{body || "*No content yet*"}</Markdown>
+            </article>
+          )}
+        </main>
+      )}
 
       {/* Click outside to close more popup */}
       {moreOpen && (
