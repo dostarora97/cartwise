@@ -56,18 +56,33 @@
   animation: none;
 }
 
+::view-transition-image-pair(.slide-forward),
+::view-transition-image-pair(.slide-back) {
+  overflow: hidden;
+}
+
+::view-transition-group(.meal-item) {
+  animation: none;
+}
+::view-transition-old(.meal-item) {
+  animation: none;
+}
+::view-transition-new(.meal-item) {
+  animation: none;
+}
+
 ::view-transition-old(.slide-forward) {
-  animation: 150ms ease-in both vt-fade-out, 300ms ease-in-out both vt-slide-to-left;
+  animation: 120ms ease-in both vt-fade-out, 250ms ease-in-out both vt-slide-to-left;
 }
 ::view-transition-new(.slide-forward) {
-  animation: 200ms ease-out 100ms both vt-fade-in, 300ms ease-in-out both vt-slide-from-right;
+  animation: 160ms ease-out 80ms both vt-fade-in, 250ms ease-in-out both vt-slide-from-right;
 }
 
 ::view-transition-old(.slide-back) {
-  animation: 150ms ease-in both vt-fade-out, 300ms ease-in-out both vt-slide-to-right;
+  animation: 120ms ease-in both vt-fade-out, 250ms ease-in-out both vt-slide-to-right;
 }
 ::view-transition-new(.slide-back) {
-  animation: 200ms ease-out 100ms both vt-fade-in, 300ms ease-in-out both vt-slide-from-left;
+  animation: 160ms ease-out 80ms both vt-fade-in, 250ms ease-in-out both vt-slide-from-left;
 }
 
 @keyframes vt-fade-in {

@@ -152,7 +152,7 @@ export default function MealPlanEditPage() {
 
     await queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/meal-plans"] });
     await queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/menu-items/"] });
-    router.replace("/meal-plan", { transitionTypes: ["nav-back"] });
+    router.replace("/meal-plan", { transitionTypes: ["mode-switch"] });
   }
 
   return (
@@ -194,12 +194,14 @@ export default function MealPlanEditPage() {
                 {filtered.map((item) => (
                   <MealPlanItem
                     key={item.id}
+                    id={item.id}
                     name={item.name}
                     mode="select"
                     checked={current.has(item.id)}
                     archived={archivedIds.has(item.id)}
                     onToggle={() => toggle(item.id)}
-                    onTap={() => router.push(`/menu-items/${item.id}`, { transitionTypes: ["nav-forward"] })}                  />
+                    onTap={() => router.push(`/menu-items/${item.id}`, { transitionTypes: ["nav-forward"] })}
+                  />
                 ))}
               </ul>
               {filtered.length === 0 && (

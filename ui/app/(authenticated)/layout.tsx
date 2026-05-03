@@ -44,11 +44,13 @@ export default function AuthenticatedLayout({
         enter={{
           "nav-forward": "slide-forward",
           "nav-back": "slide-back",
+          "mode-switch": "auto",
           default: "none",
         }}
         exit={{
           "nav-forward": "slide-forward",
           "nav-back": "slide-back",
+          "mode-switch": "auto",
           default: "none",
         }}
         default="none"

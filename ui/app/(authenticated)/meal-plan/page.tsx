@@ -32,7 +32,7 @@ export default function MealPlanPage() {
           Meal Plan
         </span>
         {ready && hasItems && (
-          <button onClick={() => router.push("/meal-plan/edit", { transitionTypes: ["nav-forward"] })} aria-label="Edit meal plan" className="flex items-center justify-center p-3 bg-black">
+          <button onClick={() => router.push("/meal-plan/edit", { transitionTypes: ["mode-switch"] })} aria-label="Edit meal plan" className="flex items-center justify-center p-3 bg-black">
             <Icon name="edit" size={24} className="text-white" />
           </button>
         )}
@@ -43,7 +43,7 @@ export default function MealPlanPage() {
       >
         {!ready ? <Spinner /> : !hasItems ? (
           <button
-            onClick={() => router.push("/meal-plan/edit", { transitionTypes: ["nav-forward"] })}
+            onClick={() => router.push("/meal-plan/edit", { transitionTypes: ["mode-switch"] })}
             aria-label="Create meal plan"
             className="flex h-14 w-14 items-center justify-center bg-black text-white text-4xl shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
           >
@@ -54,6 +54,7 @@ export default function MealPlanPage() {
             {items.map((item) => (
               <MealPlanItem
                 key={item.menu_item.id}
+                id={item.menu_item.id}
                 name={item.menu_item.name}
                 mode="view"
                 onTap={() =>
