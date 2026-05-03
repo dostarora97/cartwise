@@ -41,7 +41,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  turbopack: {},
+  turbopack: {
+    resolveAlias: {
+      "../build/polyfills/polyfill-module": "./lib/empty-polyfill.js",
+    },
+  },
   experimental: {
     optimizePackageImports: ["@supabase/supabase-js", "@tanstack/react-query"],
   },
