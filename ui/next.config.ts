@@ -42,6 +42,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   turbopack: {},
+  experimental: {
+    optimizePackageImports: ["@supabase/supabase-js", "@tanstack/react-query"],
+  },
   allowedDevOrigins: ["lr602lw45l.taile1dca.ts.net"],
   async headers() {
     return [
