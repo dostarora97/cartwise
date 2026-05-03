@@ -25,7 +25,7 @@ export default function GlobalError({
         />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_circle,add,arrow_back_ios_new,check,chevron_right,close,delete,drag_indicator,edit,fork_spoon,login,logout,more_horiz,open_in_new,receipt_long,search,settings&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_circle,add,arrow_back_ios_new,arrow_drop_down,arrow_drop_up,check,chevron_right,close,delete,description,drag_indicator,edit,expand_less,expand_more,fork_spoon,login,logout,more_horiz,open_in_new,receipt_long,search,settings,upload_file&display=swap"
         />
       </head>
       <body className="min-h-full flex flex-col font-mono bg-white text-black" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
