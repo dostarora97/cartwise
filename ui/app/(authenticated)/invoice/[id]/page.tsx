@@ -130,7 +130,7 @@ export default function SplitAnalysisPage() {
     await apiClient.PATCH("/api/v1/orders/{order_id}/cancel", {
       params: { path: { order_id: id } },
     });
-    router.replace("/meal-plan");
+    router.replace("/meal-plan", { transitionTypes: ["nav-back"] });
   }
 
   async function handleApprove() {
@@ -141,7 +141,7 @@ export default function SplitAnalysisPage() {
         { params: { path: { order_id: id } } },
       );
       if (apiError) throw new Error((apiError as { detail?: string }).detail || "Approve failed");
-      router.push(`/invoice/${id}/result`);
+      router.push(`/invoice/${id}/result`, { transitionTypes: ["nav-forward"] });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
