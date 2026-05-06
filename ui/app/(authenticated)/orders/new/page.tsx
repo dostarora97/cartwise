@@ -170,7 +170,8 @@ function InvoiceSetupContent() {
       <TopBar showBack onBack={() => router.push("/meal-plan")} />
 
       {/* Expense heading */}
-      <div className="flex items-center p-3 border-b border-black">
+      <div className="flex items-center gap-2 p-3 border-b border-black">
+        <Icon name="currency_rupee" size={24} />
         <span className="text-2xl font-bold tracking-label uppercase leading-6">
           Expense
         </span>
@@ -179,7 +180,7 @@ function InvoiceSetupContent() {
       {/* Participants */}
       <div className="flex items-stretch border-b border-gray-200">
         <div className="flex flex-wrap items-center gap-1 p-3 flex-1 text-base leading-6">
-          <span>With <b>You</b>, and:</span>
+          <span>With <b>You</b>, &:</span>
           <ChipInput
             ref={chipInputRef}
             participants={otherUsers}
