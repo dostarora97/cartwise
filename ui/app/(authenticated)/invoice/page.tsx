@@ -120,25 +120,43 @@ function InvoiceSetupContent() {
         const order = await orderResp.json();
         router.push(`/invoice/${order.id}`);
       } else if (file) {
-        // Invoice flow: existing multipart upload
-        const participantIds = [appUser.id, ...selectedOthers];
+        // Invoice flow: upload file → create order
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("participant_ids", JSON.stringify(participantIds));
 
-        const resp = await fetch(`${API_BASE}/api/v1/orders/`, {
+        const uploadResp = await fetch(`${API_BASE}/api/v1/orders/sources/upload`, {
           method: "POST",
           headers: { Authorization: `Bearer ${session.access_token}` },
           body: formData,
         });
 
-        if (!resp.ok) {
-          const body = await resp.json().catch(() => ({ detail: "Unknown error" }));
-          throw new Error(body.detail || `HTTP ${resp.status}`);
+        if (!uploadResp.ok) {
+          const body = await uploadResp.json().catch(() => ({ detail: "Unknown error" }));
+          throw new Error(body.detail || `HTTP ${uploadResp.status}`);
         }
 
-        const data = await resp.json();
-        router.push(`/invoice/${data.id}`);
+        const source = await uploadResp.json();
+        const participantIds = [appUser.id, ...selectedOthers];
+
+        const orderResp = await fetch(`${API_BASE}/api/v1/orders/`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            source_id: source.source_id,
+            participant_ids: participantIds,
+          }),
+        });
+
+        if (!orderResp.ok) {
+          const body = await orderResp.json().catch(() => ({ detail: "Unknown error" }));
+          throw new Error(body.detail || `HTTP ${orderResp.status}`);
+        }
+
+        const order = await orderResp.json();
+        router.push(`/invoice/${order.id}`);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
