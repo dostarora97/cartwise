@@ -6,7 +6,12 @@ alongside the full list of GroceryItems to the LLM, which returns the
 matched UPCs. This builds the bipartite adjacency used by the split service.
 """
 
+import logfire
+import structlog
+
 from app.ai.client import generate
+
+logger = structlog.get_logger()
 
 SYSTEM_PROMPT = (
     "You match a menu item to grocery items from an invoice. "
@@ -34,6 +39,7 @@ def _build_grocery_list_text(grocery_items: list[dict]) -> str:
     return "\n".join(f"- UPC: {g['upc']}, Description: {g['description']}" for g in grocery_items)
 
 
+@logfire.instrument("correlate_menu_item {menu_item_name}")
 async def _correlate_menu_item(
     menu_item_name: str,
     menu_item_body: str,
@@ -55,6 +61,7 @@ async def _correlate_menu_item(
     return result.get("matched_upcs", [])
 
 
+@logfire.instrument("correlate")
 async def correlate(
     menu_items: list[dict],
     grocery_items: list[dict],
@@ -69,9 +76,16 @@ async def correlate(
     Returns:
         Dict mapping menu_item_id (str) → list of matched UPC strings.
     """
+    logger.info(
+        "correlate_start",
+        total_menu_items=len(menu_items),
+        total_grocery_items=len(grocery_items),
+    )
+
     grocery_list_text = _build_grocery_list_text(grocery_items)
     valid_upcs = {g["upc"] for g in grocery_items}
     uses: dict[str, list[str]] = {}
+    total_matches = 0
 
     for item in menu_items:
         matched = await _correlate_menu_item(
@@ -79,6 +93,22 @@ async def correlate(
             menu_item_body=item["body"],
             grocery_list_text=grocery_list_text,
         )
-        uses[str(item["id"])] = [upc for upc in matched if upc in valid_upcs]
+        valid_matched = [upc for upc in matched if upc in valid_upcs]
+        uses[str(item["id"])] = valid_matched
+        total_matches += len(valid_matched)
+
+        logger.info(
+            "correlate_menu_item",
+            menu_item_name=item["name"],
+            matched_upcs_count=len(valid_matched),
+        )
+
+    unmatched = sum(1 for v in uses.values() if not v)
+    logger.info(
+        "correlate_complete",
+        total_menu_items=len(menu_items),
+        total_matches=total_matches,
+        unmatched_items=unmatched,
+    )
 
     return uses

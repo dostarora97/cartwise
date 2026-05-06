@@ -12,6 +12,11 @@ collapse into a single invocation.
 
 from collections import defaultdict
 
+import logfire
+import structlog
+
+logger = structlog.get_logger()
+
 # Type aliases
 MemberId = str
 MenuItemId = str
@@ -36,6 +41,7 @@ def build_grocery_to_members(members: Members, uses: Uses) -> dict[GroceryItemUp
     return grocery_to_members
 
 
+@logfire.instrument("compute_splits")
 def compute_splits(
     classified: dict,
     members: Members,
@@ -57,6 +63,15 @@ def compute_splits(
     Items with no member mapping are assigned to the payer only,
     ensuring the total of all splits equals the invoice total.
     """
+    grocery_items_count = sum(1 for i in classified["items"] if i["category"] == "item")
+    fees_count = sum(1 for i in classified["items"] if i["category"] == "fee")
+    logger.info(
+        "split_start",
+        members_count=len(members),
+        grocery_items_count=grocery_items_count,
+        fees_count=fees_count,
+    )
+
     all_members = sorted(members.keys())
     grocery_to_members = build_grocery_to_members(members, uses)
 
@@ -86,5 +101,7 @@ def compute_splits(
                 "splitEquallyAmong": sorted(member_set),
             }
         )
+
+    logger.info("split_complete", split_groups_count=len(splits))
 
     return {"paidBy": paid_by, "splits": splits}
