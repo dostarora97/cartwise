@@ -27,7 +27,7 @@ def _use_remote_storage() -> bool:
 
 
 def _get_supabase_client():
-    return create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
+    return create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
 
 
 def _storage_path(order_id: uuid.UUID, filename: str = "invoice.pdf") -> str:
