@@ -31,7 +31,7 @@ def test_build_grocery_to_members_menu_item_not_in_uses():
 # --- compute_splits ---
 
 
-async def test_compute_splits_groups_by_member_set():
+def test_compute_splits_groups_by_member_set():
     classified = {
         "items": [
             {"upc": "AAA", "description": "Item A", "total": 50.0, "category": "item"},
@@ -45,18 +45,20 @@ async def test_compute_splits_groups_by_member_set():
     result = compute_splits(classified, members, uses, "user-1")
 
     assert result["paidBy"] == "user-1"
+    assert result["noSplit"] is False
     assert len(result["splits"]) == 2
 
     splits_by_members = {tuple(s["splitEquallyAmong"]): s for s in result["splits"]}
 
     shared = splits_by_members[("user-1", "user-2")]
     assert shared["amount"] == 60.0  # 50 (AAA) + 10 (fee)
+    assert all("category" in g for g in shared["groceryItems"])
 
     solo = splits_by_members[("user-2",)]
     assert solo["amount"] == 50.0
 
 
-async def test_compute_splits_unmatched_items_go_to_payer():
+def test_compute_splits_unmatched_items_go_to_payer():
     """Unmatched items are assigned to the payer, not dropped."""
     classified = {
         "items": [
@@ -69,6 +71,7 @@ async def test_compute_splits_unmatched_items_go_to_payer():
 
     result = compute_splits(classified, members, uses, "user-1")
 
+    assert result["noSplit"] is True
     splits_by_members = {tuple(s["splitEquallyAmong"]): s for s in result["splits"]}
 
     # Matched item goes to user-1
@@ -79,7 +82,7 @@ async def test_compute_splits_unmatched_items_go_to_payer():
     assert "ZZZ" in upcs
 
 
-async def test_compute_splits_single_member():
+def test_compute_splits_single_member():
     classified = {
         "items": [
             {"upc": "A", "description": "X", "total": 100.0, "category": "item"},
@@ -94,10 +97,11 @@ async def test_compute_splits_single_member():
     assert len(result["splits"]) == 1  # item + fee merge (same member set)
     assert result["splits"][0]["amount"] == 105.0
     assert result["splits"][0]["splitEquallyAmong"] == ["solo"]
+    assert result["noSplit"] is True
 
 
-async def test_compute_splits_unmatched_plus_fees():
-    """Unmatched items go to payer, fees go to everyone."""
+def test_compute_splits_unmatched_plus_fees():
+    """Unmatched items go to payer, fees go to members_with_items (payer only)."""
     classified = {
         "items": [
             {"upc": "A", "description": "Unmatched", "total": 100.0, "category": "item"},
@@ -109,30 +113,25 @@ async def test_compute_splits_unmatched_plus_fees():
 
     result = compute_splits(classified, members, uses, "u1")
 
-    splits_by_members = {tuple(s["splitEquallyAmong"]): s for s in result["splits"]}
-
-    # Unmatched item → payer only
-    assert splits_by_members[("u1",)]["amount"] == 100.0
-
-    # Fee → everyone
-    assert splits_by_members[("u1", "u2")]["amount"] == 5.0
-
-    # Total equals invoice
-    total = sum(s["amount"] for s in result["splits"])
-    assert total == 105.0
+    # Unmatched → payer, fees → payer (only member with items) → single group
+    assert len(result["splits"]) == 1
+    assert result["splits"][0]["splitEquallyAmong"] == ["u1"]
+    assert result["splits"][0]["amount"] == 105.0
+    assert result["noSplit"] is True
 
 
-async def test_compute_splits_empty_items():
+def test_compute_splits_empty_items():
     classified = {"items": []}
     members = {"u1": ["m1"]}
     uses = {"m1": ["A"]}
 
     result = compute_splits(classified, members, uses, "u1")
     assert result["splits"] == []
+    assert result["noSplit"] is True
 
 
-async def test_compute_splits_all_fees():
-    """All items are fees — single split among everyone."""
+def test_compute_splits_all_fees():
+    """All items are fees — fees go to payer only (no non-fee items exist)."""
     classified = {
         "items": [
             {"upc": "-", "description": "Delivery", "total": 5.0, "category": "fee"},
@@ -146,10 +145,11 @@ async def test_compute_splits_all_fees():
 
     assert len(result["splits"]) == 1
     assert result["splits"][0]["amount"] == 8.0
-    assert len(result["splits"][0]["splitEquallyAmong"]) == 3
+    assert result["splits"][0]["splitEquallyAmong"] == ["u1"]
+    assert result["noSplit"] is True
 
 
-async def test_compute_splits_three_way_different_groups():
+def test_compute_splits_three_way_different_groups():
     """Three members, each with unique items + shared items."""
     classified = {
         "items": [
@@ -181,9 +181,10 @@ async def test_compute_splits_three_way_different_groups():
     assert splits_by_members[("alice", "bob")]["amount"] == 30.0
     # D (all 3) + fee (all 3) merge
     assert splits_by_members[("alice", "bob", "carol")]["amount"] == 46.0
+    assert result["noSplit"] is False
 
 
-async def test_compute_splits_rounding():
+def test_compute_splits_rounding():
     """Amounts are rounded to 2 decimal places.
 
     Use totals whose binary float sum is not exactly the mathematical sum
@@ -200,12 +201,13 @@ async def test_compute_splits_rounding():
 
     result = compute_splits(classified, members, uses, "u1")
     assert result["splits"][0]["amount"] == 30.3
+    assert result["noSplit"] is True
 
 
 # --- Total invariant: sum of splits == sum of all classified items ---
 
 
-async def test_total_invariant_all_matched():
+def test_total_invariant_all_matched():
     """When all items match, split total equals invoice total."""
     classified = {
         "items": [
@@ -222,10 +224,11 @@ async def test_total_invariant_all_matched():
     invoice_total = sum(i["total"] for i in classified["items"])
     split_total = sum(s["amount"] for s in result["splits"])
     assert split_total == invoice_total  # 90 == 90
+    assert result["noSplit"] is False
 
 
-async def test_total_invariant_some_unmatched():
-    """Unmatched items go to payer, so total still balances."""
+def test_total_invariant_some_unmatched():
+    """Unmatched items go to payer, fees to members_with_items, total still balances."""
     classified = {
         "items": [
             {"upc": "A", "description": "Matched", "total": 40.0, "category": "item"},
@@ -243,9 +246,14 @@ async def test_total_invariant_some_unmatched():
     split_total = sum(s["amount"] for s in result["splits"])
     assert split_total == invoice_total  # 88 == 88
 
+    # All items go to payer (matched + unmatched + fees) → single group
+    assert len(result["splits"]) == 1
+    assert result["splits"][0]["splitEquallyAmong"] == ["payer"]
+    assert result["noSplit"] is True
 
-async def test_total_invariant_nothing_matched():
-    """When nothing matches, all items go to payer, fees to everyone."""
+
+def test_total_invariant_nothing_matched():
+    """When nothing matches, all items + fees go to payer."""
     classified = {
         "items": [
             {"upc": "A", "description": "Item", "total": 100.0, "category": "item"},
@@ -260,3 +268,80 @@ async def test_total_invariant_nothing_matched():
     invoice_total = sum(i["total"] for i in classified["items"])
     split_total = sum(s["amount"] for s in result["splits"])
     assert split_total == invoice_total  # 105 == 105
+
+    # Everything merges into payer-only group
+    assert len(result["splits"]) == 1
+    assert result["splits"][0]["splitEquallyAmong"] == ["payer"]
+    assert result["noSplit"] is True
+
+
+# --- noSplit detection and fee exclusion ---
+
+
+def test_no_split_false_when_multiple_members_have_items():
+    """noSplit is False when non-payer members have items."""
+    classified = {
+        "items": [
+            {"upc": "A", "description": "Item A", "total": 50.0, "category": "item"},
+            {"upc": "B", "description": "Item B", "total": 30.0, "category": "item"},
+        ],
+    }
+    members = {"payer": ["m1"], "other": ["m2"]}
+    uses = {"m1": ["A"], "m2": ["B"]}
+
+    result = compute_splits(classified, members, uses, "payer")
+
+    assert result["noSplit"] is False
+    splits_by_members = {tuple(s["splitEquallyAmong"]): s for s in result["splits"]}
+    assert ("payer",) in splits_by_members
+    assert ("other",) in splits_by_members
+
+
+def test_fees_only_go_to_members_with_items():
+    """Fees are shared only among members who have at least one non-fee item."""
+    classified = {
+        "items": [
+            {"upc": "A", "description": "Item A", "total": 40.0, "category": "item"},
+            {"upc": "B", "description": "Item B", "total": 60.0, "category": "item"},
+            {"upc": "-", "description": "Delivery", "total": 10.0, "category": "fee"},
+        ],
+    }
+    # alice and bob have items, carol does not
+    members = {"alice": ["m1"], "bob": ["m2"], "carol": []}
+    uses = {"m1": ["A"], "m2": ["B"]}
+
+    result = compute_splits(classified, members, uses, "alice")
+
+    splits_by_members = {tuple(s["splitEquallyAmong"]): s for s in result["splits"]}
+
+    # Fee goes to alice + bob (members with items), not carol
+    fee_group = splits_by_members.get(("alice", "bob"))
+    assert fee_group is not None
+    fee_upcs = [g["upc"] for g in fee_group["groceryItems"]]
+    assert "-" in fee_upcs
+    assert fee_group["amount"] == 10.0
+
+    # carol has no group
+    assert ("carol",) not in splits_by_members
+    assert ("alice", "bob", "carol") not in splits_by_members
+
+
+def test_no_split_true_payer_only_via_correlation():
+    """noSplit is True when correlations assign everything to payer only."""
+    classified = {
+        "items": [
+            {"upc": "A", "description": "Item A", "total": 70.0, "category": "item"},
+            {"upc": "B", "description": "Item B", "total": 30.0, "category": "item"},
+            {"upc": "-", "description": "Fee", "total": 5.0, "category": "fee"},
+        ],
+    }
+    # payer's menu items use all grocery items; other has unrelated menu
+    members = {"payer": ["m1", "m2"], "other": ["m3"]}
+    uses = {"m1": ["A"], "m2": ["B"], "m3": []}
+
+    result = compute_splits(classified, members, uses, "payer")
+
+    assert result["noSplit"] is True
+    assert len(result["splits"]) == 1
+    assert result["splits"][0]["splitEquallyAmong"] == ["payer"]
+    assert result["splits"][0]["amount"] == 105.0

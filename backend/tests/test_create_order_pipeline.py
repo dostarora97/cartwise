@@ -36,10 +36,14 @@ async def test_create_order_pipeline(
     mock_uses = {}
     mock_result = {
         "paidBy": str(test_user.id),
+        "noSplit": True,
         "splits": [
             {
                 "amount": 60.0,
-                "groceryItems": [{"upc": "I1", "description": "Milk", "total": 50.0}],
+                "groceryItems": [
+                    {"upc": "I1", "description": "Milk", "total": 50.0, "category": "item"},
+                    {"upc": "FEE_DEL", "description": "Delivery", "total": 10.0, "category": "fee"},
+                ],
                 "splitEquallyAmong": [str(test_user.id)],
             }
         ],
@@ -70,9 +74,8 @@ async def test_create_order_pipeline(
     assert resp.status_code == 201
     data = resp.json()
     assert data["source_id"] == str(source.id)
-    assert data["status"] == "draft"
-    assert len(data["splits"]) == 1
-    assert data["splits"][0]["amount"] == 60.0
+    assert data["status"] == "no_split"
+    assert len(data["splits"]) == 0  # noSplit=True → no Split rows created
 
 
 async def test_create_order_idempotent(
@@ -120,10 +123,13 @@ async def test_create_order_adds_current_user_to_participants(
     ]
     mock_result = {
         "paidBy": str(test_user.id),
+        "noSplit": False,
         "splits": [
             {
                 "amount": 80.0,
-                "groceryItems": [{"upc": "I1", "description": "Rice", "total": 80.0}],
+                "groceryItems": [
+                    {"upc": "I1", "description": "Rice", "total": 80.0, "category": "item"},
+                ],
                 "splitEquallyAmong": [str(test_user.id), str(other.id)],
             }
         ],
@@ -163,18 +169,192 @@ async def test_create_order_edit_splits(
     """PUT /orders/{id}/splits recomputes split amounts from reassignments."""
     source = await _make_source(session, test_user.id)
 
+    other = User(email="o@x.com", name="O", oauth_provider="google", oauth_id="o-oauth")
+    session.add(other)
+    await session.flush()
+
     mock_items = [
         {"id": "I1", "name": "Milk", "quantity": 1, "total": 50.0, "category": "item"},
         {"id": "I2", "name": "Bread", "quantity": 1, "total": 30.0, "category": "item"},
+        {"id": "FEE", "name": "Delivery", "quantity": 1, "total": 10.0, "category": "fee"},
     ]
     mock_result = {
         "paidBy": str(test_user.id),
+        "noSplit": True,
         "splits": [
             {
-                "amount": 80.0,
+                "amount": 90.0,
                 "groceryItems": [
-                    {"upc": "I1", "description": "Milk", "total": 50.0},
-                    {"upc": "I2", "description": "Bread", "total": 30.0},
+                    {"upc": "I1", "description": "Milk", "total": 50.0, "category": "item"},
+                    {"upc": "I2", "description": "Bread", "total": 30.0, "category": "item"},
+                    {"upc": "FEE", "description": "Delivery", "total": 10.0, "category": "fee"},
+                ],
+                "splitEquallyAmong": [str(test_user.id)],
+            }
+        ],
+    }
+
+    with (
+        patch(
+            "app.routes.orders.run_extraction",
+            new_callable=AsyncMock,
+            return_value=mock_items,
+        ),
+        patch("app.routes.orders.correlate", new_callable=AsyncMock, return_value={}),
+        patch("app.routes.orders.compute_splits", return_value=mock_result),
+    ):
+        create_resp = await client.post(
+            "/api/v1/orders/",
+            headers=auth_headers,
+            json={
+                "source_id": str(source.id),
+                "participant_ids": [str(test_user.id), str(other.id)],
+            },
+        )
+
+    assert create_resp.status_code == 201
+    assert create_resp.json()["status"] == "no_split"
+    order_id = create_resp.json()["id"]
+
+    # Reassign Milk to other user — should transition to draft
+    edit_resp = await client.put(
+        f"/api/v1/orders/{order_id}/splits",
+        headers=auth_headers,
+        json={
+            "assignments": [
+                {"upc": "I1", "member_ids": [str(other.id)]},
+                {"upc": "I2", "member_ids": [str(test_user.id)]},
+            ]
+        },
+    )
+    assert edit_resp.status_code == 200
+    assert edit_resp.json()["status"] == "draft"
+    splits = edit_resp.json()["splits"]
+    # Two groups: other (Milk=50 + fee share) and payer (Bread=30 + fee share)
+    # Actually fees go to both members since both have items
+    total = sum(s["amount"] for s in splits)
+    assert total == 90.0
+
+
+async def test_create_order_no_split_status(
+    client: AsyncClient, auth_headers: dict, test_user, session: AsyncSession
+):
+    """Order with noSplit=False gets status='draft' and Split rows."""
+    source = await _make_source(session, test_user.id)
+
+    other = User(email="ns@x.com", name="NS", oauth_provider="google", oauth_id="ns-oauth")
+    session.add(other)
+    await session.flush()
+
+    mock_items = [
+        {"id": "I1", "name": "Milk", "quantity": 1, "total": 50.0, "category": "item"},
+    ]
+    mock_result = {
+        "paidBy": str(test_user.id),
+        "noSplit": False,
+        "splits": [
+            {
+                "amount": 50.0,
+                "groceryItems": [
+                    {"upc": "I1", "description": "Milk", "total": 50.0, "category": "item"},
+                ],
+                "splitEquallyAmong": [str(test_user.id), str(other.id)],
+            }
+        ],
+    }
+
+    with (
+        patch(
+            "app.routes.orders.run_extraction",
+            new_callable=AsyncMock,
+            return_value=mock_items,
+        ),
+        patch("app.routes.orders.correlate", new_callable=AsyncMock, return_value={}),
+        patch("app.routes.orders.compute_splits", return_value=mock_result),
+    ):
+        resp = await client.post(
+            "/api/v1/orders/",
+            headers=auth_headers,
+            json={
+                "source_id": str(source.id),
+                "participant_ids": [str(test_user.id), str(other.id)],
+            },
+        )
+
+    assert resp.status_code == 201
+    assert resp.json()["status"] == "draft"
+    assert len(resp.json()["splits"]) == 1
+    assert resp.json()["splits"][0]["amount"] == 50.0
+
+
+async def test_cancel_no_split_order(
+    client: AsyncClient, auth_headers: dict, test_user, session: AsyncSession
+):
+    """Can cancel an order with status='no_split'."""
+    source = await _make_source(session, test_user.id)
+
+    mock_items = [
+        {"id": "I1", "name": "Milk", "quantity": 1, "total": 50.0, "category": "item"},
+    ]
+    mock_result = {
+        "paidBy": str(test_user.id),
+        "noSplit": True,
+        "splits": [
+            {
+                "amount": 50.0,
+                "groceryItems": [
+                    {"upc": "I1", "description": "Milk", "total": 50.0, "category": "item"},
+                ],
+                "splitEquallyAmong": [str(test_user.id)],
+            }
+        ],
+    }
+
+    with (
+        patch(
+            "app.routes.orders.run_extraction",
+            new_callable=AsyncMock,
+            return_value=mock_items,
+        ),
+        patch("app.routes.orders.correlate", new_callable=AsyncMock, return_value={}),
+        patch("app.routes.orders.compute_splits", return_value=mock_result),
+    ):
+        create_resp = await client.post(
+            "/api/v1/orders/",
+            headers=auth_headers,
+            json={
+                "source_id": str(source.id),
+                "participant_ids": [str(test_user.id)],
+            },
+        )
+
+    assert create_resp.json()["status"] == "no_split"
+    order_id = create_resp.json()["id"]
+
+    cancel_resp = await client.patch(f"/api/v1/orders/{order_id}/cancel", headers=auth_headers)
+    assert cancel_resp.status_code == 200
+    assert cancel_resp.json()["status"] == "cancelled"
+
+
+async def test_edit_splits_rejects_fee_upc(
+    client: AsyncClient, auth_headers: dict, test_user, session: AsyncSession
+):
+    """Sending a fee UPC in assignments returns 400."""
+    source = await _make_source(session, test_user.id)
+
+    mock_items = [
+        {"id": "I1", "name": "Milk", "quantity": 1, "total": 50.0, "category": "item"},
+        {"id": "FEE", "name": "Delivery", "quantity": 1, "total": 10.0, "category": "fee"},
+    ]
+    mock_result = {
+        "paidBy": str(test_user.id),
+        "noSplit": True,
+        "splits": [
+            {
+                "amount": 60.0,
+                "groceryItems": [
+                    {"upc": "I1", "description": "Milk", "total": 50.0, "category": "item"},
+                    {"upc": "FEE", "description": "Delivery", "total": 10.0, "category": "fee"},
                 ],
                 "splitEquallyAmong": [str(test_user.id)],
             }
@@ -201,18 +381,74 @@ async def test_create_order_edit_splits(
 
     order_id = create_resp.json()["id"]
 
-    # Reassign items to different groups
     edit_resp = await client.put(
         f"/api/v1/orders/{order_id}/splits",
         headers=auth_headers,
         json={
             "assignments": [
                 {"upc": "I1", "member_ids": [str(test_user.id)]},
-                {"upc": "I2", "member_ids": [str(test_user.id)]},
+                {"upc": "FEE", "member_ids": [str(test_user.id)]},
             ]
         },
     )
-    assert edit_resp.status_code == 200
-    splits = edit_resp.json()["splits"]
-    assert len(splits) == 1
-    assert splits[0]["amount"] == 80.0
+    assert edit_resp.status_code == 400
+    assert "fee" in edit_resp.json()["detail"].lower()
+
+
+async def test_edit_splits_requires_all_non_fee_upcs(
+    client: AsyncClient, auth_headers: dict, test_user, session: AsyncSession
+):
+    """Omitting a non-fee UPC from assignments returns 400."""
+    source = await _make_source(session, test_user.id)
+
+    mock_items = [
+        {"id": "I1", "name": "Milk", "quantity": 1, "total": 50.0, "category": "item"},
+        {"id": "I2", "name": "Bread", "quantity": 1, "total": 30.0, "category": "item"},
+    ]
+    mock_result = {
+        "paidBy": str(test_user.id),
+        "noSplit": True,
+        "splits": [
+            {
+                "amount": 80.0,
+                "groceryItems": [
+                    {"upc": "I1", "description": "Milk", "total": 50.0, "category": "item"},
+                    {"upc": "I2", "description": "Bread", "total": 30.0, "category": "item"},
+                ],
+                "splitEquallyAmong": [str(test_user.id)],
+            }
+        ],
+    }
+
+    with (
+        patch(
+            "app.routes.orders.run_extraction",
+            new_callable=AsyncMock,
+            return_value=mock_items,
+        ),
+        patch("app.routes.orders.correlate", new_callable=AsyncMock, return_value={}),
+        patch("app.routes.orders.compute_splits", return_value=mock_result),
+    ):
+        create_resp = await client.post(
+            "/api/v1/orders/",
+            headers=auth_headers,
+            json={
+                "source_id": str(source.id),
+                "participant_ids": [str(test_user.id)],
+            },
+        )
+
+    order_id = create_resp.json()["id"]
+
+    # Only send I1, missing I2
+    edit_resp = await client.put(
+        f"/api/v1/orders/{order_id}/splits",
+        headers=auth_headers,
+        json={
+            "assignments": [
+                {"upc": "I1", "member_ids": [str(test_user.id)]},
+            ]
+        },
+    )
+    assert edit_resp.status_code == 400
+    assert "Missing" in edit_resp.json()["detail"]

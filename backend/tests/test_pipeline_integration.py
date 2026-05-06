@@ -279,8 +279,8 @@ async def test_swiggy_pipeline_happy_path(
 
     assert order_resp.status_code == 201
     data = order_resp.json()
-    assert data["status"] == "draft"
-    assert len(data["splits"]) > 0
+    assert data["status"] == "no_split"
+    assert len(data["splits"]) == 0  # noSplit → no Split rows
     assert len(data["participants"]) == 2
 
     # Verify source was updated with raw API responses
