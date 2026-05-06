@@ -9,6 +9,7 @@ Every API call is persisted in the splitwise_audit_log table:
 Feature toggle: SPLITWISE_ENABLED must be true or all calls are refused.
 """
 
+import asyncio
 import hashlib
 import json
 import uuid
@@ -19,9 +20,19 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.database import async_session as _async_session
 from app.models.splitwise_audit import SplitwiseAuditLog
 
 _http = httpx.Client(timeout=30)
+
+_sw_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_sw_semaphore() -> asyncio.Semaphore:
+    global _sw_semaphore
+    if _sw_semaphore is None:
+        _sw_semaphore = asyncio.Semaphore(settings.get("SPLITWISE_CONCURRENCY", 3))
+    return _sw_semaphore
 
 
 def _base_url() -> str:
@@ -170,7 +181,9 @@ async def create_expense_audited(
 
     # Step 2: Call Splitwise API
     try:
-        resp = _http.post(f"{_base_url()}/create_expense", headers=_headers(token), json=payload)
+        resp = await asyncio.to_thread(
+            _http.post, f"{_base_url()}/create_expense", headers=_headers(token), json=payload
+        )
         resp.raise_for_status()
         data = resp.json()
 
@@ -217,7 +230,8 @@ async def delete_expense_audited(
     await session.refresh(audit)
 
     try:
-        resp = _http.post(
+        resp = await asyncio.to_thread(
+            _http.post,
             f"{_base_url()}/delete_expense/{splitwise_expense_id}",
             headers=_headers(token),
         )
@@ -257,7 +271,7 @@ async def push_splits_audited(
     """Push all split groups to Splitwise with per-expense auditing.
 
     Args:
-        session: DB session.
+        session: DB session (used for idempotency checks).
         order_id: Our order UUID (for audit trail).
         split_result: Output of compute_splits().
         member_id_to_sw_id: Map of our member ID → Splitwise user ID.
@@ -268,9 +282,10 @@ async def push_splits_audited(
         List of audit log rows (one per split).
     """
     _check_enabled()
-    audits = []
     payer_id = split_result["paidBy"]
 
+    # Pre-validate and build task inputs before firing parallel requests
+    task_inputs: list[tuple[str, float, list[int], str]] = []
     for split in split_result["splits"]:
         if split["splitEquallyAmong"] == [payer_id]:
             continue
@@ -292,21 +307,27 @@ async def push_splits_audited(
         details_lines = [f"- {g['description']}: ₹{g['total']:.2f}" for g in split["groceryItems"]]
         details = "\n".join(details_lines)
 
-        audit = await create_expense_audited(
-            session=session,
-            description=desc,
-            cost=split["amount"],
-            payer_sw_id=payer_sw_id,
-            member_sw_ids=sw_ids,
-            order_id=order_id,
-            group_id=group_id,
-            details=details,
-            token=token,
-        )
-        audits.append(audit)
+        task_inputs.append((desc, split["amount"], sw_ids, details))
 
+    async def _create_one(desc: str, cost: float, sw_ids: list[int], details: str):
+        async with _get_sw_semaphore(), _async_session() as task_session:
+            return await create_expense_audited(
+                session=task_session,
+                description=desc,
+                cost=cost,
+                payer_sw_id=payer_sw_id,
+                member_sw_ids=sw_ids,
+                order_id=order_id,
+                group_id=group_id,
+                details=details,
+                token=token,
+            )
+
+    audits = list(await asyncio.gather(*[_create_one(*args) for args in task_inputs]))
+
+    for audit, (desc, cost, _, _) in zip(audits, task_inputs, strict=True):
         status_icon = "✓" if audit.status == "success" else "✗"
-        print(f"  {status_icon} ₹{split['amount']:.2f} — {desc} [{audit.status}]")
+        print(f"  {status_icon} ₹{cost:.2f} — {desc} [{audit.status}]")
 
     return audits
 
@@ -332,15 +353,18 @@ async def rollback_order_expenses(
     )
     successful = result.scalars().all()
 
-    delete_audits = []
-    for audit_row in successful:
-        delete_audit = await delete_expense_audited(
-            session=session,
-            splitwise_expense_id=audit_row.splitwise_expense_id,
-            order_id=order_id,
-            token=token,
-        )
-        delete_audits.append(delete_audit)
+    async def _delete_one(expense_id: int):
+        async with _get_sw_semaphore(), _async_session() as task_session:
+            return await delete_expense_audited(
+                session=task_session,
+                splitwise_expense_id=expense_id,
+                order_id=order_id,
+                token=token,
+            )
+
+    delete_audits = list(
+        await asyncio.gather(*[_delete_one(row.splitwise_expense_id) for row in successful])
+    )
 
     return delete_audits
 

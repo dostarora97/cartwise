@@ -6,6 +6,8 @@ alongside the full list of GroceryItems to the LLM, which returns the
 matched UPCs. This builds the bipartite adjacency used by the split service.
 """
 
+import asyncio
+
 import logfire
 import structlog
 
@@ -87,12 +89,18 @@ async def correlate(
     uses: dict[str, list[str]] = {}
     total_matches = 0
 
-    for item in menu_items:
-        matched = await _correlate_menu_item(
-            menu_item_name=item["name"],
-            menu_item_body=item["body"],
-            grocery_list_text=grocery_list_text,
-        )
+    matched_results = await asyncio.gather(
+        *[
+            _correlate_menu_item(
+                menu_item_name=item["name"],
+                menu_item_body=item["body"],
+                grocery_list_text=grocery_list_text,
+            )
+            for item in menu_items
+        ]
+    )
+
+    for item, matched in zip(menu_items, matched_results, strict=True):
         valid_matched = [upc for upc in matched if upc in valid_upcs]
         uses[str(item["id"])] = valid_matched
         total_matches += len(valid_matched)

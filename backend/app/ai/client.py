@@ -10,6 +10,7 @@ LLM providers. The model and provider are configured via Dynaconf settings:
   AI_API_KEY = ""              # only needed for cloud providers
 """
 
+import asyncio
 import json
 
 import litellm
@@ -18,6 +19,16 @@ import structlog
 from opentelemetry import trace
 
 from app.config import settings
+
+_llm_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_llm_semaphore() -> asyncio.Semaphore:
+    global _llm_semaphore
+    if _llm_semaphore is None:
+        _llm_semaphore = asyncio.Semaphore(settings.get("AI_CONCURRENCY", 5))
+    return _llm_semaphore
+
 
 logger = structlog.get_logger()
 
@@ -63,22 +74,23 @@ async def generate(
     )
 
     try:
-        response = await litellm.acompletion(
-            model=model,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": prompt},
-            ],
-            response_format={
-                "type": "json_schema",
-                "json_schema": {
-                    "name": "response",
-                    "schema": schema,
+        async with _get_llm_semaphore():
+            response = await litellm.acompletion(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": prompt},
+                ],
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": "response",
+                        "schema": schema,
+                    },
                 },
-            },
-            api_base=settings.AI_BASE_URL or None,
-            api_key=settings.AI_API_KEY or None,
-        )
+                api_base=settings.AI_BASE_URL or None,
+                api_key=settings.AI_API_KEY or None,
+            )
     except Exception as exc:
         logger.info(
             "llm_error",

@@ -54,37 +54,41 @@ async def _snapshot_meal_plans(
     participant_ids: list[uuid.UUID],
 ) -> tuple[dict[str, list[str]], list[dict]]:
     """Snapshot participants' meal plans and collect all menu items."""
+    # Batch query 1: all meal plans at once
+    result = await session.execute(
+        select(MealPlan)
+        .where(MealPlan.user_id.in_(participant_ids))
+        .options(selectinload(MealPlan.items))
+    )
+    plans_by_user = {plan.user_id: plan for plan in result.scalars().all()}
+
     members: dict[str, list[str]] = {}
     seen_menu_item_ids: set[uuid.UUID] = set()
-    all_menu_items: list[dict] = []
 
     for user_id in participant_ids:
-        result = await session.execute(
-            select(MealPlan)
-            .where(MealPlan.user_id == user_id)
-            .options(selectinload(MealPlan.items))
-        )
-        plan = result.scalar_one_or_none()
-
+        plan = plans_by_user.get(user_id)
         if plan is None:
             members[str(user_id)] = []
             continue
-
         menu_item_ids = [str(item.menu_item_id) for item in plan.items]
         members[str(user_id)] = menu_item_ids
-
         for item in plan.items:
-            if item.menu_item_id not in seen_menu_item_ids:
-                seen_menu_item_ids.add(item.menu_item_id)
-                mi = await session.get(MenuItem, item.menu_item_id)
-                if mi:
-                    all_menu_items.append(
-                        {
-                            "id": str(mi.id),
-                            "name": mi.name,
-                            "body": mi.body,
-                        }
-                    )
+            seen_menu_item_ids.add(item.menu_item_id)
+
+    # Batch query 2: all referenced menu items at once
+    all_menu_items: list[dict] = []
+    if seen_menu_item_ids:
+        mi_result = await session.execute(
+            select(MenuItem).where(MenuItem.id.in_(seen_menu_item_ids))
+        )
+        for mi in mi_result.scalars().all():
+            all_menu_items.append(
+                {
+                    "id": str(mi.id),
+                    "name": mi.name,
+                    "body": mi.body,
+                }
+            )
 
     return members, all_menu_items
 
@@ -429,13 +433,16 @@ async def approve_order(
             status_code=400, detail=f"Cannot approve order with status '{order.status}'"
         )
 
-    # Build member_id_to_sw_id mapping from DB
+    # Build member_id_to_sw_id mapping from DB (single bulk query)
     participant_user_ids = [p.user_id for p in order.participants]
     member_id_to_sw_id: dict[str, int] = {}
     payer_sw_id: int | None = None
 
+    users_result = await session.execute(select(User).where(User.id.in_(participant_user_ids)))
+    users_by_id = {u.id: u for u in users_result.scalars().all()}
+
     for uid in participant_user_ids:
-        user = await session.get(User, uid)
+        user = users_by_id.get(uid)
         if not user or user.splitwise_user_id is None:
             raise HTTPException(
                 status_code=400,

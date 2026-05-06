@@ -5,6 +5,7 @@ Classifies each extracted grocery item as "item" (product) or "fee"
 (order-level charge) using the configured LLM via LiteLLM.
 """
 
+import asyncio
 import json
 from collections.abc import Callable
 
@@ -60,9 +61,10 @@ async def classify(
 
     logger.info("classify_start", total_items=total_items)
 
+    categories = await asyncio.gather(*[_classify_row(row) for row in all_rows])
+
     classified_rows = []
-    for i, row in enumerate(all_rows, 1):
-        category = await _classify_row(row)
+    for i, (row, category) in enumerate(zip(all_rows, categories, strict=True), 1):
         classified_rows.append({**row, "category": category})
 
         logger.info(
