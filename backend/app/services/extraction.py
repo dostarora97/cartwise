@@ -23,7 +23,7 @@ async def run_extraction(session: AsyncSession, source: OrderSource) -> list[dic
     logger.info(
         "extraction_start",
         source_id=str(source.id),
-        source_type=source.type.value,
+        source_type=source.type.value if hasattr(source.type, "value") else source.type,
         checkpoint_hit=checkpoint_hit,
     )
 

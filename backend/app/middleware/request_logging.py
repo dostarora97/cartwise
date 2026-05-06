@@ -75,7 +75,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             response_bytes = b"".join(chunks)
             if response_bytes:
                 logger.info("response_body", body=_truncate_body(response_bytes))
-            response.body_iterator = iter([response_bytes])
+
+            async def _body_gen():
+                yield response_bytes
+
+            response.body_iterator = _body_gen()
 
         logger.info(
             "request",
