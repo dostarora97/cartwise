@@ -118,6 +118,7 @@ export default function SplitAnalysisPage() {
       });
   }, [splitGroups, userMap, sortedNames]);
 
+  const isNoSplit = order?.status === "no_split";
   const isTerminal = order?.status === "completed" || order?.status === "cancelled";
   const isCompleted = order?.status === "completed";
   const isCancelled = order?.status === "cancelled";
@@ -127,7 +128,7 @@ export default function SplitAnalysisPage() {
       setMode("view");
       return;
     }
-    if (isTerminal) {
+    if (isTerminal || isNoSplit) {
       router.replace("/meal-plan");
       return;
     }
@@ -310,13 +311,22 @@ export default function SplitAnalysisPage() {
         </button>
       )}
 
-      {!isTerminal && mode === "view" && (
+      {!isTerminal && !isNoSplit && mode === "view" && (
         <button
           onClick={handleApprove}
           disabled={submitting}
           className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
         >
           {submitting ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Split"}
+        </button>
+      )}
+
+      {isNoSplit && mode === "view" && (
+        <button
+          onClick={() => router.replace("/meal-plan")}
+          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-neutral-400 text-2xl font-bold tracking-label uppercase leading-6 text-white"
+        >
+          No settlement
         </button>
       )}
 
