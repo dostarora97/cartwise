@@ -16,6 +16,7 @@ interface GroceryItem {
   upc: string;
   description: string;
   total: number;
+  category?: string;
 }
 
 export default function SplitAnalysisPage() {
@@ -71,10 +72,9 @@ export default function SplitAnalysisPage() {
     const seen = new Set<string>();
     for (const group of splitGroups) {
       for (const gi of group.groceryItems) {
-        if (!seen.has(gi.upc)) {
-          seen.add(gi.upc);
-          items.push({ item: gi, memberIds: [...group.memberIds] });
-        }
+        if (gi.category === "fee" || seen.has(gi.upc)) continue;
+        seen.add(gi.upc);
+        items.push({ item: gi, memberIds: [...group.memberIds] });
       }
     }
     return items.sort((a, b) =>
