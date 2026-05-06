@@ -80,6 +80,13 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      { source: "/invoice", destination: "/orders/new", permanent: true },
+      { source: "/invoice/:id", destination: "/orders/:id/expense", permanent: true },
+      { source: "/invoice/:id/result", destination: "/orders/:id/expense/result", permanent: true },
+    ];
+  },
 };
 
 export default withSerwist(nextConfig);

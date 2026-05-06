@@ -38,25 +38,25 @@ describe("GET /auth/connect/swiggy", () => {
     GET = mod.GET;
   });
 
-  it("redirects to /invoice?swiggy=error when code missing", async () => {
+  it("redirects to /orders/new?swiggy=error when code missing", async () => {
     const response = await GET(makeRequest("?state=xyz"));
     expect(response.status).toBe(307);
-    expect(getRedirectPath(response)).toBe("/invoice?swiggy=error");
+    expect(getRedirectPath(response)).toBe("/orders/new?swiggy=error");
   });
 
-  it("redirects to /invoice?swiggy=error when state missing", async () => {
+  it("redirects to /orders/new?swiggy=error when state missing", async () => {
     const response = await GET(makeRequest("?code=abc"));
     expect(response.status).toBe(307);
-    expect(getRedirectPath(response)).toBe("/invoice?swiggy=error");
+    expect(getRedirectPath(response)).toBe("/orders/new?swiggy=error");
   });
 
-  it("redirects to /invoice?swiggy=error when both missing", async () => {
+  it("redirects to /orders/new?swiggy=error when both missing", async () => {
     const response = await GET(makeRequest(""));
     expect(response.status).toBe(307);
-    expect(getRedirectPath(response)).toBe("/invoice?swiggy=error");
+    expect(getRedirectPath(response)).toBe("/orders/new?swiggy=error");
   });
 
-  it("redirects to /invoice?provider=swiggy&method=order on successful exchange", async () => {
+  it("redirects to /orders/new?provider=swiggy&method=order on successful exchange", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response("ok", { status: 200 }),
     );
@@ -66,7 +66,7 @@ describe("GET /auth/connect/swiggy", () => {
     );
     expect(response.status).toBe(307);
     expect(getRedirectPath(response)).toBe(
-      "/invoice?provider=swiggy&method=order",
+      "/orders/new?provider=swiggy&method=order",
     );
     expect(hasCookieCleared(response, "swiggy_code_verifier")).toBe(true);
   });
@@ -90,7 +90,7 @@ describe("GET /auth/connect/swiggy", () => {
     expect(body.code_verifier).toBe("my-verifier");
   });
 
-  it("redirects to /invoice?swiggy=error on failed exchange", async () => {
+  it("redirects to /orders/new?swiggy=error on failed exchange", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
       new Response("error", { status: 400 }),
     );
@@ -99,6 +99,6 @@ describe("GET /auth/connect/swiggy", () => {
       makeRequest("?code=abc&state=xyz", { swiggy_code_verifier: "verifier" }),
     );
     expect(response.status).toBe(307);
-    expect(getRedirectPath(response)).toBe("/invoice?swiggy=error");
+    expect(getRedirectPath(response)).toBe("/orders/new?swiggy=error");
   });
 });

@@ -111,7 +111,7 @@ describe("updateSession (proxy auth routing)", () => {
 
     it("passes through nested protected routes with cookie", async () => {
       const response = await updateSession(
-        makeRequest("/invoice/123", { [ONBOARDED_COOKIE]: "1" }),
+        makeRequest("/orders/123/expense", { [ONBOARDED_COOKIE]: "1" }),
       );
       expect(response.status).toBe(200);
     });

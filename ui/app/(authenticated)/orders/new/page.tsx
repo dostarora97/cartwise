@@ -118,7 +118,7 @@ function InvoiceSetupContent() {
         }
 
         const order = await orderResp.json();
-        router.push(`/invoice/${order.id}`);
+        router.push(`/orders/${order.id}/expense`);
       } else if (file) {
         // Invoice flow: upload file → create order
         const formData = new FormData();
@@ -156,7 +156,7 @@ function InvoiceSetupContent() {
         }
 
         const order = await orderResp.json();
-        router.push(`/invoice/${order.id}`);
+        router.push(`/orders/${order.id}/expense`);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
