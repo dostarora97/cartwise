@@ -13,7 +13,7 @@ export function InvoiceUpload({ file, onFileChange }: InvoiceUploadProps) {
 
   return (
     <div className="flex items-stretch border-b border-gray-200">
-      <label className="flex items-center gap-3 p-3 flex-1 cursor-pointer">
+      <label className="flex items-center gap-3 p-3 flex-1 min-w-0 cursor-pointer">
         <Icon name={file ? "description" : "upload_file"} size={24} />
         <span className="text-base leading-6 truncate">
           {file ? file.name : "Invoice"}

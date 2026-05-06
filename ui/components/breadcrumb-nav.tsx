@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 
 const PROVIDERS: Record<string, { label: string; methods: string[] }> = {
-  swiggy: { label: "Swiggy", methods: ["order"] },
-  zomato: { label: "Zomato", methods: ["invoice"] },
+  swiggy: { label: "Instamart", methods: ["order"] },
+  zomato: { label: "Blinkit", methods: ["invoice"] },
 };
 
 const METHODS: Record<string, { label: string }> = {
