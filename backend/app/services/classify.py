@@ -8,7 +8,12 @@ Classifies each extracted grocery item as "item" (product) or "fee"
 import json
 from collections.abc import Callable
 
+import logfire
+import structlog
+
 from app.ai.client import generate
+
+logger = structlog.get_logger()
 
 SYSTEM_PROMPT = (
     "You classify rows from a grocery invoice. "
@@ -24,6 +29,7 @@ CLASSIFY_SCHEMA = {
 }
 
 
+@logfire.instrument("classify_row")
 async def _classify_row(row: dict) -> str:
     """Classify a single row. Returns 'item' or 'fee'."""
     result = await generate(
@@ -34,6 +40,7 @@ async def _classify_row(row: dict) -> str:
     return result["category"]
 
 
+@logfire.instrument("classify {total_items} items")
 async def classify(
     extracted: dict,
     on_progress: Callable[[int, int, str, str], None] | None = None,
@@ -49,17 +56,39 @@ async def classify(
         Dict with "summary" and "items" keys.
     """
     all_rows = [row for invoice in extracted["invoices"] for row in invoice["items"]]
+    total_items = len(all_rows)
+
+    logger.info("classify_start", total_items=total_items)
 
     classified_rows = []
     for i, row in enumerate(all_rows, 1):
         category = await _classify_row(row)
         classified_rows.append({**row, "category": category})
+
+        logger.info(
+            "classify_row",
+            item_index=i,
+            total_items=total_items,
+            description=row["description"],
+            category_result=category,
+        )
+
         if on_progress:
-            on_progress(i, len(all_rows), category, row["description"])
+            on_progress(i, total_items, category, row["description"])
 
     item_total = round(sum(r["total"] for r in classified_rows if r["category"] == "item"), 2)
     fee_total = round(sum(r["total"] for r in classified_rows if r["category"] == "fee"), 2)
     grand_total = round(item_total + fee_total, 2)
+
+    items_count = sum(1 for r in classified_rows if r["category"] == "item")
+    fees_count = sum(1 for r in classified_rows if r["category"] == "fee")
+    logger.info(
+        "classify_complete",
+        items_count=items_count,
+        fees_count=fees_count,
+        item_total=item_total,
+        fee_total=fee_total,
+    )
 
     return {
         "summary": {

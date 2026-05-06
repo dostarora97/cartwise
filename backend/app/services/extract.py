@@ -11,7 +11,11 @@ from async code.
 import dataclasses
 import re
 
+import logfire
 import pdfplumber
+import structlog
+
+logger = structlog.get_logger()
 
 
 @dataclasses.dataclass
@@ -98,6 +102,7 @@ def _parse_invoice_total(raw: str | None) -> float | None:
     return float(raw)
 
 
+@logfire.instrument("pdf_extract")
 def extract(pdf_path: str) -> dict:
     """Extract all invoice line items from a grocery invoice PDF.
 
@@ -110,10 +115,15 @@ def extract(pdf_path: str) -> dict:
     Returns:
         Dict with "invoices" key containing extracted data.
     """
+    logger.info("pdf_extract_start", file_path=pdf_path)
+
     invoices = []
+    pages_found = 0
+    tables_found = 0
 
     with pdfplumber.open(pdf_path) as pdf:
         for page_num, page in enumerate(pdf.pages, 1):
+            pages_found += 1
             for table in page.extract_tables():
                 if not table or len(table) < 2:
                     continue
@@ -124,6 +134,7 @@ def extract(pdf_path: str) -> dict:
                 if header_idx is None:
                     continue
 
+                tables_found += 1
                 header = table[header_idx]
                 upc_col = _col_index(header, "upc", "hsn code")
                 item_col = _col_index(header, "item description")
@@ -152,5 +163,13 @@ def extract(pdf_path: str) -> dict:
                         "invoice_total": invoice_total,
                     }
                 )
+
+    total_rows = sum(len(inv["items"]) for inv in invoices)
+    logger.info(
+        "pdf_extract_complete",
+        pages_found=pages_found,
+        tables_found=tables_found,
+        rows_extracted=total_rows,
+    )
 
     return {"invoices": invoices}

@@ -13,8 +13,13 @@ LLM providers. The model and provider are configured via Dynaconf settings:
 import json
 
 import litellm
+import logfire
+import structlog
+from opentelemetry import trace
 
 from app.config import settings
+
+logger = structlog.get_logger()
 
 
 def _model_string() -> str:
@@ -31,6 +36,7 @@ def _model_string() -> str:
     return f"{provider}/{model}"
 
 
+@logfire.instrument("llm_call {model}")
 async def generate(
     system: str,
     prompt: str,
@@ -46,22 +52,61 @@ async def generate(
     Returns:
         Parsed dict from the LLM's JSON response.
     """
-    response = await litellm.acompletion(
-        model=_model_string(),
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": prompt},
-        ],
-        response_format={
-            "type": "json_schema",
-            "json_schema": {
-                "name": "response",
-                "schema": schema,
-            },
-        },
-        api_base=settings.AI_BASE_URL or None,
-        api_key=settings.AI_API_KEY or None,
+    model = _model_string()
+
+    logger.info(
+        "llm_request",
+        model=model,
+        system_prompt=system,
+        user_prompt=prompt,
+        response_schema=schema,
     )
 
+    try:
+        response = await litellm.acompletion(
+            model=model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ],
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "response",
+                    "schema": schema,
+                },
+            },
+            api_base=settings.AI_BASE_URL or None,
+            api_key=settings.AI_API_KEY or None,
+        )
+    except Exception as exc:
+        logger.info(
+            "llm_error",
+            model=model,
+            error=str(exc),
+            error_type=type(exc).__name__,
+        )
+        raise
+
     content = response.choices[0].message.content
+
+    usage = getattr(response, "usage", None)
+    prompt_tokens = getattr(usage, "prompt_tokens", None)
+    completion_tokens = getattr(usage, "completion_tokens", None)
+    total_tokens = getattr(usage, "total_tokens", None)
+
+    current_span = trace.get_current_span()
+    if current_span.is_recording():
+        current_span.set_attribute("llm.prompt_tokens", prompt_tokens or 0)
+        current_span.set_attribute("llm.completion_tokens", completion_tokens or 0)
+
+    logger.info(
+        "llm_response",
+        model=model,
+        response_content=content,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=total_tokens,
+    )
+
     return json.loads(content)

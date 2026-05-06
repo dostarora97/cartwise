@@ -9,6 +9,8 @@ import uuid
 from collections import defaultdict
 from typing import Annotated
 
+import logfire
+import structlog
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -29,6 +31,7 @@ from app.services.split import compute_splits
 from app.services.storage import save_source_upload
 
 router = APIRouter(prefix="/orders", tags=["orders"])
+logger = structlog.get_logger()
 
 
 def _order_load_options():
@@ -189,68 +192,77 @@ async def create_order(
     this endpoint runs the full pipeline (extract → correlate → split).
     Idempotent: if an order already exists for this source, returns it.
     """
-    # Load source
-    source = await session.get(OrderSource, body.source_id)
-    if not source:
-        raise HTTPException(status_code=404, detail="Source not found")
-    if source.created_by != current_user.id:
-        raise HTTPException(status_code=403, detail="Not your source")
+    with logfire.span("pipeline", source_id=str(body.source_id), user_id=str(current_user.id)):
+        structlog.contextvars.bind_contextvars(source_id=str(body.source_id))
+        logger.info("pipeline_start", user_id=str(current_user.id))
 
-    # Idempotent: check if order already exists for this source
-    existing = await session.execute(
-        select(Order).where(Order.source_id == body.source_id).options(*_order_load_options())
-    )
-    existing_order = existing.scalar_one_or_none()
-    if existing_order:
-        return existing_order
+        # Load source
+        source = await session.get(OrderSource, body.source_id)
+        if not source:
+            raise HTTPException(status_code=404, detail="Source not found")
+        if source.created_by != current_user.id:
+            raise HTTPException(status_code=403, detail="Not your source")
 
-    # Ensure current user is included in participants
-    parsed_ids = list(body.participant_ids)
-    if current_user.id not in parsed_ids:
-        parsed_ids.append(current_user.id)
+        # Idempotent: check if order already exists for this source
+        existing = await session.execute(
+            select(Order).where(Order.source_id == body.source_id).options(*_order_load_options())
+        )
+        existing_order = existing.scalar_one_or_none()
+        if existing_order:
+            return existing_order
 
-    # Run extraction (uses checkpoint if available)
-    items = await run_extraction(session, source)
+        # Ensure current user is included in participants
+        parsed_ids = list(body.participant_ids)
+        if current_user.id not in parsed_ids:
+            parsed_ids.append(current_user.id)
 
-    # Build classified dict for compute_splits
-    item_total = sum(i["total"] for i in items if i["category"] == "item")
-    fee_total = sum(i["total"] for i in items if i["category"] == "fee")
-    classified = {
-        "summary": {
-            "item_total": item_total,
-            "fee_total": fee_total,
-            "grand_total": item_total + fee_total,
-        },
-        "items": items,
-    }
+        with logfire.span("extraction"):
+            items = await run_extraction(session, source)
 
-    # Snapshot meal plans
-    members, menu_items = await _snapshot_meal_plans(session, parsed_ids)
+        # Build classified dict for compute_splits
+        item_total = sum(i["total"] for i in items if i["category"] == "item")
+        fee_total = sum(i["total"] for i in items if i["category"] == "fee")
+        classified = {
+            "summary": {
+                "item_total": item_total,
+                "fee_total": fee_total,
+                "grand_total": item_total + fee_total,
+            },
+            "items": items,
+        }
 
-    # Correlate: which menu items use which grocery items
-    grocery_items = [i for i in items if i["category"] == "item"]
-    uses = await correlate(menu_items, grocery_items)
+        with logfire.span("snapshot_meal_plans"):
+            members, menu_items = await _snapshot_meal_plans(session, parsed_ids)
 
-    # Compute splits
-    result = compute_splits(classified, members, uses, str(current_user.id))
+        with logfire.span("correlate"):
+            grocery_items = [i for i in items if i["category"] == "item"]
+            uses = await correlate(menu_items, grocery_items)
 
-    # Create order + participants + splits in one commit
-    order = Order(
-        paid_by=current_user.id,
-        source_id=source.id,
-        snapshot={"members": members, "uses": uses, "menu_items": menu_items},
-        result=result,
-    )
-    session.add(order)
-    await session.flush()
+        with logfire.span("split"):
+            result = compute_splits(classified, members, uses, str(current_user.id))
 
-    for pid in parsed_ids:
-        session.add(OrderParticipant(order_id=order.id, user_id=pid))
+        with logfire.span("persist"):
+            order = Order(
+                paid_by=current_user.id,
+                source_id=source.id,
+                snapshot={"members": members, "uses": uses, "menu_items": menu_items},
+                result=result,
+            )
+            session.add(order)
+            await session.flush()
 
-    for split in _create_split_rows(order.id, result):
-        session.add(split)
+            structlog.contextvars.bind_contextvars(order_id=str(order.id))
 
-    await session.commit()
+            for pid in parsed_ids:
+                session.add(OrderParticipant(order_id=order.id, user_id=pid))
+
+            for split in _create_split_rows(order.id, result):
+                session.add(split)
+
+            await session.commit()
+
+        logger.info("pipeline_complete")
+
     return await _get_order_or_404(session, order.id)
 
 

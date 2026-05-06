@@ -8,11 +8,13 @@ from app.logging import setup_logging
 from app.middleware.error_handler import register_error_handlers
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.routes import auth, meal_plans, menu_items, orders, users
+from app.tracing import setup_tracing
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
+    setup_tracing(app)
     yield
 
 

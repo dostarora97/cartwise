@@ -9,6 +9,11 @@ AI_MODEL = "qwen2.5:3b"
 AI_BASE_URL = "http://localhost:11434"
 AI_API_KEY = ""
 
+# Tracing (Pydantic Logfire → OTel)
+TRACING_ENABLED = true
+TRACING_SERVICE_NAME = "cartwise-backend"
+TRACING_EXPORTER = "console"
+
 # Supabase — actual values in .secrets.toml (gitignored)
 SUPABASE_URL = ""
 SUPABASE_ANON_KEY = ""
@@ -59,6 +64,7 @@ DEBUG = true
 STORAGE_LOCAL = true
 SPLITWISE_ENABLED = true
 SESSION_SECRET_KEY = "test-session-secret"
+TRACING_ENABLED = false
 
 [production]
 # Real Splitwise — only production hits the actual API
@@ -68,4 +74,6 @@ SPLITWISE_OAUTH_BASE_URL = "https://secure.splitwise.com"
 AI_PROVIDER = "gemini"
 AI_MODEL = "gemini-3-flash-preview"
 AI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
+# Tracing — export to Google Cloud Trace
+TRACING_EXPORTER = "gcp"
 # CORS_ORIGINS, FRONTEND_URL set via CARTWISE_* env vars
