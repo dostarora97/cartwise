@@ -57,11 +57,11 @@ def compute_splits(
         paid_by: The member who paid for the order.
 
     Returns:
-        Dict with "paidBy" and "splits" keys.
+        Dict with "paidBy", "splits", and "noSplit" keys.
 
-    Items with category "fee" are always split among all members.
-    Items with no member mapping are assigned to the payer only,
-    ensuring the total of all splits equals the invoice total.
+    Fees are split among members who have at least one non-fee item.
+    Items with no member mapping are assigned to the payer only.
+    noSplit is True when only the payer has items (no money moves).
     """
     grocery_items_count = sum(1 for i in classified["items"] if i["category"] == "item")
     fees_count = sum(1 for i in classified["items"] if i["category"] == "fee")
@@ -72,20 +72,25 @@ def compute_splits(
         fees_count=fees_count,
     )
 
-    all_members = sorted(members.keys())
     grocery_to_members = build_grocery_to_members(members, uses)
 
-    # Group grocery items by identical splitEquallyAmong sets
+    # Phase 1: process non-fee items, track which members have items
+    members_with_items: set[MemberId] = set()
     groups: dict[frozenset[MemberId], list[dict]] = defaultdict(list)
 
     for grocery_item in classified["items"]:
         if grocery_item["category"] == "fee":
-            neighbor_set = frozenset(all_members)
-        else:
-            matched = grocery_to_members.get(grocery_item["upc"])
-            neighbor_set = frozenset(matched) if matched else frozenset({paid_by})
-
+            continue
+        matched = grocery_to_members.get(grocery_item["upc"])
+        neighbor_set = frozenset(matched) if matched else frozenset({paid_by})
         groups[neighbor_set].append(grocery_item)
+        members_with_items.update(neighbor_set)
+
+    # Phase 2: assign fees to members who have at least one item
+    fee_members = frozenset(members_with_items) if members_with_items else frozenset({paid_by})
+    for grocery_item in classified["items"]:
+        if grocery_item["category"] == "fee":
+            groups[fee_members].append(grocery_item)
 
     # Each unique neighbor set = one split invocation
     splits = []
@@ -95,13 +100,20 @@ def compute_splits(
             {
                 "amount": amount,
                 "groceryItems": [
-                    {"upc": g["upc"], "description": g["description"], "total": g["total"]}
+                    {
+                        "upc": g["upc"],
+                        "description": g["description"],
+                        "total": g["total"],
+                        "category": g["category"],
+                    }
                     for g in grocery_items
                 ],
                 "splitEquallyAmong": sorted(member_set),
             }
         )
 
-    logger.info("split_complete", split_groups_count=len(splits))
+    no_split = members_with_items <= {paid_by}
 
-    return {"paidBy": paid_by, "splits": splits}
+    logger.info("split_complete", split_groups_count=len(splits), no_split=no_split)
+
+    return {"paidBy": paid_by, "splits": splits, "noSplit": no_split}

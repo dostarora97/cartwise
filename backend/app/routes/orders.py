@@ -242,9 +242,11 @@ async def create_order(
             result = compute_splits(classified, members, uses, str(current_user.id))
 
         with logfire.span("persist"):
+            is_no_split = result.get("noSplit", False)
             order = Order(
                 paid_by=current_user.id,
                 source_id=source.id,
+                status="no_split" if is_no_split else "draft",
                 snapshot={"members": members, "uses": uses, "menu_items": menu_items},
                 result=result,
             )
@@ -256,8 +258,9 @@ async def create_order(
             for pid in parsed_ids:
                 session.add(OrderParticipant(order_id=order.id, user_id=pid))
 
-            for split in _create_split_rows(order.id, result):
-                session.add(split)
+            if not is_no_split:
+                for split in _create_split_rows(order.id, result):
+                    session.add(split)
 
             await session.commit()
 
@@ -306,12 +309,12 @@ async def cancel_order(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    """Cancel a draft order. Only the payer can cancel."""
+    """Cancel a draft or no_split order. Only the payer can cancel."""
     order = await _get_order_or_404(session, order_id)
 
     if order.paid_by != current_user.id:
         raise HTTPException(status_code=403, detail="Only the payer can cancel this order")
-    if order.status != "draft":
+    if order.status not in ("draft", "no_split"):
         raise HTTPException(
             status_code=400, detail=f"Cannot cancel order with status '{order.status}'"
         )
@@ -328,12 +331,12 @@ async def edit_splits(
     session: SessionDep,
     current_user: CurrentUser,
 ):
-    """Edit split assignments for a draft order. Backend recomputes amounts."""
+    """Edit split assignments for a draft or no_split order. Backend recomputes amounts."""
     order = await _get_order_or_404(session, order_id)
 
     if order.paid_by != current_user.id:
         raise HTTPException(status_code=403, detail="Only the payer can edit splits")
-    if order.status != "draft":
+    if order.status not in ("draft", "no_split"):
         raise HTTPException(
             status_code=400, detail=f"Cannot edit splits for order with status '{order.status}'"
         )
@@ -341,24 +344,50 @@ async def edit_splits(
     if not order.result:
         raise HTTPException(status_code=400, detail="Order has no result data")
 
-    # Build a UPC→price lookup from the original classified items
-    all_items = order.result.get("splits", [])
-    upc_to_item: dict[str, dict] = {}
-    for split_group in all_items:
+    # Flatten all items from stored result, separate by category
+    all_items_flat: list[dict] = []
+    for split_group in order.result.get("splits", []):
         for item in split_group.get("groceryItems", []):
-            upc_to_item[item["upc"]] = item
+            all_items_flat.append(item)
 
-    # Group assignments by identical member set → recompute splits
+    fee_items = [i for i in all_items_flat if i.get("category") == "fee"]
+    non_fee_items = {i["upc"]: i for i in all_items_flat if i.get("category") != "fee"}
+    fee_upcs = {i["upc"] for i in fee_items}
+
+    # Reject fee UPCs in request
+    for assignment in data.assignments:
+        if assignment.upc in fee_upcs:
+            raise HTTPException(status_code=400, detail=f"Cannot assign fee item: {assignment.upc}")
+
+    # Validate all non-fee UPCs are present
+    request_upcs = {a.upc for a in data.assignments}
+    missing = set(non_fee_items.keys()) - request_upcs
+    if missing:
+        raise HTTPException(
+            status_code=400, detail=f"Missing assignments for UPCs: {sorted(missing)}"
+        )
+    unknown = request_upcs - set(non_fee_items.keys())
+    if unknown:
+        raise HTTPException(status_code=400, detail=f"Unknown UPC: {sorted(unknown)[0]}")
+
+    # Group non-fee items by member set, track members_with_items
+    members_with_items: set[str] = set()
     groups: dict[frozenset, list[dict]] = defaultdict(list)
     for assignment in data.assignments:
-        if assignment.upc not in upc_to_item:
-            raise HTTPException(status_code=400, detail=f"Unknown UPC: {assignment.upc}")
         member_key = (
             frozenset(assignment.member_ids)
             if assignment.member_ids
             else frozenset([str(order.paid_by)])
         )
-        groups[member_key].append(upc_to_item[assignment.upc])
+        groups[member_key].append(non_fee_items[assignment.upc])
+        members_with_items.update(member_key)
+
+    # Auto-assign fees to members who have items
+    fee_member_key = (
+        frozenset(members_with_items) if members_with_items else frozenset([str(order.paid_by)])
+    )
+    for fee_item in fee_items:
+        groups[fee_member_key].append(fee_item)
 
     # Delete old splits, create new ones
     for old_split in order.splits:
@@ -376,7 +405,11 @@ async def edit_splits(
             )
         )
 
+    # Auto-transition status based on post-condition
+    order.status = "no_split" if members_with_items <= {str(order.paid_by)} else "draft"
+
     await session.commit()
+    session.expunge_all()
     return await _get_order_or_404(session, order.id)
 
 

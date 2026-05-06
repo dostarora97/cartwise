@@ -442,7 +442,7 @@ export interface paths {
         head?: never;
         /**
          * Cancel Order
-         * @description Cancel a draft order. Only the payer can cancel.
+         * @description Cancel a draft or no_split order. Only the payer can cancel.
          */
         patch: operations["cancel_order_api_v1_orders__order_id__cancel_patch"];
         trace?: never;
@@ -457,7 +457,7 @@ export interface paths {
         get?: never;
         /**
          * Edit Splits
-         * @description Edit split assignments for a draft order. Backend recomputes amounts.
+         * @description Edit split assignments for a draft or no_split order. Backend recomputes amounts.
          */
         put: operations["edit_splits_api_v1_orders__order_id__splits_put"];
         post?: never;
