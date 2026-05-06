@@ -71,7 +71,7 @@ function InvoiceSetupContent() {
   }, [searchParams]);
 
   const canSubmit =
-    selectedOthers.length > 0 && (selectedOrderId || file) && !submitting;
+    selectedOthers.length > 0 && (selectedOrderId || file);
 
   async function handleSubmit() {
     if (!canSubmit || !session?.access_token) return;

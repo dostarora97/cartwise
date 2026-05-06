@@ -314,9 +314,9 @@ export default function SplitAnalysisPage() {
         <button
           onClick={handleApprove}
           disabled={submitting}
-          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-30"
+          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
         >
-          {submitting ? "Splitting..." : "Split"}
+          {submitting ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Split"}
         </button>
       )}
 
@@ -324,9 +324,9 @@ export default function SplitAnalysisPage() {
         <button
           onClick={handleConfirmEdits}
           disabled={submitting}
-          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:opacity-30"
+          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
         >
-          {submitting ? "Confirming..." : "Confirm"}
+          {submitting ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Confirm"}
         </button>
       )}
 
