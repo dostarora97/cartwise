@@ -8,6 +8,7 @@ AI_PROVIDER = "ollama"
 AI_MODEL = "qwen2.5:3b"
 AI_BASE_URL = "http://localhost:11434"
 AI_API_KEY = ""
+AI_CONCURRENCY = 5
 
 # Tracing (Pydantic Logfire → OTel)
 TRACING_ENABLED = true
@@ -34,6 +35,7 @@ SPLITWISE_OAUTH_BASE_URL = "http://localhost:8001"
 SPLITWISE_API_KEY = ""
 SPLITWISE_CONSUMER_KEY = ""
 SPLITWISE_CONSUMER_SECRET = ""
+SPLITWISE_CONCURRENCY = 3
 
 # Frontend URL (for OAuth callback redirects)
 FRONTEND_URL = "http://localhost:3000"

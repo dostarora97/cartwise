@@ -23,6 +23,7 @@ from app.services.splitwise import (
     push_splits_audited,
     rollback_order_expenses,
 )
+from tests.conftest import test_async_session
 
 # --- Feature toggle ---
 
@@ -465,6 +466,8 @@ async def test_push_splits_audited_success(session: AsyncSession, order_with_use
     """push_splits_audited creates one audit per split group."""
     order, user = order_with_user
     monkeypatch.setattr("app.services.splitwise.settings", _FakeSettings(splitwise_enabled=True))
+    monkeypatch.setattr("app.services.splitwise._async_session", test_async_session)
+    monkeypatch.setattr("app.services.splitwise._sw_semaphore", None)
 
     mock_resp = MagicMock()
     mock_resp.json.return_value = {"expenses": [{"id": 7001}], "errors": []}
@@ -540,6 +543,8 @@ async def test_push_splits_audited_skips_payer_only(
     """push_splits_audited skips splits where payer is the sole member."""
     order, user = order_with_user
     monkeypatch.setattr("app.services.splitwise.settings", _FakeSettings(splitwise_enabled=True))
+    monkeypatch.setattr("app.services.splitwise._async_session", test_async_session)
+    monkeypatch.setattr("app.services.splitwise._sw_semaphore", None)
 
     mock_resp = MagicMock()
     mock_resp.json.return_value = {"expenses": [{"id": 8001}], "errors": []}
@@ -585,6 +590,8 @@ async def test_rollback_order_expenses(session: AsyncSession, order_with_user, m
     """rollback_order_expenses deletes all successful expenses for an order."""
     order, _ = order_with_user
     monkeypatch.setattr("app.services.splitwise.settings", _FakeSettings(splitwise_enabled=True))
+    monkeypatch.setattr("app.services.splitwise._async_session", test_async_session)
+    monkeypatch.setattr("app.services.splitwise._sw_semaphore", None)
 
     # Create a "success" audit row as if a previous expense was created
     audit = SplitwiseAuditLog(

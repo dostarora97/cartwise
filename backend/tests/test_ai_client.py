@@ -25,6 +25,7 @@ async def test_generate_calls_litellm_and_parses_json(monkeypatch):
         "app.ai.client.settings",
         _FakeAISettings("ollama", "test-model", "http://localhost:11434", ""),
     )
+    monkeypatch.setattr("app.ai.client._llm_semaphore", None)
 
     mock_response = MagicMock()
     mock_response.choices = [MagicMock()]
@@ -56,3 +57,6 @@ class _FakeAISettings:
         self.AI_MODEL = model
         self.AI_BASE_URL = base_url
         self.AI_API_KEY = api_key
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)

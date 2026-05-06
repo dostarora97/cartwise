@@ -23,6 +23,7 @@ from app.models.order_source import OrderSource, OrderSourceType
 from app.models.split import Split
 from app.models.splitwise_audit import SplitwiseAuditLog
 from app.models.user import User
+from tests.conftest import test_async_session
 
 # --- Fixtures ---
 
@@ -426,6 +427,8 @@ async def test_approve_order_happy_path(
 
     with (
         patch("app.services.splitwise._http", mock_http),
+        patch("app.services.splitwise._async_session", test_async_session),
+        patch("app.services.splitwise._sw_semaphore", None),
         patch(
             "app.services.vault.get_secret",
             new_callable=AsyncMock,
@@ -503,6 +506,8 @@ async def test_approve_order_partial_failure(
 
     with (
         patch("app.services.splitwise._http", mock_http),
+        patch("app.services.splitwise._async_session", test_async_session),
+        patch("app.services.splitwise._sw_semaphore", None),
         patch(
             "app.services.vault.get_secret",
             new_callable=AsyncMock,
