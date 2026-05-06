@@ -269,8 +269,12 @@ async def push_splits_audited(
     """
     _check_enabled()
     audits = []
+    payer_id = split_result["paidBy"]
 
     for split in split_result["splits"]:
+        if split["splitEquallyAmong"] == [payer_id]:
+            continue
+
         sw_ids = []
         for member_id in split["splitEquallyAmong"]:
             sw_id = member_id_to_sw_id.get(member_id)

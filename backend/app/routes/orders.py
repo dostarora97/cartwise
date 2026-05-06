@@ -477,8 +477,13 @@ async def approve_order(
 
     # Update split statuses from audit results
     audit_by_desc = {a.request_payload.get("description", ""): a for a in audits}
+    payer_id = str(order.paid_by)
     all_success = True
     for split in order.splits:
+        if split.member_ids == [payer_id]:
+            split.status = "success"
+            continue
+
         item_names = [g["description"] for g in split.grocery_items]
         desc = (
             ", ".join(item_names)
