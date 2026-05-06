@@ -513,6 +513,7 @@ async def test_push_splits_audited_missing_sw_id(
     monkeypatch.setattr("app.services.splitwise.settings", _FakeSettings(splitwise_enabled=True))
 
     split_result = {
+        "paidBy": str(user.id),
         "splits": [
             {
                 "amount": 50.0,
@@ -531,6 +532,50 @@ async def test_push_splits_audited_missing_sw_id(
             payer_sw_id=99001,
             token="fake-token",
         )
+
+
+async def test_push_splits_audited_skips_payer_only(
+    session: AsyncSession, order_with_user, monkeypatch
+):
+    """push_splits_audited skips splits where payer is the sole member."""
+    order, user = order_with_user
+    monkeypatch.setattr("app.services.splitwise.settings", _FakeSettings(splitwise_enabled=True))
+
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {"expenses": [{"id": 8001}], "errors": []}
+    mock_resp.raise_for_status = MagicMock()
+    mock_http = MagicMock()
+    mock_http.post.return_value = mock_resp
+    monkeypatch.setattr("app.services.splitwise._http", mock_http)
+
+    split_result = {
+        "paidBy": str(user.id),
+        "splits": [
+            {
+                "amount": 100.0,
+                "groceryItems": [{"description": "Chicken", "total": 100.0}],
+                "splitEquallyAmong": [str(user.id)],
+            },
+            {
+                "amount": 50.0,
+                "groceryItems": [{"description": "Rice", "total": 50.0}],
+                "splitEquallyAmong": [str(user.id), "member-2"],
+            },
+        ],
+    }
+
+    audits = await push_splits_audited(
+        session=session,
+        order_id=order.id,
+        split_result=split_result,
+        member_id_to_sw_id={str(user.id): 99001, "member-2": 99002},
+        payer_sw_id=99001,
+        token="fake-token",
+    )
+
+    assert len(audits) == 1
+    assert audits[0].status == "success"
+    assert mock_http.post.call_count == 1
 
 
 # --- rollback_order_expenses ---
