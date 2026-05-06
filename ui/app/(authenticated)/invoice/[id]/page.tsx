@@ -118,9 +118,17 @@ export default function SplitAnalysisPage() {
       });
   }, [splitGroups, userMap, sortedNames]);
 
+  const isTerminal = order?.status === "completed" || order?.status === "cancelled";
+  const isCompleted = order?.status === "completed";
+  const isCancelled = order?.status === "cancelled";
+
   async function handleBack() {
     if (mode === "edit") {
       setMode("view");
+      return;
+    }
+    if (isTerminal) {
+      router.replace("/meal-plan");
       return;
     }
     const confirmed = window.confirm(
@@ -203,10 +211,13 @@ export default function SplitAnalysisPage() {
 
       {/* Status bar */}
       <div className="flex items-stretch justify-between border-b border-black">
-        <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
-          Split review
+        <span className="flex items-center gap-2 p-3 text-2xl font-bold tracking-label uppercase leading-6">
+          Split
+          {isCompleted && <Icon name="check_circle" size={24} className="text-green-600" />}
+          {isCancelled && <Icon name="close" size={24} className="text-red-600" />}
+          {!isTerminal && " review"}
         </span>
-        {mode === "view" && (
+        {!isTerminal && mode === "view" && (
           <button
             onClick={enterEditMode}
             aria-label="Edit split assignments"
@@ -219,7 +230,7 @@ export default function SplitAnalysisPage() {
 
       {/* Content */}
       <main className="flex-1">
-        {mode === "view" && sortedSplits.length > 0 && (
+        {(mode === "view" || isTerminal) && sortedSplits.length > 0 && (
           <div>
             {sortedSplits.map((group, gi) => (
               <div key={gi} className="border-b border-black last:border-b-0">
@@ -243,7 +254,7 @@ export default function SplitAnalysisPage() {
           </div>
         )}
 
-        {mode === "edit" && (
+        {!isTerminal && mode === "edit" && (
           <div>
             {allItems.map(({ item }) => (
               <div key={item.upc} className="border-b border-gray-200">
@@ -281,7 +292,25 @@ export default function SplitAnalysisPage() {
       </main>
 
       {/* Bottom button */}
-      {mode === "view" && (
+      {isCompleted && (
+        <button
+          onClick={() => router.push(`/invoice/${id}/result`)}
+          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white"
+        >
+          Result
+        </button>
+      )}
+
+      {isCancelled && (
+        <button
+          onClick={() => router.push("/meal-plan")}
+          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white"
+        >
+          OK
+        </button>
+      )}
+
+      {!isTerminal && mode === "view" && (
         <button
           onClick={handleApprove}
           disabled={submitting}
@@ -291,7 +320,7 @@ export default function SplitAnalysisPage() {
         </button>
       )}
 
-      {mode === "edit" && (
+      {!isTerminal && mode === "edit" && (
         <button
           onClick={handleConfirmEdits}
           disabled={submitting}
