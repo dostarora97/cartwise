@@ -99,24 +99,28 @@ export default function SplitAnalysisPage() {
     [userMap],
   );
 
-  // Sort splits: by group size ascending, then by sorted concatenated member names
+  // Sort splits: payer-only group always last, others by group size then names
   const sortedSplits = useMemo(() => {
     if (splitGroups.length === 0) return [];
+    const payerId = order?.paid_by;
     return [...splitGroups]
       .map((group) => ({
         ...group,
-        groceryItems: [...group.groceryItems].sort((a, b) =>
-          a.description.localeCompare(b.description),
-        ),
+        groceryItems: [...group.groceryItems]
+          .filter((i) => i.category !== "fee")
+          .sort((a, b) => a.description.localeCompare(b.description)),
+        isPayerOnly: group.memberIds.length === 1 && group.memberIds[0] === payerId,
       }))
+      .filter((group) => group.groceryItems.length > 0)
       .sort((a, b) => {
+        if (a.isPayerOnly !== b.isPayerOnly) return a.isPayerOnly ? 1 : -1;
         const sizeDiff = a.memberIds.length - b.memberIds.length;
         if (sizeDiff !== 0) return sizeDiff;
         const aNamesKey = sortedNames(a.memberIds).join(", ");
         const bNamesKey = sortedNames(b.memberIds).join(", ");
         return aNamesKey.localeCompare(bNamesKey);
       });
-  }, [splitGroups, userMap, sortedNames]);
+  }, [splitGroups, userMap, sortedNames, order]);
 
   const isNoSplit = order?.status === "no_split";
   const isTerminal = order?.status === "completed" || order?.status === "cancelled";
@@ -234,7 +238,7 @@ export default function SplitAnalysisPage() {
         {(mode === "view" || isTerminal) && sortedSplits.length > 0 && (
           <div>
             {sortedSplits.map((group, gi) => (
-              <div key={gi} className="border-b border-black last:border-b-0">
+              <div key={gi} className={`border-b border-black last:border-b-0 ${group.isPayerOnly ? "opacity-40" : ""}`}>
                 <div className="p-3">
                   <span className="text-2xl font-bold tracking-label uppercase leading-6">
                     {sortedNames(group.memberIds).join(", ")}
