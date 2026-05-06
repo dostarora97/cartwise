@@ -200,8 +200,9 @@ export default function SplitAnalysisPage() {
       <div className="flex flex-1 flex-col">
         <TopBar showBack onBack={handleBack} />
         <div className="flex items-stretch justify-between border-b border-black">
-          <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
-            Split review
+          <span className="flex items-center gap-2 p-3 text-2xl font-bold tracking-label uppercase leading-6">
+            <Icon name="arrow_split" size={24} />
+            Split
           </span>
         </div>
         <main className="flex-1" />
@@ -217,10 +218,10 @@ export default function SplitAnalysisPage() {
       {/* Status bar */}
       <div className="flex items-stretch justify-between border-b border-black">
         <span className="flex items-center gap-2 p-3 text-2xl font-bold tracking-label uppercase leading-6">
+          <Icon name="arrow_split" size={24} />
           Split
           {isCompleted && <Icon name="check_circle" size={24} className="text-green-600" />}
           {isCancelled && <Icon name="close" size={24} className="text-red-600" />}
-          {!isTerminal && " review"}
         </span>
         {!isTerminal && mode === "view" && (
           <button
@@ -229,6 +230,20 @@ export default function SplitAnalysisPage() {
             className="flex items-center justify-center p-3 bg-black"
           >
             <Icon name="edit" size={24} className="text-white" />
+          </button>
+        )}
+        {!isTerminal && mode === "edit" && (
+          <button
+            onClick={handleConfirmEdits}
+            disabled={submitting}
+            aria-label="Confirm edits"
+            className="flex items-center justify-center w-12 bg-black disabled:bg-neutral-400"
+          >
+            {submitting ? (
+              <div className="size-5 animate-spin motion-reduce:animate-none rounded-full border-2 border-white border-t-transparent" />
+            ) : (
+              <Icon name="check" size={24} className="text-white" />
+            )}
           </button>
         )}
       </div>
@@ -319,9 +334,9 @@ export default function SplitAnalysisPage() {
         <button
           onClick={handleApprove}
           disabled={submitting}
-          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
+          className="sticky bottom-0 flex w-full items-center justify-center gap-2 p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
         >
-          {submitting ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Split"}
+          {submitting ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : <><span>Splitwise</span><Icon name="send" size={24} /></>}
         </button>
       )}
 
@@ -331,16 +346,6 @@ export default function SplitAnalysisPage() {
           className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-neutral-400 text-2xl font-bold tracking-label uppercase leading-6 text-white"
         >
           No settlement
-        </button>
-      )}
-
-      {!isTerminal && mode === "edit" && (
-        <button
-          onClick={handleConfirmEdits}
-          disabled={submitting}
-          className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
-        >
-          {submitting ? <div className="size-6 animate-spin rounded-full border-[3px] border-white border-t-transparent" /> : "Confirm"}
         </button>
       )}
 
