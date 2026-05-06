@@ -67,7 +67,7 @@ export default function MealPlanPage() {
 
       {ready && hasItems && (
         <button
-          onClick={() => router.push("/invoice")}
+          onClick={() => router.push("/orders/new")}
           aria-label="New expense"
           className="fixed bottom-24 right-12 flex h-14 w-14 items-center justify-center bg-black text-white shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
         >

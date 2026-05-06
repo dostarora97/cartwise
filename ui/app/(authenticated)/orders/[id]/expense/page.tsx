@@ -149,7 +149,7 @@ export default function SplitAnalysisPage() {
         { params: { path: { order_id: id } } },
       );
       if (apiError) throw new Error((apiError as { detail?: string }).detail || "Approve failed");
-      router.push(`/invoice/${id}/result`);
+      router.push(`/orders/${id}/expense/result`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
@@ -294,7 +294,7 @@ export default function SplitAnalysisPage() {
       {/* Bottom button */}
       {isCompleted && (
         <button
-          onClick={() => router.push(`/invoice/${id}/result`)}
+          onClick={() => router.push(`/orders/${id}/expense/result`)}
           className="sticky bottom-0 flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white"
         >
           Result

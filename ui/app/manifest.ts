@@ -35,7 +35,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     scope: "/",
     share_target: {
-      action: "/invoice",
+      action: "/orders/new",
       method: "POST",
       enctype: "multipart/form-data",
       params: {

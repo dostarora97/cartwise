@@ -29,11 +29,11 @@ const serwist = new Serwist({
   },
 });
 
-// Handle Web Share Target API — intercept POST to /invoice
+// Handle Web Share Target API — intercept POST to /orders/new
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  if (event.request.method === "POST" && url.pathname === "/invoice") {
+  if (event.request.method === "POST" && url.pathname === "/orders/new") {
     event.respondWith(
       (async () => {
         const formData = await event.request.formData();
@@ -54,7 +54,7 @@ self.addEventListener("fetch", (event) => {
         }
 
         // Redirect to the share page
-        return Response.redirect("/invoice?received=true", 303);
+        return Response.redirect("/orders/new?received=true", 303);
       })()
     );
     return;

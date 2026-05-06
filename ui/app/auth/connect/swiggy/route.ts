@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   if (!code || !state) {
     console.error("[SwiggyCallback] missing code or state, redirecting to error");
     return NextResponse.redirect(
-      new URL("/invoice?swiggy=error", origin),
+      new URL("/orders/new?swiggy=error", origin),
     );
   }
 
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
   });
 
   if (resp.ok) {
-    const successUrl = "/invoice?provider=swiggy&method=order";
+    const successUrl = "/orders/new?provider=swiggy&method=order";
     console.log("[SwiggyCallback] success, redirecting to:", successUrl);
     const response = NextResponse.redirect(
       new URL(successUrl, origin),
@@ -90,6 +90,6 @@ export async function GET(request: NextRequest) {
     body: responseBody,
   });
   return NextResponse.redirect(
-    new URL("/invoice?swiggy=error", origin),
+    new URL("/orders/new?swiggy=error", origin),
   );
 }
