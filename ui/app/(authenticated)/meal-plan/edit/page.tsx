@@ -235,14 +235,12 @@ export default function MealPlanEditPage() {
           <p className="p-3 text-xs text-red-600 tracking-wider bg-white border-t border-black">{error}</p>
         )}
         {mode === "select" ? (
-          isDirty && (
-            <button
-              onClick={handleNext}
-              className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white"
-            >
-              Next
-            </button>
-          )
+          <button
+            onClick={handleNext}
+            className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white"
+          >
+            Next
+          </button>
         ) : (
           <button
             onClick={handleSave}
