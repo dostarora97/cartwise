@@ -1,0 +1,19 @@
+[
+  {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "User 1",
+    "email": "user_1@cartwise.app",
+    "items": [
+      {"name": "Chicken Breast", "body": "500g boneless pack"},
+      {"name": "Basmati Rice", "body": "1kg aged basmati"},
+      {"name": "Toor Dal", "body": "1kg split pigeon peas"},
+      {"name": "Paneer", "body": "200g fresh cottage cheese block"},
+      {"name": "Amul Milk", "body": "1L full cream pasteurized"},
+      {"name": "Onion", "body": "1kg pack"},
+      {"name": "Tomato", "body": "500g pack"},
+      {"name": "Eggs", "body": "6-pack farm fresh"},
+      {"name": "Cooking Oil", "body": "1L refined sunflower oil"},
+      {"name": "Salt", "body": "1kg iodized table salt"}
+    ]
+  }
+]

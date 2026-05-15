@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { ONBOARDED_COOKIE } from "@/lib/cookies";
+import { ONBOARDED_COOKIE, RETURN_TO_COOKIE } from "@/lib/cookies";
 
 const mockExchangeCodeForSession = vi.fn();
 
@@ -22,6 +22,14 @@ beforeEach(() => {
 
 function makeRequest(params: string) {
   return new NextRequest(`http://localhost:3000/auth/callback${params}`);
+}
+
+function makeRequestWithCookies(params: string, cookies: Record<string, string>) {
+  const req = new NextRequest(`http://localhost:3000/auth/callback${params}`);
+  for (const [name, value] of Object.entries(cookies)) {
+    req.cookies.set(name, value);
+  }
+  return req;
 }
 
 function getRedirectPath(response: Response): string {
@@ -112,5 +120,60 @@ describe("GET /auth/callback", () => {
     expect(response.status).toBe(307);
     expect(getRedirectPath(response)).toBe("/onboarding");
     expect(hasCookie(response, ONBOARDED_COOKIE)).toBe(false);
+  });
+
+  describe("returnTo cookie consumption", () => {
+    beforeEach(() => {
+      mockExchangeCodeForSession.mockResolvedValue({
+        data: { session: { access_token: "tok" } },
+      });
+      globalThis.fetch = vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ splitwise_connected: true }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    });
+
+    it("redirects to returnTo cookie value when splitwise_connected", async () => {
+      const response = await GET(
+        makeRequestWithCookies("?code=abc", { [RETURN_TO_COOKIE]: "/import?supplier=cartwise/starter" }),
+      );
+      expect(response.status).toBe(307);
+      expect(getRedirectPath(response)).toBe("/import?supplier=cartwise/starter");
+    });
+
+    it("falls back to / when returnTo cookie is invalid", async () => {
+      const response = await GET(
+        makeRequestWithCookies("?code=abc", { [RETURN_TO_COOKIE]: "https://evil.com" }),
+      );
+      expect(response.status).toBe(307);
+      expect(getRedirectPath(response)).toBe("/");
+    });
+
+    it("falls back to / when returnTo cookie is a protocol-relative URL", async () => {
+      const response = await GET(
+        makeRequestWithCookies("?code=abc", { [RETURN_TO_COOKIE]: "//evil.com/path" }),
+      );
+      expect(response.status).toBe(307);
+      expect(getRedirectPath(response)).toBe("/");
+    });
+
+    it("falls back to / when returnTo cookie points to auth route", async () => {
+      const response = await GET(
+        makeRequestWithCookies("?code=abc", { [RETURN_TO_COOKIE]: "/login" }),
+      );
+      expect(response.status).toBe(307);
+      expect(getRedirectPath(response)).toBe("/");
+    });
+
+    it("deletes returnTo cookie after consuming it", async () => {
+      const response = await GET(
+        makeRequestWithCookies("?code=abc", { [RETURN_TO_COOKIE]: "/meal-plan" }),
+      );
+      const setCookie = response.headers.get("set-cookie") ?? "";
+      expect(setCookie).toContain(`${RETURN_TO_COOKIE}=`);
+      expect(setCookie).toContain("Max-Age=0");
+    });
   });
 });

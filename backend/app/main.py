@@ -4,10 +4,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.internal import internal_app
 from app.logging import setup_logging
 from app.middleware.error_handler import register_error_handlers
 from app.middleware.request_logging import RequestLoggingMiddleware
-from app.routes import auth, meal_plans, menu_items, orders, users
+from app.routes import auth, imports, meal_plans, menu_items, orders, users
+from app.services.seed import reconcile_fixtures
 from app.tracing import setup_tracing
 
 
@@ -15,6 +17,7 @@ from app.tracing import setup_tracing
 async def lifespan(app: FastAPI):
     setup_logging()
     setup_tracing(app)
+    await reconcile_fixtures()
     yield
 
 
@@ -61,6 +64,9 @@ app.include_router(users.router, prefix="/api/v1")
 app.include_router(menu_items.router, prefix="/api/v1")
 app.include_router(meal_plans.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
+app.include_router(imports.router, prefix="/api/v1")
+
+app.mount("/internal", internal_app)
 
 
 @app.get("/health")

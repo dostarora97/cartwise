@@ -487,6 +487,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/imports/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview Import */
+        get: operations["preview_import_api_v1_imports_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run Import */
+        post: operations["run_import_api_v1_imports__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -548,6 +582,20 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** ImportRequest */
+        ImportRequest: {
+            /** Supplier Id */
+            supplier_id: string;
+        };
+        /** ImportResultResponse */
+        ImportResultResponse: {
+            /** Supplier Id */
+            supplier_id: string;
+            /** Intents Applied */
+            intents_applied: {
+                [key: string]: number;
+            };
         };
         /** MealPlanItemResponse */
         MealPlanItemResponse: {
@@ -713,6 +761,20 @@ export interface components {
          * @enum {string}
          */
         OrderSourceType: "invoice" | "swiggy_order";
+        /** PreviewItem */
+        PreviewItem: {
+            /** Name */
+            name: string;
+        };
+        /** PreviewResponse */
+        PreviewResponse: {
+            /** Name */
+            name: string;
+            /** Items */
+            items: components["schemas"]["PreviewItem"][];
+            /** Total */
+            total: number;
+        };
         /**
          * SplitAssignment
          * @description One grocery item's member assignment for the edit-splits endpoint.
@@ -1694,6 +1756,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_import_api_v1_imports_preview_get: {
+        parameters: {
+            query: {
+                supplier_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_import_api_v1_imports__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResultResponse"];
                 };
             };
             /** @description Validation Error */
