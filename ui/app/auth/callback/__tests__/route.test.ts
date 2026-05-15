@@ -88,6 +88,19 @@ describe("GET /auth/callback", () => {
     expect(getRedirectPath(response)).toBe("/login?error=backend");
   });
 
+  it("redirects to /onboarding when backend returns 404 (new user)", async () => {
+    mockExchangeCodeForSession.mockResolvedValue({
+      data: { session: { access_token: "tok" } },
+    });
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ detail: "User not found" }), { status: 404 }),
+    );
+
+    const response = await GET(makeRequest("?code=abc"));
+    expect(response.status).toBe(307);
+    expect(getRedirectPath(response)).toBe("/onboarding");
+  });
+
   it("sets cookie and redirects to / when splitwise_connected", async () => {
     mockExchangeCodeForSession.mockResolvedValue({
       data: { session: { access_token: "tok" } },

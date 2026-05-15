@@ -47,5 +47,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/onboarding", origin));
   }
 
+  if (meResp.status === 404) {
+    return NextResponse.redirect(new URL("/onboarding", origin));
+  }
+
   return NextResponse.redirect(new URL("/login?error=backend", origin));
 }

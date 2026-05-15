@@ -57,8 +57,10 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/onboarding";
     url.search = "";
     const response = NextResponse.redirect(url);
-    const returnTo = pathname + (request.nextUrl.search || "");
-    response.cookies.set(RETURN_TO_COOKIE, returnTo, RETURN_TO_COOKIE_OPTIONS);
+    if (!request.cookies.get(RETURN_TO_COOKIE)?.value) {
+      const returnTo = pathname + (request.nextUrl.search || "");
+      response.cookies.set(RETURN_TO_COOKIE, returnTo, RETURN_TO_COOKIE_OPTIONS);
+    }
     return response;
   }
 
