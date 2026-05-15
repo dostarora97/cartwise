@@ -7,7 +7,7 @@ from app.config import settings
 from app.logging import setup_logging
 from app.middleware.error_handler import register_error_handlers
 from app.middleware.request_logging import RequestLoggingMiddleware
-from app.routes import auth, meal_plans, menu_items, orders, users
+from app.routes import auth, imports, meal_plans, menu_items, orders, users
 from app.tracing import setup_tracing
 
 
@@ -61,6 +61,7 @@ app.include_router(users.router, prefix="/api/v1")
 app.include_router(menu_items.router, prefix="/api/v1")
 app.include_router(meal_plans.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
+app.include_router(imports.router, prefix="/api/v1")
 
 
 @app.get("/health")

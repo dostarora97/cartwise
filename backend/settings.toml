@@ -61,12 +61,26 @@ SESSION_SECRET_KEY = "dev-session-secret-not-for-production"
 SWIGGY_MCP_SERVER_URL = "http://localhost:8002"
 SWIGGY_MCP_ENDPOINT = "http://localhost:8002/mcp"
 
+[[development.IMPORT_SUPPLIERS]]
+id = "cartwise/starter"
+name = "CartWise Starter Pack"
+description = "Essential items to get started with meal planning"
+type = "static_json"
+url = "file://./fixtures/cartwise-starter.json"
+
 [testing]
 DEBUG = true
 STORAGE_LOCAL = true
 SPLITWISE_ENABLED = true
 SESSION_SECRET_KEY = "test-session-secret"
 TRACING_ENABLED = false
+
+[[testing.IMPORT_SUPPLIERS]]
+id = "cartwise/starter"
+name = "Test Starter Pack"
+description = "Test fixture"
+type = "static_json"
+url = "file://./fixtures/cartwise-starter.json"
 
 [production]
 # Real Splitwise — only production hits the actual API
