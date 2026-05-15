@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { buildIssueUrl } from "@/lib/errors";
 import "./globals.css";
 
 export default function GlobalError({
@@ -29,13 +30,21 @@ export default function GlobalError({
         />
       </head>
       <body className="min-h-full flex flex-col font-mono bg-white text-black" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-        <main className="flex flex-1 flex-col items-center justify-center p-3">
+        <main className="flex flex-1 flex-col items-center justify-center p-3 gap-4">
           <span className="text-2xl font-bold tracking-heading uppercase leading-6">
             Something went wrong
           </span>
-          <p className="mt-3 text-base leading-6 text-gray-500">
+          <p className="text-base leading-6 text-gray-500">
             {error.message}
           </p>
+          <a
+            href={buildIssueUrl({ message: error.message, stack: error.stack, pageUrl: typeof window !== "undefined" ? window.location.href : undefined })}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-gray-400 underline"
+          >
+            Report issue
+          </a>
         </main>
         <button
           onClick={reset}

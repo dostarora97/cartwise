@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Icon } from "@/components/icon";
+import { ErrorBody } from "@/components/error-body";
 
 function LoginContent() {
   const supabase = createClient();
@@ -41,7 +42,9 @@ function LoginContent() {
       </button>
 
       {error && (
-        <p className="mt-4 text-xs text-red-600 tracking-wider">{error}</p>
+        <div className="mt-4">
+          <ErrorBody message={error} />
+        </div>
       )}
     </div>
   );

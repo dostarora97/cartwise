@@ -4,15 +4,15 @@ import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRequiredAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
+import apiClient from "@/lib/api/client";
+import { type ApiError, toApiError } from "@/lib/errors";
 import { TopBar } from "@/components/top-bar";
 import { ChipInput, type ChipInputHandle } from "@/components/chip-input";
 import { Icon } from "@/components/icon";
-import { ErrorModal } from "@/components/error-modal";
+import { ErrorBody } from "@/components/error-body";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { SwiggyOrderPicker } from "@/components/swiggy-order-picker";
 import { InvoiceUpload } from "@/components/invoice-upload";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function InvoiceSetupPage() {
   return (
@@ -23,7 +23,7 @@ export default function InvoiceSetupPage() {
 }
 
 function InvoiceSetupContent() {
-  const { appUser, session } = useRequiredAuth();
+  const { appUser } = useRequiredAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const chipInputRef = useRef<ChipInputHandle>(null);
@@ -35,28 +35,25 @@ function InvoiceSetupContent() {
   const [selectedOthers, setSelectedOthers] = useState<string[]>([]);
   const [showingAll, setShowingAll] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
 
   const { data: users } = $api.useQuery("get", "/api/v1/users/");
   const otherUsers = (users ?? [])
     .filter((u) => u.id !== appUser.id)
     .map((u) => ({ id: u.id, name: u.name }));
 
-  // Restore state from query params (OAuth return or Web Share Target)
   useEffect(() => {
     const p = searchParams.get("provider");
     const m = searchParams.get("method");
     if (p) setProvider(p);
     if (m) setMethod(m);
 
-    // Web Share Target: auto-select Zomato > Invoice
     if (searchParams.get("received") === "true") {
       setProvider("zomato");
       setMethod("invoice");
     }
   }, [searchParams]);
 
-  // Pick up shared file from Web Share Target (cached by service worker)
   useEffect(() => {
     if (searchParams.get("received") !== "true") return;
     (async () => {
@@ -74,92 +71,53 @@ function InvoiceSetupContent() {
     selectedOthers.length > 0 && (selectedOrderId || file);
 
   async function handleSubmit() {
-    if (!canSubmit || !session?.access_token) return;
+    if (!canSubmit) return;
     setSubmitting(true);
+    setError(null);
 
     try {
+      let sourceId: string;
+
       if (selectedOrderId) {
-        // Swiggy order flow: create source → create order
-        const sourceResp = await fetch(`${API_BASE}/api/v1/orders/sources/`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
+        const { data: source, error: sourceErr, response: sourceResp } = await apiClient.POST(
+          "/api/v1/orders/sources/",
+          { body: { type: "swiggy_order", raw_data: { swiggy_order_id: selectedOrderId } } },
+        );
+        if (sourceErr) {
+          setError(toApiError("Failed to create source", sourceResp));
+          return;
+        }
+        sourceId = source!.id;
+      } else {
+        const { data: upload, error: uploadErr, response: uploadResp } = await apiClient.POST(
+          "/api/v1/orders/sources/upload",
+          {
+            body: { file: file! as unknown as string },
+            bodySerializer() {
+              const fd = new FormData();
+              fd.append("file", file!);
+              return fd;
+            },
           },
-          body: JSON.stringify({
-            type: "swiggy_order",
-            raw_data: { swiggy_order_id: selectedOrderId },
-          }),
-        });
-
-        if (!sourceResp.ok) {
-          const body = await sourceResp.json().catch(() => ({ detail: "Unknown error" }));
-          throw new Error(body.detail || `HTTP ${sourceResp.status}`);
+        );
+        if (uploadErr) {
+          setError(toApiError("Failed to upload invoice", uploadResp));
+          return;
         }
-
-        const source = await sourceResp.json();
-        const participantIds = [appUser.id, ...selectedOthers];
-
-        const orderResp = await fetch(`${API_BASE}/api/v1/orders/`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            source_id: source.id,
-            participant_ids: participantIds,
-          }),
-        });
-
-        if (!orderResp.ok) {
-          const body = await orderResp.json().catch(() => ({ detail: "Unknown error" }));
-          throw new Error(body.detail || `HTTP ${orderResp.status}`);
-        }
-
-        const order = await orderResp.json();
-        router.push(`/orders/${order.id}/expense`);
-      } else if (file) {
-        // Invoice flow: upload file → create order
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const uploadResp = await fetch(`${API_BASE}/api/v1/orders/sources/upload`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          body: formData,
-        });
-
-        if (!uploadResp.ok) {
-          const body = await uploadResp.json().catch(() => ({ detail: "Unknown error" }));
-          throw new Error(body.detail || `HTTP ${uploadResp.status}`);
-        }
-
-        const source = await uploadResp.json();
-        const participantIds = [appUser.id, ...selectedOthers];
-
-        const orderResp = await fetch(`${API_BASE}/api/v1/orders/`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            source_id: source.source_id,
-            participant_ids: participantIds,
-          }),
-        });
-
-        if (!orderResp.ok) {
-          const body = await orderResp.json().catch(() => ({ detail: "Unknown error" }));
-          throw new Error(body.detail || `HTTP ${orderResp.status}`);
-        }
-
-        const order = await orderResp.json();
-        router.push(`/orders/${order.id}/expense`);
+        sourceId = upload!.source_id;
       }
+
+      const { data: order, error: orderErr, response: orderResp } = await apiClient.POST(
+        "/api/v1/orders/",
+        { body: { source_id: sourceId, participant_ids: [appUser.id, ...selectedOthers] } },
+      );
+      if (orderErr) {
+        setError(toApiError("Failed to create order", orderResp));
+        return;
+      }
+      router.push(`/orders/${order!.id}/expense`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      setError({ message: e instanceof Error ? e.message : "Unknown error" });
     } finally {
       setSubmitting(false);
     }
@@ -169,7 +127,6 @@ function InvoiceSetupContent() {
     <div className="flex flex-1 flex-col">
       <TopBar showBack onBack={() => router.push("/meal-plan")} />
 
-      {/* Expense heading */}
       <div className="flex items-center gap-2 p-3 border-b border-black">
         <Icon name="currency_rupee" size={24} />
         <span className="text-2xl font-bold tracking-label uppercase leading-6">
@@ -177,7 +134,6 @@ function InvoiceSetupContent() {
         </span>
       </div>
 
-      {/* Participants */}
       <div className="flex items-stretch border-b border-gray-200">
         <div className="flex flex-wrap items-center gap-1 p-3 flex-1 text-base leading-6">
           <span>With <b>You</b>, &:</span>
@@ -203,7 +159,6 @@ function InvoiceSetupContent() {
         )}
       </div>
 
-      {/* Breadcrumb navigation */}
       <BreadcrumbNav
         provider={provider}
         method={method}
@@ -220,7 +175,6 @@ function InvoiceSetupContent() {
         }}
       />
 
-      {/* Method-specific UI */}
       <main className="flex-1">
         {method === "order" && (
           <SwiggyOrderPicker
@@ -233,7 +187,6 @@ function InvoiceSetupContent() {
         )}
       </main>
 
-      {/* Bottom button */}
       {canSubmit && (
         <button
           onClick={handleSubmit}
@@ -245,13 +198,20 @@ function InvoiceSetupContent() {
       )}
 
       {error && (
-        <ErrorModal
-          message={error}
-          onDismiss={() => {
-            setError(null);
-            router.replace("/meal-plan");
-          }}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white border border-black p-3 mx-3 max-w-sm w-full">
+            <ErrorBody
+              message={error.message}
+              requestId={error.requestId}
+              traceId={error.traceId}
+              status={error.status}
+              onRetry={() => {
+                setError(null);
+                handleSubmit();
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

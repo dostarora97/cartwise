@@ -7,28 +7,35 @@ interface ErrorBodyProps {
   message: string;
   requestId?: string;
   traceId?: string;
+  status?: number;
   stack?: string;
   onRetry?: () => void;
 }
 
-export function ErrorBody({ message, requestId, traceId, stack, onRetry }: ErrorBodyProps) {
+export function ErrorBody({ message, requestId, traceId, status, stack, onRetry }: ErrorBodyProps) {
   const pathname = usePathname();
 
   const ctx: ErrorContext = {
     message,
     requestId,
     traceId,
+    status,
     stack,
     pageUrl: typeof window !== "undefined" ? window.location.href : pathname,
   };
 
+  const meta = [
+    requestId && `req: ${requestId}`,
+    traceId && `trace: ${traceId}`,
+    status && `status: ${status}`,
+  ].filter(Boolean) as string[];
+
   return (
     <div className="flex flex-col items-center gap-4">
       <p className="text-xs text-red-600 tracking-wider">{message}</p>
-      {(requestId || traceId) && (
+      {meta.length > 0 && (
         <ul className="text-xs text-gray-400 font-mono">
-          {requestId && <li>req: {requestId}</li>}
-          {traceId && <li>trace: {traceId}</li>}
+          {meta.map((line) => <li key={line}>{line}</li>)}
         </ul>
       )}
       {onRetry && (

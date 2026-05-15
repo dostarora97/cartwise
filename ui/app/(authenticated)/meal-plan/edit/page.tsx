@@ -7,8 +7,10 @@ import dynamic from "next/dynamic";
 import { useRequiredAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
+import { type ApiError, toApiError } from "@/lib/errors";
 import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
+import { ErrorBody } from "@/components/error-body";
 import { Icon } from "@/components/icon";
 import { Spinner } from "@/components/spinner";
 
@@ -23,7 +25,7 @@ export default function MealPlanEditPage() {
   const [mode, setMode] = useState<Mode>("select");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ApiError | null>(null);
 
   const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
     "get",
@@ -124,28 +126,28 @@ export default function MealPlanEditPage() {
   async function handleSave() {
     if (!orderedItems) return;
     setSaving(true);
-    setError("");
+    setError(null);
 
     const toUnarchive = orderedItems.filter((i) => archivedIds.has(i.id));
     for (const item of toUnarchive) {
-      const { error: unarchiveError } = await apiClient.PATCH(
+      const { error: unarchiveError, response } = await apiClient.PATCH(
         "/api/v1/menu-items/{item_id}/unarchive",
         { params: { path: { item_id: item.id } } },
       );
       if (unarchiveError) {
-        setError("Failed to unarchive items. Please try again.");
+        setError(toApiError("Failed to unarchive items. Please try again.", response));
         setSaving(false);
         return;
       }
     }
 
-    const { error: apiError } = await apiClient.PUT(
+    const { error: apiError, response } = await apiClient.PUT(
       "/api/v1/meal-plans",
       { body: { menu_item_ids: orderedItems.map((i) => i.id) } },
     );
 
     if (apiError) {
-      setError("Failed to save. Please try again.");
+      setError(toApiError("Failed to save. Please try again.", response));
       setSaving(false);
       return;
     }
@@ -232,7 +234,14 @@ export default function MealPlanEditPage() {
 
       <div className="sticky bottom-0">
         {error && (
-          <p className="p-3 text-xs text-red-600 tracking-wider bg-white border-t border-black">{error}</p>
+          <div className="p-3 bg-white border-t border-black">
+            <ErrorBody
+              message={error.message}
+              requestId={error.requestId}
+              traceId={error.traceId}
+              status={error.status}
+            />
+          </div>
         )}
         {mode === "select" ? (
           <button
