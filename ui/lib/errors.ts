@@ -2,9 +2,12 @@ export interface ErrorContext {
   message: string;
   requestId?: string;
   traceId?: string;
+  status?: number;
   stack?: string;
   pageUrl?: string;
 }
+
+export type ApiError = Pick<ErrorContext, "message" | "requestId" | "traceId" | "status">;
 
 export function extractRequestIds(response: Response): {
   requestId?: string;
@@ -16,9 +19,18 @@ export function extractRequestIds(response: Response): {
   };
 }
 
+export function toApiError(message: string, response: Response): ApiError {
+  return {
+    message,
+    ...extractRequestIds(response),
+    status: response.status,
+  };
+}
+
 export function buildIssueUrl(ctx: ErrorContext): string {
   const reproduce = [
     `**Error:** ${ctx.message}`,
+    ctx.status && `**HTTP Status:** ${ctx.status}`,
     ctx.pageUrl && `**Page:** ${ctx.pageUrl}`,
     ctx.requestId && `**Request ID:** \`${ctx.requestId}\``,
     ctx.traceId && `**Trace ID:** \`${ctx.traceId}\``,

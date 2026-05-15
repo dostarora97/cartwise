@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRequiredAuth } from "@/lib/auth";
-import { extractRequestIds } from "@/lib/errors";
+import { toApiError } from "@/lib/errors";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
@@ -25,7 +25,7 @@ type ImportState =
   | { status: "idle" }
   | { status: "importing" }
   | { status: "done"; persist: number; skip: number }
-  | { status: "error"; message: string; requestId?: string; traceId?: string };
+  | { status: "error"; message: string; requestId?: string; traceId?: string; httpStatus?: number };
 
 function ImportContent() {
   useRequiredAuth();
@@ -57,8 +57,8 @@ function ImportContent() {
         body: { supplier: token },
       });
       if (error) {
-        const ids = extractRequestIds(response);
-        setState({ status: "error", message: "Import failed", ...ids });
+        const apiErr = toApiError("Import failed", response);
+        setState({ status: "error", message: apiErr.message, requestId: apiErr.requestId, traceId: apiErr.traceId, httpStatus: apiErr.status });
         return;
       }
       await queryClient.invalidateQueries({
@@ -119,6 +119,7 @@ function ImportContent() {
             message={state.status === "error" ? state.message : "Could not load import preview"}
             requestId={state.status === "error" ? state.requestId : undefined}
             traceId={state.status === "error" ? state.traceId : undefined}
+            status={state.status === "error" ? state.httpStatus : undefined}
             onRetry={state.status === "error" ? handleImport : () => queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/imports/preview"] })}
           />
         )}

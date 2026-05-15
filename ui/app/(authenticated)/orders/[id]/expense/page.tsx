@@ -6,10 +6,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRequiredAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
+import { type ApiError, toApiError } from "@/lib/errors";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
 import { ChipInput } from "@/components/chip-input";
-import { ErrorModal } from "@/components/error-modal";
+import { ErrorBody } from "@/components/error-body";
 
 // Typed shapes for the untyped JSON fields in OrderResponse
 interface GroceryItem {
@@ -27,7 +28,7 @@ export default function SplitAnalysisPage() {
 
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
   const [editAssignments, setEditAssignments] = useState<Map<string, string[]>>(
     new Map(),
   );
@@ -149,14 +150,17 @@ export default function SplitAnalysisPage() {
   async function handleApprove() {
     setSubmitting(true);
     try {
-      const { error: apiError } = await apiClient.POST(
+      const { error: apiError, response } = await apiClient.POST(
         "/api/v1/orders/{order_id}/approve",
         { params: { path: { order_id: id } } },
       );
-      if (apiError) throw new Error((apiError as { detail?: string }).detail || "Approve failed");
+      if (apiError) {
+        setError(toApiError((apiError as { detail?: string }).detail || "Approve failed", response));
+        return;
+      }
       router.push(`/orders/${id}/expense/result`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      setError({ message: e instanceof Error ? e.message : "Unknown error" });
     } finally {
       setSubmitting(false);
     }
@@ -168,20 +172,23 @@ export default function SplitAnalysisPage() {
       const assignments = [...editAssignments.entries()].map(
         ([upc, member_ids]) => ({ upc, member_ids }),
       );
-      const { error: apiError } = await apiClient.PUT(
+      const { error: apiError, response } = await apiClient.PUT(
         "/api/v1/orders/{order_id}/splits",
         {
           params: { path: { order_id: id } },
           body: { assignments },
         },
       );
-      if (apiError) throw new Error((apiError as { detail?: string }).detail || "Edit failed");
+      if (apiError) {
+        setError(toApiError((apiError as { detail?: string }).detail || "Edit failed", response));
+        return;
+      }
       await queryClient.invalidateQueries({
         queryKey: ["get", "/api/v1/orders/{order_id}"],
       });
       setMode("view");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      setError({ message: e instanceof Error ? e.message : "Unknown error" });
     } finally {
       setSubmitting(false);
     }
@@ -350,10 +357,17 @@ export default function SplitAnalysisPage() {
       )}
 
       {error && (
-        <ErrorModal
-          message={error}
-          onDismiss={() => setError(null)}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white border border-black p-3 mx-3 max-w-sm w-full">
+            <ErrorBody
+              message={error.message}
+              requestId={error.requestId}
+              traceId={error.traceId}
+              status={error.status}
+              onRetry={() => setError(null)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
