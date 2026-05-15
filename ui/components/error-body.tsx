@@ -1,15 +1,27 @@
 "use client";
 
-import { buildIssueUrl } from "@/lib/errors";
+import { usePathname } from "next/navigation";
+import { type ErrorContext, buildIssueUrl } from "@/lib/errors";
 
 interface ErrorBodyProps {
   message: string;
   requestId?: string;
   traceId?: string;
+  stack?: string;
   onRetry?: () => void;
 }
 
-export function ErrorBody({ message, requestId, traceId, onRetry }: ErrorBodyProps) {
+export function ErrorBody({ message, requestId, traceId, stack, onRetry }: ErrorBodyProps) {
+  const pathname = usePathname();
+
+  const ctx: ErrorContext = {
+    message,
+    requestId,
+    traceId,
+    stack,
+    pageUrl: typeof window !== "undefined" ? window.location.href : pathname,
+  };
+
   return (
     <div className="flex flex-col items-center gap-4">
       <p className="text-xs text-red-600 tracking-wider">{message}</p>
@@ -28,7 +40,7 @@ export function ErrorBody({ message, requestId, traceId, onRetry }: ErrorBodyPro
         </button>
       )}
       <a
-        href={buildIssueUrl({ message, requestId, traceId })}
+        href={buildIssueUrl(ctx)}
         target="_blank"
         rel="noopener noreferrer"
         className="text-xs text-gray-400 underline"

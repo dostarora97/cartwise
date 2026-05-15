@@ -1,3 +1,11 @@
+export interface ErrorContext {
+  message: string;
+  requestId?: string;
+  traceId?: string;
+  stack?: string;
+  pageUrl?: string;
+}
+
 export function extractRequestIds(response: Response): {
   requestId?: string;
   traceId?: string;
@@ -8,21 +16,19 @@ export function extractRequestIds(response: Response): {
   };
 }
 
-export function buildIssueUrl(opts: {
-  message: string;
-  requestId?: string;
-  traceId?: string;
-}) {
+export function buildIssueUrl(ctx: ErrorContext): string {
   const reproduce = [
-    `Error: ${opts.message}`,
-    opts.requestId && `- Request ID: \`${opts.requestId}\``,
-    opts.traceId && `- Trace ID: \`${opts.traceId}\``,
+    `**Error:** ${ctx.message}`,
+    ctx.pageUrl && `**Page:** ${ctx.pageUrl}`,
+    ctx.requestId && `**Request ID:** \`${ctx.requestId}\``,
+    ctx.traceId && `**Trace ID:** \`${ctx.traceId}\``,
+    ctx.stack && `**Stack:**\n\`\`\`\n${ctx.stack}\n\`\`\``,
   ]
     .filter(Boolean)
     .join("\n");
   const params = new URLSearchParams({
     template: "bug_report.yml",
-    description: opts.message,
+    description: ctx.message,
     reproduce,
   });
   return `https://github.com/dostarora97/cartwise/issues/new?${params}`;
