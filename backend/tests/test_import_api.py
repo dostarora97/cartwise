@@ -298,7 +298,7 @@ class TestInternalExportEndpoint:
 
         assert resp.status_code == 200
         data = resp.json()
-        assert data["name"] == "User's Meal Plan"
+        assert data["name"] == "User 1's Meal Plan"
         assert data["total"] == 2
 
         resp = await client.post(
