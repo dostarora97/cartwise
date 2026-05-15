@@ -7,7 +7,7 @@ import { $api } from "@/lib/api/hooks";
 import { TopBar } from "@/components/top-bar";
 import { ChipInput, type ChipInputHandle } from "@/components/chip-input";
 import { Icon } from "@/components/icon";
-import { ErrorModal } from "@/components/error-modal";
+import { ErrorBody } from "@/components/error-body";
 import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { SwiggyOrderPicker } from "@/components/swiggy-order-picker";
 import { InvoiceUpload } from "@/components/invoice-upload";
@@ -35,7 +35,7 @@ function InvoiceSetupContent() {
   const [selectedOthers, setSelectedOthers] = useState<string[]>([]);
   const [showingAll, setShowingAll] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; requestId?: string; traceId?: string } | null>(null);
 
   const { data: users } = $api.useQuery("get", "/api/v1/users/");
   const otherUsers = (users ?? [])
@@ -94,7 +94,12 @@ function InvoiceSetupContent() {
 
         if (!sourceResp.ok) {
           const body = await sourceResp.json().catch(() => ({ detail: "Unknown error" }));
-          throw new Error(body.detail || `HTTP ${sourceResp.status}`);
+          setError({
+            message: body.detail || `HTTP ${sourceResp.status}`,
+            requestId: sourceResp.headers.get("X-Request-ID") ?? undefined,
+            traceId: sourceResp.headers.get("X-Trace-ID") ?? undefined,
+          });
+          return;
         }
 
         const source = await sourceResp.json();
@@ -114,7 +119,12 @@ function InvoiceSetupContent() {
 
         if (!orderResp.ok) {
           const body = await orderResp.json().catch(() => ({ detail: "Unknown error" }));
-          throw new Error(body.detail || `HTTP ${orderResp.status}`);
+          setError({
+            message: body.detail || `HTTP ${orderResp.status}`,
+            requestId: orderResp.headers.get("X-Request-ID") ?? undefined,
+            traceId: orderResp.headers.get("X-Trace-ID") ?? undefined,
+          });
+          return;
         }
 
         const order = await orderResp.json();
@@ -132,7 +142,12 @@ function InvoiceSetupContent() {
 
         if (!uploadResp.ok) {
           const body = await uploadResp.json().catch(() => ({ detail: "Unknown error" }));
-          throw new Error(body.detail || `HTTP ${uploadResp.status}`);
+          setError({
+            message: body.detail || `HTTP ${uploadResp.status}`,
+            requestId: uploadResp.headers.get("X-Request-ID") ?? undefined,
+            traceId: uploadResp.headers.get("X-Trace-ID") ?? undefined,
+          });
+          return;
         }
 
         const source = await uploadResp.json();
@@ -152,14 +167,19 @@ function InvoiceSetupContent() {
 
         if (!orderResp.ok) {
           const body = await orderResp.json().catch(() => ({ detail: "Unknown error" }));
-          throw new Error(body.detail || `HTTP ${orderResp.status}`);
+          setError({
+            message: body.detail || `HTTP ${orderResp.status}`,
+            requestId: orderResp.headers.get("X-Request-ID") ?? undefined,
+            traceId: orderResp.headers.get("X-Trace-ID") ?? undefined,
+          });
+          return;
         }
 
         const order = await orderResp.json();
         router.push(`/orders/${order.id}/expense`);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      setError({ message: e instanceof Error ? e.message : "Unknown error" });
     } finally {
       setSubmitting(false);
     }
@@ -245,13 +265,19 @@ function InvoiceSetupContent() {
       )}
 
       {error && (
-        <ErrorModal
-          message={error}
-          onDismiss={() => {
-            setError(null);
-            router.replace("/meal-plan");
-          }}
-        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white border border-black p-3 mx-3 max-w-sm w-full">
+            <ErrorBody
+              message={error.message}
+              requestId={error.requestId}
+              traceId={error.traceId}
+              onRetry={() => {
+                setError(null);
+                handleSubmit();
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

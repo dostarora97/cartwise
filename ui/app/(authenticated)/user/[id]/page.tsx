@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useRequiredAuth } from "@/lib/auth";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
+import { ErrorBody } from "@/components/error-body";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import apiClient from "@/lib/api/client";
 
@@ -170,7 +171,9 @@ export default function UserPage() {
         </div>
 
         {error && (
-          <p className="text-xs text-red-600 tracking-wider mt-3">{error}</p>
+          <div className="mt-3">
+            <ErrorBody message={error} />
+          </div>
         )}
 
         <div ref={settingsRef} className="mt-auto">

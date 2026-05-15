@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import apiClient from "@/lib/api/client";
 import { useAuth } from "@/lib/auth";
+import { ErrorBody } from "@/components/error-body";
 
 function OnboardingContent() {
   const searchParams = useSearchParams();
@@ -63,16 +64,7 @@ function OnboardingContent() {
 
       <div className="flex flex-1 flex-col items-center justify-center p-3">
         {error ? (
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-xs text-red-600 tracking-wider">{error}</p>
-            <button
-              type="button"
-              onClick={handleRetry}
-              className="flex items-center justify-center border-2 border-black px-6 py-3 text-base font-bold tracking-label uppercase"
-            >
-              Try Again
-            </button>
-          </div>
+          <ErrorBody message={error} onRetry={handleRetry} />
         ) : connecting ? (
           <p className="text-sm tracking-wider text-gray-600">
             Connecting to Splitwise...
