@@ -64,8 +64,9 @@ async def handle_export(body: ExportRequest, session: SessionDep):
         user, items = await _get_user_meal_plan_items(session, payload.id)
 
         if body.action == "preview":
+            first_name = user.name.split()[0]
             return {
-                "name": f"{user.name}'s Meal Plan",
+                "name": f"{first_name}'s Meal Plan",
                 "items": [{"name": i.name} for i in items],
                 "total": len(items),
             }

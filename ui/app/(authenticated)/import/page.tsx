@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRequiredAuth } from "@/lib/auth";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
+import { MealPlanItem } from "@/components/meal-plan-item";
 import { Icon } from "@/components/icon";
 import { Spinner } from "@/components/spinner";
 
@@ -91,77 +92,50 @@ function ImportContent() {
 
       <div className="flex items-stretch justify-between border-b border-black">
         <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
-          <Icon name="download" size={24} />
-          <span className="ml-2">Import</span>
+          <Icon name="download" size={24} className="shrink-0 mr-3" />
+          Import
+          {state.status === "preview" && (
+            <>
+              <span className="mx-2 text-gray-400">·</span>
+              <span className="text-gray-400 font-medium">{state.data.name}</span>
+            </>
+          )}
         </span>
       </div>
 
-      <main className="flex flex-1 flex-col p-3">
-        {state.status === "loading" && (
-          <div className="flex flex-1 items-center justify-center">
-            <Spinner />
-          </div>
-        )}
+      <main className={`flex flex-1 flex-col ${state.status === "loading" || state.status === "importing" || state.status === "error" || state.status === "done" ? "items-center justify-center" : ""}`}>
+        {state.status === "loading" && <Spinner />}
 
         {state.status === "preview" && (
-          <div className="flex flex-1 flex-col gap-4">
-            <p className="text-base font-bold tracking-label uppercase">
-              Import {state.data.total} items from {state.data.name}
-            </p>
-            <ul className="flex flex-col gap-1">
-              {state.data.items.map((item, i) => (
-                <li
-                  key={i}
-                  className="border border-black p-3 text-sm tracking-wider"
-                >
-                  {item.name}
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={handleImport}
-              disabled={state.data.total === 0}
-              className="mt-auto flex items-center justify-center gap-2 bg-black text-white p-3 text-base font-bold tracking-label uppercase h-12 disabled:bg-neutral-400"
-            >
-              Import
-            </button>
-          </div>
+          <ul>
+            {state.data.items.map((item, i) => (
+              <MealPlanItem key={i} name={item.name} mode="view" />
+            ))}
+          </ul>
         )}
 
-        {state.status === "importing" && (
-          <div className="flex flex-1 items-center justify-center">
-            <Spinner />
-          </div>
-        )}
+        {state.status === "importing" && <Spinner />}
 
         {state.status === "done" && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+          <div className="flex flex-col items-center gap-4">
             <p className="text-base font-bold tracking-label uppercase">
-              Import complete
+              Completed
             </p>
-            <p className="text-xs tracking-wider">
+            <p className="text-sm tracking-wider">
               {state.persist} items added, {state.skip} skipped
             </p>
-            <button
-              onClick={() => router.push("/meal-plan")}
-              className="flex items-center gap-2 bg-black text-white p-3 text-base font-bold tracking-label uppercase h-12"
-            >
-              OK
-            </button>
           </div>
         )}
 
         {state.status === "error" && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+          <div className="flex flex-col items-center gap-4">
             <p className="text-xs text-red-600 tracking-wider">
               {state.phase === "preview"
                 ? "Could not load import preview"
                 : "Import failed"}
             </p>
             <button
-              onClick={
-                state.phase === "preview" ? loadPreview : handleImport
-              }
+              onClick={state.phase === "preview" ? loadPreview : handleImport}
               className="border-2 border-black px-6 py-3 text-base font-bold tracking-label uppercase"
             >
               Retry
@@ -169,6 +143,26 @@ function ImportContent() {
           </div>
         )}
       </main>
+
+      <div className="sticky bottom-0">
+        {state.status === "preview" && (
+          <button
+            onClick={handleImport}
+            disabled={state.data.total === 0}
+            className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
+          >
+            Import
+          </button>
+        )}
+        {state.status === "done" && (
+          <button
+            onClick={() => router.push("/meal-plan")}
+            className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white"
+          >
+            OK
+          </button>
+        )}
+      </div>
     </div>
   );
 }
