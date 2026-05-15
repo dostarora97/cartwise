@@ -179,7 +179,7 @@ class TestImportOrchestrator:
 
         class FakeSupplier:
             @property
-            def supplier_id(self):
+            def supplier(self):
                 return "test/supplier"
 
             async def fetch(self):
@@ -194,7 +194,7 @@ class TestImportOrchestrator:
 
         result = await orchestrator.run(FakeSupplier())
 
-        assert result.supplier_id == "test/supplier"
+        assert result.supplier == "test/supplier"
         assert result.intents_applied["persist"] == 2
         assert result.intents_applied["skip"] == 0
 
@@ -213,7 +213,7 @@ class TestImportOrchestrator:
 
         class FakeSupplier:
             @property
-            def supplier_id(self):
+            def supplier(self):
                 return "test/supplier"
 
             async def fetch(self):

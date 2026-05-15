@@ -101,7 +101,7 @@ class TestPreviewImport:
         with patch("app.services.importer.client.httpx.AsyncClient", return_value=mock_client):
             resp = await client.get(
                 "/api/v1/imports/preview",
-                params={"supplier_id": token},
+                params={"supplier": token},
                 headers=auth_headers,
             )
 
@@ -114,7 +114,7 @@ class TestPreviewImport:
     async def test_preview_invalid_token(self, client: AsyncClient, auth_headers: dict, test_user):
         resp = await client.get(
             "/api/v1/imports/preview",
-            params={"supplier_id": "invalid-garbage"},
+            params={"supplier": "invalid-garbage"},
             headers=auth_headers,
         )
 
@@ -128,7 +128,7 @@ class TestPreviewImport:
 
         resp = await client.get(
             "/api/v1/imports/preview",
-            params={"supplier_id": token},
+            params={"supplier": token},
             headers=auth_headers,
         )
 
@@ -138,7 +138,7 @@ class TestPreviewImport:
         token = _make_cartwise_token(str(starter_user.id))
         resp = await client.get(
             "/api/v1/imports/preview",
-            params={"supplier_id": token},
+            params={"supplier": token},
         )
 
         assert resp.status_code in (401, 403)
@@ -171,7 +171,7 @@ class TestRunImport:
         with patch("app.services.importer.client.httpx.AsyncClient", return_value=mock_client):
             resp = await client.post(
                 "/api/v1/imports/",
-                json={"supplier_id": token},
+                json={"supplier": token},
                 headers=auth_headers,
             )
 
@@ -205,14 +205,14 @@ class TestRunImport:
         with patch("app.services.importer.client.httpx.AsyncClient", return_value=mock_client):
             await client.post(
                 "/api/v1/imports/",
-                json={"supplier_id": token},
+                json={"supplier": token},
                 headers=auth_headers,
             )
 
         with patch("app.services.importer.client.httpx.AsyncClient", return_value=mock_client):
             resp = await client.post(
                 "/api/v1/imports/",
-                json={"supplier_id": token},
+                json={"supplier": token},
                 headers=auth_headers,
             )
 
@@ -247,7 +247,7 @@ class TestRunImport:
         with patch("app.services.importer.client.httpx.AsyncClient", return_value=mock_client):
             resp = await client.post(
                 "/api/v1/imports/",
-                json={"supplier_id": token},
+                json={"supplier": token},
                 headers=auth_headers,
             )
 
@@ -265,7 +265,7 @@ class TestRunImport:
     async def test_import_unknown_token(self, client: AsyncClient, auth_headers: dict, test_user):
         resp = await client.post(
             "/api/v1/imports/",
-            json={"supplier_id": "garbage-token"},
+            json={"supplier": "garbage-token"},
             headers=auth_headers,
         )
 
@@ -275,7 +275,7 @@ class TestRunImport:
         token = _make_cartwise_token(str(starter_user.id))
         resp = await client.post(
             "/api/v1/imports/",
-            json={"supplier_id": token},
+            json={"supplier": token},
         )
 
         assert resp.status_code in (401, 403)
@@ -298,7 +298,7 @@ class TestInternalExportEndpoint:
 
         assert resp.status_code == 200
         data = resp.json()
-        assert data["name"] == "User 1's Meal Plan"
+        assert data["name"] == "User's Meal Plan"
         assert data["total"] == 2
 
         resp = await client.post(

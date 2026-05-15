@@ -9,9 +9,9 @@ from ..token import DecodedToken, decode_token
 from .connector import ConnectorSupplier
 
 
-def _lookup_registry(supplier_id: str) -> dict | None:
+def _lookup_registry(supplier: str) -> dict | None:
     configs = settings.IMPORT_SUPPLIERS
-    return next((c for c in configs if c["id"] == supplier_id), None)
+    return next((c for c in configs if c["id"] == supplier), None)
 
 
 def resolve_supplier_client(token: str) -> tuple[SupplierClient, DecodedToken]:

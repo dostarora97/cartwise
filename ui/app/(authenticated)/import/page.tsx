@@ -45,7 +45,7 @@ function ImportContent() {
     setState({ status: "loading" });
     try {
       const { data, error } = await apiClient.GET("/api/v1/imports/preview", {
-        params: { query: { supplier_id: token } },
+        params: { query: { supplier: token } },
       });
       if (error) throw error;
       setState({ status: "preview", data: data as PreviewData });
@@ -67,7 +67,7 @@ function ImportContent() {
     setState({ status: "importing" });
     try {
       const { data, error } = await apiClient.POST("/api/v1/imports/", {
-        body: { supplier_id: token },
+        body: { supplier: token },
       });
       if (error) throw error;
       await queryClient.invalidateQueries({
@@ -94,12 +94,6 @@ function ImportContent() {
         <span className="flex items-center p-3 text-2xl font-bold tracking-label uppercase leading-6">
           <Icon name="download" size={24} className="shrink-0 mr-3" />
           Import
-          {state.status === "preview" && (
-            <>
-              <span className="mx-2 text-gray-400">·</span>
-              <span className="text-gray-400 font-medium">{state.data.name}</span>
-            </>
-          )}
         </span>
       </div>
 
