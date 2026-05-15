@@ -59,6 +59,7 @@ export default function UserPage() {
   }
 
   async function handleDisconnect(provider: string) {
+    if (provider !== "swiggy") return;
     setDisconnecting(provider);
 
     try {

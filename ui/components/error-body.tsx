@@ -24,14 +24,18 @@ export function ErrorBody({ message, requestId, traceId, status, stack, onRetry 
     pageUrl: typeof window !== "undefined" ? window.location.href : pathname,
   };
 
+  const meta = [
+    requestId && `req: ${requestId}`,
+    traceId && `trace: ${traceId}`,
+    status && `status: ${status}`,
+  ].filter(Boolean) as string[];
+
   return (
     <div className="flex flex-col items-center gap-4">
       <p className="text-xs text-red-600 tracking-wider">{message}</p>
-      {(requestId || traceId || status) && (
+      {meta.length > 0 && (
         <ul className="text-xs text-gray-400 font-mono">
-          {requestId && <li>req: {requestId}</li>}
-          {traceId && <li>trace: {traceId}</li>}
-          {status && <li>status: {status}</li>}
+          {meta.map((line) => <li key={line}>{line}</li>)}
         </ul>
       )}
       {onRetry && (
