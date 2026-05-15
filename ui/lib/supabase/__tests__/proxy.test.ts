@@ -115,6 +115,13 @@ describe("updateSession (proxy auth routing)", () => {
       );
       expect(response.status).toBe(200);
     });
+
+    it("passes through /import with query params when onboarded", async () => {
+      const response = await updateSession(
+        makeRequest("/import?supplier=cartwise/starter", { [ONBOARDED_COOKIE]: "1" }),
+      );
+      expect(response.status).toBe(200);
+    });
   });
 
   describe("returnTo cookie", () => {

@@ -184,6 +184,13 @@ export default function UserPage() {
           </button>
           {settingsOpen && (
             <div className="flex flex-col gap-3 p-3 border-x border-b border-black">
+              <button
+                onClick={() => router.push("/import")}
+                className="flex items-center gap-2 bg-black text-white p-3 text-base font-bold tracking-label uppercase h-12"
+              >
+                <Icon name="download" size={20} />
+                Import
+              </button>
               <a
                 href="https://github.com/dostarora97/cartwise/issues/new/choose"
                 target="_blank"
