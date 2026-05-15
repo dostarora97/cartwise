@@ -1,8 +1,8 @@
 [
   {
-    "id": "00000000-0000-4000-a000-000000000001",
-    "name": "CartWise Starter",
-    "email": "starter@cartwise.app",
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "User 1",
+    "email": "user_1@cartwise.app",
     "items": [
       {"name": "Chicken Breast", "body": "500g boneless pack"},
       {"name": "Basmati Rice", "body": "1kg aged basmati"},

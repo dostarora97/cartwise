@@ -23,11 +23,11 @@ from app.services.importer.token import encode_token
 async def starter_user(session: AsyncSession) -> User:
     """Create the starter user with meal plan items for the export endpoint."""
     user = User(
-        id="00000000-0000-4000-a000-000000000001",
-        email="starter@cartwise.app",
-        name="CartWise Starter",
+        id="00000000-0000-0000-0000-000000000000",
+        email="user_1@cartwise.app",
+        name="User 1",
         oauth_provider="system",
-        oauth_id="system:starter",
+        oauth_id="system:00000000-0000-0000-0000-000000000000",
     )
     session.add(user)
     await session.flush()
@@ -94,7 +94,7 @@ class TestPreviewImport:
     ):
         token = _make_cartwise_token(str(starter_user.id))
         mock_client = _mock_supplier_preview(
-            "CartWise Starter's Meal Plan",
+            "User 1's Meal Plan",
             [{"name": "Chicken Breast"}, {"name": "Basmati Rice"}],
             2,
         )
@@ -107,7 +107,7 @@ class TestPreviewImport:
 
         assert resp.status_code == 200
         data = resp.json()
-        assert data["name"] == "CartWise Starter's Meal Plan"
+        assert data["name"] == "User 1's Meal Plan"
         assert data["total"] == 2
         assert len(data["items"]) == 2
 
@@ -298,7 +298,7 @@ class TestInternalExportEndpoint:
 
         assert resp.status_code == 200
         data = resp.json()
-        assert data["name"] == "CartWise Starter's Meal Plan"
+        assert data["name"] == "User 1's Meal Plan"
         assert data["total"] == 2
 
         resp = await client.post(
