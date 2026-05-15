@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import { useRequiredAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
-import { extractRequestIds } from "@/lib/errors";
+import { type ApiError, toApiError } from "@/lib/errors";
 import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
 import { ErrorBody } from "@/components/error-body";
@@ -25,7 +25,7 @@ export default function MealPlanEditPage() {
   const [mode, setMode] = useState<Mode>("select");
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<{ message: string; requestId?: string; traceId?: string } | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
 
   const { data: menuItems, isLoading: menuItemsLoading } = $api.useQuery(
     "get",
@@ -135,8 +135,7 @@ export default function MealPlanEditPage() {
         { params: { path: { item_id: item.id } } },
       );
       if (unarchiveError) {
-        const ids = extractRequestIds(response);
-        setError({ message: "Failed to unarchive items. Please try again.", ...ids });
+        setError(toApiError("Failed to unarchive items. Please try again.", response));
         setSaving(false);
         return;
       }
@@ -148,8 +147,7 @@ export default function MealPlanEditPage() {
     );
 
     if (apiError) {
-      const ids = extractRequestIds(response);
-      setError({ message: "Failed to save. Please try again.", ...ids });
+      setError(toApiError("Failed to save. Please try again.", response));
       setSaving(false);
       return;
     }
@@ -241,6 +239,7 @@ export default function MealPlanEditPage() {
               message={error.message}
               requestId={error.requestId}
               traceId={error.traceId}
+              status={error.status}
             />
           </div>
         )}

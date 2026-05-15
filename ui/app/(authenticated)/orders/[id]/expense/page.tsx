@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRequiredAuth } from "@/lib/auth";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
-import { extractRequestIds } from "@/lib/errors";
+import { type ApiError, toApiError } from "@/lib/errors";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
 import { ChipInput } from "@/components/chip-input";
@@ -28,7 +28,7 @@ export default function SplitAnalysisPage() {
 
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<{ message: string; requestId?: string; traceId?: string } | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
   const [editAssignments, setEditAssignments] = useState<Map<string, string[]>>(
     new Map(),
   );
@@ -155,8 +155,7 @@ export default function SplitAnalysisPage() {
         { params: { path: { order_id: id } } },
       );
       if (apiError) {
-        const ids = extractRequestIds(response);
-        setError({ message: (apiError as { detail?: string }).detail || "Approve failed", ...ids });
+        setError(toApiError((apiError as { detail?: string }).detail || "Approve failed", response));
         return;
       }
       router.push(`/orders/${id}/expense/result`);
@@ -181,8 +180,7 @@ export default function SplitAnalysisPage() {
         },
       );
       if (apiError) {
-        const ids = extractRequestIds(response);
-        setError({ message: (apiError as { detail?: string }).detail || "Edit failed", ...ids });
+        setError(toApiError((apiError as { detail?: string }).detail || "Edit failed", response));
         return;
       }
       await queryClient.invalidateQueries({
@@ -365,6 +363,7 @@ export default function SplitAnalysisPage() {
               message={error.message}
               requestId={error.requestId}
               traceId={error.traceId}
+              status={error.status}
               onRetry={() => setError(null)}
             />
           </div>

@@ -3,22 +3,21 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useRequiredAuth } from "@/lib/auth";
+import apiClient from "@/lib/api/client";
+import { type ApiError, toApiError } from "@/lib/errors";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
 import { ErrorBody } from "@/components/error-body";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
-import apiClient from "@/lib/api/client";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function UserPage() {
-  const { appUser, signOut, session, refreshAppUser } = useRequiredAuth();
+  const { appUser, signOut, refreshAppUser } = useRequiredAuth();
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<ApiError | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [confirmDisconnect, setConfirmDisconnect] = useState<string | null>(null);
@@ -43,14 +42,14 @@ export default function UserPage() {
 
   async function handleDelete() {
     setDeleting(true);
-    setError("");
+    setError(null);
 
-    const { error: apiError } = await apiClient.DELETE("/api/v1/auth/me", {
+    const { error: apiError, response } = await apiClient.DELETE("/api/v1/auth/me", {
       body: { action: "delete" },
     });
 
     if (apiError) {
-      setError("Failed to delete account. Please try again.");
+      setError(toApiError("Failed to delete account", response));
       setDeleting(false);
       return;
     }
@@ -60,19 +59,20 @@ export default function UserPage() {
   }
 
   async function handleDisconnect(provider: string) {
-    if (!session?.access_token) return;
     setDisconnecting(provider);
 
     try {
-      const resp = await fetch(`${API_BASE}/api/v1/auth/${provider}/disconnect`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+      const { error: apiError, response } = await apiClient.POST(
+        "/api/v1/auth/swiggy/disconnect",
+      );
 
-      if (!resp.ok) throw new Error("Failed to disconnect");
+      if (apiError) {
+        setError(toApiError(`Failed to disconnect ${provider}`, response));
+        return;
+      }
       await refreshAppUser();
-    } catch {
-      setError(`Failed to disconnect ${provider}.`);
+    } catch (e) {
+      setError({ message: e instanceof Error ? e.message : `Failed to disconnect ${provider}` });
     } finally {
       setDisconnecting(null);
       setConfirmDisconnect(null);
@@ -80,24 +80,32 @@ export default function UserPage() {
   }
 
   async function handleConnect(provider: string) {
-    if (!session?.access_token) return;
-
     try {
-      const resp = await fetch(`${API_BASE}/api/v1/auth/${provider}/connect`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-
-      if (!resp.ok) throw new Error("Failed to start connection");
-      const data = await resp.json();
+      let data;
+      let response;
 
       if (provider === "swiggy") {
-        document.cookie = `swiggy_code_verifier=${data.code_verifier}; path=/; max-age=600; SameSite=Lax`;
+        const result = await apiClient.POST("/api/v1/auth/swiggy/connect");
+        data = result.data;
+        response = result.response;
+        if (result.error) {
+          setError(toApiError(`Failed to connect ${provider}`, response));
+          return;
+        }
+        document.cookie = `swiggy_code_verifier=${data!.code_verifier}; path=/; max-age=600; SameSite=Lax`;
+      } else {
+        const result = await apiClient.POST("/api/v1/auth/splitwise/connect");
+        data = result.data;
+        response = result.response;
+        if (result.error) {
+          setError(toApiError(`Failed to connect ${provider}`, response));
+          return;
+        }
       }
 
-      window.location.href = data.authorize_url;
-    } catch {
-      setError(`Failed to connect ${provider}.`);
+      window.location.href = data!.authorize_url;
+    } catch (e) {
+      setError({ message: e instanceof Error ? e.message : `Failed to connect ${provider}` });
     }
   }
 
@@ -172,7 +180,12 @@ export default function UserPage() {
 
         {error && (
           <div className="mt-3">
-            <ErrorBody message={error} />
+            <ErrorBody
+              message={error.message}
+              requestId={error.requestId}
+              traceId={error.traceId}
+              status={error.status}
+            />
           </div>
         )}
 

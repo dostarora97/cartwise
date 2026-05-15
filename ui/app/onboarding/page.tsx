@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import apiClient from "@/lib/api/client";
+import { type ApiError, toApiError } from "@/lib/errors";
 import { useAuth } from "@/lib/auth";
 import { ErrorBody } from "@/components/error-body";
 
@@ -11,24 +12,21 @@ function OnboardingContent() {
   const { session, loading } = useAuth();
 
   const swParam = searchParams.get("splitwise");
-  const [error, setError] = useState(
-    swParam === "error" ? "Failed to connect Splitwise. Please try again." : "",
+  const [error, setError] = useState<ApiError | null>(
+    swParam === "error" ? { message: "Failed to connect Splitwise. Please try again." } : null,
   );
   const [connecting, setConnecting] = useState(!swParam);
   const startedRef = useRef(false);
 
-  const doConnect = useCallback(async (accessToken: string) => {
-    await apiClient.POST("/api/v1/auth/onboard", {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+  const doConnect = useCallback(async () => {
+    await apiClient.POST("/api/v1/auth/onboard");
 
-    const { data, error: apiError } = await apiClient.POST(
+    const { data, error: apiError, response } = await apiClient.POST(
       "/api/v1/auth/splitwise/connect",
-      { headers: { Authorization: `Bearer ${accessToken}` } },
     );
 
     if (apiError || !data) {
-      setError("Failed to start Splitwise connection.");
+      setError(toApiError("Failed to start Splitwise connection", response));
       setConnecting(false);
       return;
     }
@@ -39,17 +37,16 @@ function OnboardingContent() {
   useEffect(() => {
     if (loading || !session || swParam || startedRef.current) return;
     startedRef.current = true;
-    const token = session.access_token;
     void (async () => {
-      await doConnect(token);
+      await doConnect();
     })();
   }, [loading, session, swParam, doConnect]);
 
   function handleRetry() {
     if (!session) return;
-    setError("");
+    setError(null);
     setConnecting(true);
-    void doConnect(session.access_token);
+    void doConnect();
   }
 
   if (loading || !session) return null;
@@ -64,7 +61,13 @@ function OnboardingContent() {
 
       <div className="flex flex-1 flex-col items-center justify-center p-3">
         {error ? (
-          <ErrorBody message={error} onRetry={handleRetry} />
+          <ErrorBody
+            message={error.message}
+            requestId={error.requestId}
+            traceId={error.traceId}
+            status={error.status}
+            onRetry={handleRetry}
+          />
         ) : connecting ? (
           <p className="text-sm tracking-wider text-gray-600">
             Connecting to Splitwise...

@@ -7,17 +7,19 @@ interface ErrorBodyProps {
   message: string;
   requestId?: string;
   traceId?: string;
+  status?: number;
   stack?: string;
   onRetry?: () => void;
 }
 
-export function ErrorBody({ message, requestId, traceId, stack, onRetry }: ErrorBodyProps) {
+export function ErrorBody({ message, requestId, traceId, status, stack, onRetry }: ErrorBodyProps) {
   const pathname = usePathname();
 
   const ctx: ErrorContext = {
     message,
     requestId,
     traceId,
+    status,
     stack,
     pageUrl: typeof window !== "undefined" ? window.location.href : pathname,
   };
@@ -25,10 +27,11 @@ export function ErrorBody({ message, requestId, traceId, stack, onRetry }: Error
   return (
     <div className="flex flex-col items-center gap-4">
       <p className="text-xs text-red-600 tracking-wider">{message}</p>
-      {(requestId || traceId) && (
+      {(requestId || traceId || status) && (
         <ul className="text-xs text-gray-400 font-mono">
           {requestId && <li>req: {requestId}</li>}
           {traceId && <li>trace: {traceId}</li>}
+          {status && <li>status: {status}</li>}
         </ul>
       )}
       {onRetry && (
