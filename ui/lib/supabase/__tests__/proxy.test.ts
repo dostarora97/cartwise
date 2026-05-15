@@ -152,6 +152,19 @@ describe("updateSession (proxy auth routing)", () => {
       expect(response.cookies.get(RETURN_TO_COOKIE)).toBeUndefined();
     });
 
+    it("does NOT overwrite existing returnTo when redirecting to /onboarding", async () => {
+      mockGetClaims.mockResolvedValue({
+        data: { claims: { sub: "user-123", email: "test@test.com" } },
+      });
+      const response = await updateSession(
+        makeRequest("/some-page", { [RETURN_TO_COOKIE]: "/import?supplier=cartwise/starter" }),
+      );
+      expect(response.status).toBe(307);
+      expect(getRedirectPath(response)).toBe("/onboarding");
+      const cookie = response.cookies.get(RETURN_TO_COOKIE);
+      expect(cookie).toBeUndefined();
+    });
+
     it("preserves query string in returnTo cookie", async () => {
       mockGetClaims.mockResolvedValue({ data: { claims: null } });
       const response = await updateSession(makeRequest("/meal-plan?tab=week&view=grid"));
