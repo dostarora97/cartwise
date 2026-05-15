@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { ONBOARDED_COOKIE } from "@/lib/cookies";
+import { ONBOARDED_COOKIE, RETURN_TO_COOKIE, RETURN_TO_COOKIE_OPTIONS } from "@/lib/cookies";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -39,7 +39,11 @@ export async function updateSession(request: NextRequest) {
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return NextResponse.redirect(url);
+    url.search = "";
+    const response = NextResponse.redirect(url);
+    const returnTo = pathname + (request.nextUrl.search || "");
+    response.cookies.set(RETURN_TO_COOKIE, returnTo, RETURN_TO_COOKIE_OPTIONS);
+    return response;
   }
 
   if (user && pathname === "/login") {
@@ -51,7 +55,11 @@ export async function updateSession(request: NextRequest) {
   if (user && !isPublicRoute && !request.cookies.get(ONBOARDED_COOKIE)) {
     const url = request.nextUrl.clone();
     url.pathname = "/onboarding";
-    return NextResponse.redirect(url);
+    url.search = "";
+    const response = NextResponse.redirect(url);
+    const returnTo = pathname + (request.nextUrl.search || "");
+    response.cookies.set(RETURN_TO_COOKIE, returnTo, RETURN_TO_COOKIE_OPTIONS);
+    return response;
   }
 
   if (user && pathname.startsWith("/onboarding") && request.cookies.get(ONBOARDED_COOKIE)) {

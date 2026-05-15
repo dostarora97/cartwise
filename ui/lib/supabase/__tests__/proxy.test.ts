@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { ONBOARDED_COOKIE } from "@/lib/cookies";
+import { ONBOARDED_COOKIE, RETURN_TO_COOKIE } from "@/lib/cookies";
 
 vi.mock("@supabase/ssr", () => ({
   createServerClient: vi.fn(() => ({
@@ -114,6 +114,43 @@ describe("updateSession (proxy auth routing)", () => {
         makeRequest("/orders/123/expense", { [ONBOARDED_COOKIE]: "1" }),
       );
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe("returnTo cookie", () => {
+    it("sets returnTo cookie when redirecting unauthenticated to /login", async () => {
+      mockGetClaims.mockResolvedValue({ data: { claims: null } });
+      const response = await updateSession(makeRequest("/import?supplier=cartwise/starter"));
+      expect(response.status).toBe(307);
+      expect(getRedirectPath(response)).toBe("/login");
+      const cookie = response.cookies.get(RETURN_TO_COOKIE);
+      expect(cookie?.value).toBe("/import?supplier=cartwise/starter");
+    });
+
+    it("sets returnTo cookie when redirecting non-onboarded to /onboarding", async () => {
+      mockGetClaims.mockResolvedValue({
+        data: { claims: { sub: "user-123", email: "test@test.com" } },
+      });
+      const response = await updateSession(makeRequest("/orders/123/expense"));
+      expect(response.status).toBe(307);
+      expect(getRedirectPath(response)).toBe("/onboarding");
+      const cookie = response.cookies.get(RETURN_TO_COOKIE);
+      expect(cookie?.value).toBe("/orders/123/expense");
+    });
+
+    it("does NOT set returnTo for public routes", async () => {
+      mockGetClaims.mockResolvedValue({ data: { claims: null } });
+      const response = await updateSession(makeRequest("/login"));
+      expect(response.status).toBe(200);
+      expect(response.cookies.get(RETURN_TO_COOKIE)).toBeUndefined();
+    });
+
+    it("preserves query string in returnTo cookie", async () => {
+      mockGetClaims.mockResolvedValue({ data: { claims: null } });
+      const response = await updateSession(makeRequest("/meal-plan?tab=week&view=grid"));
+      expect(response.status).toBe(307);
+      const cookie = response.cookies.get(RETURN_TO_COOKIE);
+      expect(cookie?.value).toBe("/meal-plan?tab=week&view=grid");
     });
   });
 });

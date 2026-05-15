@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { ONBOARDED_COOKIE, ONBOARDED_VALUE, ONBOARDED_COOKIE_OPTIONS } from "@/lib/cookies";
+import { ONBOARDED_COOKIE, ONBOARDED_VALUE, ONBOARDED_COOKIE_OPTIONS, RETURN_TO_COOKIE, isValidReturnTo } from "@/lib/cookies";
 
 function baseUrl(request: NextRequest): string {
   const proto = request.headers.get("x-forwarded-proto") || "http";
@@ -27,8 +27,11 @@ export async function GET(request: NextRequest) {
   });
 
   if (resp.ok) {
-    const response = NextResponse.redirect(new URL("/", origin));
+    const returnTo = request.cookies.get(RETURN_TO_COOKIE)?.value;
+    const destination = isValidReturnTo(returnTo) ? returnTo : "/";
+    const response = NextResponse.redirect(new URL(destination, origin));
     response.cookies.set(ONBOARDED_COOKIE, ONBOARDED_VALUE, ONBOARDED_COOKIE_OPTIONS);
+    response.cookies.set(RETURN_TO_COOKIE, "", { path: "/", maxAge: 0 });
     return response;
   }
 
