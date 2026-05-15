@@ -1,10 +1,14 @@
 from pydantic import BaseModel
 
 
-class SupplierInfo(BaseModel):
-    id: str
+class PreviewItem(BaseModel):
     name: str
-    description: str
+
+
+class PreviewResponse(BaseModel):
+    name: str
+    items: list[PreviewItem]
+    total: int
 
 
 class ImportRequest(BaseModel):

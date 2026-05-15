@@ -51,6 +51,9 @@ SESSION_SECRET_KEY = ""
 # Mock server (for local mock services)
 MOCK_SERVER_PORT = 8001
 
+# Internal API secret for self-calling supplier protocol
+INTERNAL_API_SECRET = ""
+
 [development]
 DEBUG = true
 STORAGE_LOCAL = true
@@ -60,13 +63,12 @@ FRONTEND_URL = "http://localhost:3000"
 SESSION_SECRET_KEY = "dev-session-secret-not-for-production"
 SWIGGY_MCP_SERVER_URL = "http://localhost:8002"
 SWIGGY_MCP_ENDPOINT = "http://localhost:8002/mcp"
+INTERNAL_API_SECRET = "dev-internal-only"
 
 [[development.IMPORT_SUPPLIERS]]
-id = "cartwise/starter"
-name = "CartWise Starter Pack"
-description = "Essential items to get started with meal planning"
-type = "static_json"
-url = "file://./fixtures/cartwise-starter.json"
+id = "cartwise"
+name = "CartWise"
+url = "http://localhost:8000/internal/export"
 
 [testing]
 DEBUG = true
@@ -74,13 +76,12 @@ STORAGE_LOCAL = true
 SPLITWISE_ENABLED = true
 SESSION_SECRET_KEY = "test-session-secret"
 TRACING_ENABLED = false
+INTERNAL_API_SECRET = "test-internal-secret"
 
 [[testing.IMPORT_SUPPLIERS]]
-id = "cartwise/starter"
-name = "Test Starter Pack"
-description = "Test fixture"
-type = "static_json"
-url = "file://./fixtures/cartwise-starter.json"
+id = "cartwise"
+name = "CartWise"
+url = "http://localhost:8000/internal/export"
 
 [production]
 # Real Splitwise — only production hits the actual API
@@ -93,3 +94,9 @@ AI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 # Tracing — export to Google Cloud Trace
 TRACING_EXPORTER = "gcp"
 # CORS_ORIGINS, FRONTEND_URL set via CARTWISE_* env vars
+# INTERNAL_API_SECRET set via CARTWISE_INTERNAL_API_SECRET env var
+
+[[production.IMPORT_SUPPLIERS]]
+id = "cartwise"
+name = "CartWise"
+url = "http://localhost:8080/internal/export"

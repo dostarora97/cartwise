@@ -1,10 +1,9 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRequiredAuth } from "@/lib/auth";
-import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
 import { Icon } from "@/components/icon";
@@ -18,43 +17,58 @@ export default function ImportPage() {
   );
 }
 
+type PreviewData = {
+  name: string;
+  items: { name: string }[];
+  total: number;
+};
+
 type ImportState =
-  | { status: "idle" }
-  | { status: "importing"; supplierId: string }
+  | { status: "loading" }
+  | { status: "preview"; data: PreviewData }
+  | { status: "importing" }
   | { status: "done"; persist: number; skip: number }
-  | { status: "error"; message: string; supplierId: string };
+  | { status: "error"; phase: "preview" | "import" };
 
 function ImportContent() {
   useRequiredAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const supplierParam = searchParams.get("supplier");
+  const token = searchParams.get("supplier");
 
-  const [state, setState] = useState<ImportState>({ status: "idle" });
+  const [state, setState] = useState<ImportState>({ status: "loading" });
 
-  const { data: suppliers, isLoading } = $api.useQuery(
-    "get",
-    "/api/v1/imports/suppliers",
-  );
+  const loadPreview = useCallback(async () => {
+    if (!token) return;
+    setState({ status: "loading" });
+    try {
+      const { data, error } = await apiClient.GET("/api/v1/imports/preview", {
+        params: { query: { supplier_id: token } },
+      });
+      if (error) throw error;
+      setState({ status: "preview", data: data as PreviewData });
+    } catch {
+      setState({ status: "error", phase: "preview" });
+    }
+  }, [token]);
 
-  const filtered = supplierParam
-    ? suppliers?.filter((s) => s.id === supplierParam)
-    : undefined;
-  const displaySuppliers =
-    filtered && filtered.length > 0 ? filtered : suppliers;
+  useEffect(() => {
+    if (!token) {
+      router.replace("/meal-plan");
+      return;
+    }
+    loadPreview();
+  }, [token, router, loadPreview]);
 
-  async function handleImport(supplierId: string) {
-    setState({ status: "importing", supplierId });
+  async function handleImport() {
+    if (!token) return;
+    setState({ status: "importing" });
     try {
       const { data, error } = await apiClient.POST("/api/v1/imports/", {
-        body: { supplier_id: supplierId },
+        body: { supplier_id: token },
       });
-      if (error) {
-        throw new Error(
-          (error as { detail?: string }).detail || "Import failed",
-        );
-      }
+      if (error) throw error;
       await queryClient.invalidateQueries({
         queryKey: ["get", "/api/v1/meal-plans"],
       });
@@ -63,19 +77,13 @@ function ImportContent() {
       });
       setState({
         status: "done",
-        persist: data.intents_applied.persist ?? 0,
-        skip: data.intents_applied.skip ?? 0,
+        persist: data!.intents_applied.persist ?? 0,
+        skip: data!.intents_applied.skip ?? 0,
       });
-    } catch (e) {
-      setState({
-        status: "error",
-        message: e instanceof Error ? e.message : "Unknown error",
-        supplierId,
-      });
+    } catch {
+      setState({ status: "error", phase: "import" });
     }
   }
-
-  const ready = !isLoading;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -89,7 +97,38 @@ function ImportContent() {
       </div>
 
       <main className="flex flex-1 flex-col p-3">
-        {!ready && (
+        {state.status === "loading" && (
+          <div className="flex flex-1 items-center justify-center">
+            <Spinner />
+          </div>
+        )}
+
+        {state.status === "preview" && (
+          <div className="flex flex-1 flex-col gap-4">
+            <p className="text-base font-bold tracking-label uppercase">
+              Import {state.data.total} items from {state.data.name}
+            </p>
+            <ul className="flex flex-col gap-1">
+              {state.data.items.map((item, i) => (
+                <li
+                  key={i}
+                  className="border border-black p-3 text-sm tracking-wider"
+                >
+                  {item.name}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={handleImport}
+              disabled={state.data.total === 0}
+              className="mt-auto flex items-center justify-center gap-2 bg-black text-white p-3 text-base font-bold tracking-label uppercase h-12 disabled:bg-neutral-400"
+            >
+              Import
+            </button>
+          </div>
+        )}
+
+        {state.status === "importing" && (
           <div className="flex flex-1 items-center justify-center">
             <Spinner />
           </div>
@@ -115,42 +154,19 @@ function ImportContent() {
         {state.status === "error" && (
           <div className="flex flex-1 flex-col items-center justify-center gap-4">
             <p className="text-xs text-red-600 tracking-wider">
-              {state.message}
+              {state.phase === "preview"
+                ? "Could not load import preview"
+                : "Import failed"}
             </p>
             <button
-              onClick={() => handleImport(state.supplierId)}
+              onClick={
+                state.phase === "preview" ? loadPreview : handleImport
+              }
               className="border-2 border-black px-6 py-3 text-base font-bold tracking-label uppercase"
             >
               Retry
             </button>
           </div>
-        )}
-
-        {ready && (state.status === "idle" || state.status === "importing") && (
-          <ul className="flex flex-col gap-3">
-            {displaySuppliers?.map((supplier) => (
-              <li
-                key={supplier.id}
-                className="flex items-center justify-between border border-black p-3 h-12"
-              >
-                <span className="text-base font-bold tracking-label uppercase">
-                  {supplier.name}
-                </span>
-                <button
-                  onClick={() => handleImport(supplier.id)}
-                  disabled={state.status === "importing"}
-                  className="flex items-center gap-1 bg-black text-white px-3 py-1 text-sm font-bold tracking-label uppercase disabled:bg-neutral-400"
-                >
-                  {state.status === "importing" &&
-                  state.supplierId === supplier.id ? (
-                    <div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  ) : (
-                    "Import"
-                  )}
-                </button>
-              </li>
-            ))}
-          </ul>
         )}
       </main>
     </div>

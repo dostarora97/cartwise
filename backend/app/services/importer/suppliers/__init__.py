@@ -1,32 +1,32 @@
 from __future__ import annotations
 
-from itertools import count
-from uuid import UUID
+from fastapi import HTTPException
 
 from app.config import settings
 
-from .static_json import StaticJsonSupplier
-
-SUPPLIER_TYPES = {
-    "static_json": StaticJsonSupplier,
-}
+from ..client import SupplierClient
+from ..token import DecodedToken, decode_token
+from .connector import ConnectorSupplier
 
 
-def get_supplier(
-    supplier_id: str,
-    user_id: UUID,
-    meal_plan_id: UUID | None,
-    rank_counter: count,
-) -> StaticJsonSupplier:
+def _lookup_registry(supplier_id: str) -> dict | None:
     configs = settings.IMPORT_SUPPLIERS
-    config = next((c for c in configs if c["id"] == supplier_id), None)
-    if not config:
-        raise KeyError(supplier_id)
-    cls = SUPPLIER_TYPES[config["type"]]
-    return cls(
-        supplier_id=config["id"],
+    return next((c for c in configs if c["id"] == supplier_id), None)
+
+
+def resolve_supplier_client(token: str) -> tuple[SupplierClient, DecodedToken]:
+    decoded = decode_token(token)
+    if decoded is None:
+        raise HTTPException(404, "Invalid supplier token")
+    config = _lookup_registry(decoded.supplier)
+    if config is None:
+        raise HTTPException(404, "Unknown supplier")
+    client = SupplierClient(
         url=config["url"],
-        user_id=user_id,
-        meal_plan_id=meal_plan_id,
-        rank_counter=rank_counter,
+        payload=decoded.payload,
+        internal_secret=settings.INTERNAL_API_SECRET,
     )
+    return client, decoded
+
+
+__all__ = ["ConnectorSupplier", "resolve_supplier_client"]

@@ -487,15 +487,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/imports/suppliers": {
+    "/api/v1/imports/preview": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** List Suppliers */
-        get: operations["list_suppliers_api_v1_imports_suppliers_get"];
+        /** Preview Import */
+        get: operations["preview_import_api_v1_imports_preview_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -761,6 +761,20 @@ export interface components {
          * @enum {string}
          */
         OrderSourceType: "invoice" | "swiggy_order";
+        /** PreviewItem */
+        PreviewItem: {
+            /** Name */
+            name: string;
+        };
+        /** PreviewResponse */
+        PreviewResponse: {
+            /** Name */
+            name: string;
+            /** Items */
+            items: components["schemas"]["PreviewItem"][];
+            /** Total */
+            total: number;
+        };
         /**
          * SplitAssignment
          * @description One grocery item's member assignment for the edit-splits endpoint.
@@ -806,15 +820,6 @@ export interface components {
             state: string;
             /** Redirect Uri */
             redirect_uri: string;
-        };
-        /** SupplierInfo */
-        SupplierInfo: {
-            /** Id */
-            id: string;
-            /** Name */
-            name: string;
-            /** Description */
-            description: string;
         };
         /** SwiggyConnectResponse */
         SwiggyConnectResponse: {
@@ -1764,9 +1769,11 @@ export interface operations {
             };
         };
     };
-    list_suppliers_api_v1_imports_suppliers_get: {
+    preview_import_api_v1_imports_preview_get: {
         parameters: {
-            query?: never;
+            query: {
+                supplier_id: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1779,7 +1786,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SupplierInfo"][];
+                    "application/json": components["schemas"]["PreviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
