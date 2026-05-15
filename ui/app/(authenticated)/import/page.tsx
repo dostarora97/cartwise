@@ -1,9 +1,10 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRequiredAuth } from "@/lib/auth";
+import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
@@ -18,18 +19,27 @@ export default function ImportPage() {
   );
 }
 
-type PreviewData = {
-  name: string;
-  items: { name: string }[];
-  total: number;
-};
-
 type ImportState =
-  | { status: "loading" }
-  | { status: "preview"; data: PreviewData }
+  | { status: "idle" }
   | { status: "importing" }
   | { status: "done"; persist: number; skip: number }
-  | { status: "error"; phase: "preview" | "import" };
+  | { status: "error"; phase: "preview" | "import"; requestId?: string; traceId?: string };
+
+function buildIssueUrl(phase: string, requestId?: string, traceId?: string) {
+  const description = `Import ${phase} failed.`;
+  const reproduce = [
+    `1. Open the import page`,
+    `2. Error occurred during: ${phase}`,
+    requestId && `- Request ID: \`${requestId}\``,
+    traceId && `- Trace ID: \`${traceId}\``,
+  ].filter(Boolean).join("\n");
+  const params = new URLSearchParams({
+    template: "bug_report.yml",
+    description,
+    reproduce,
+  });
+  return `https://github.com/dostarora97/cartwise/issues/new?${params}`;
+}
 
 function ImportContent() {
   useRequiredAuth();
@@ -38,38 +48,32 @@ function ImportContent() {
   const queryClient = useQueryClient();
   const token = searchParams.get("supplier");
 
-  const [state, setState] = useState<ImportState>({ status: "loading" });
+  const [state, setState] = useState<ImportState>({ status: "idle" });
 
-  const loadPreview = useCallback(async () => {
-    if (!token) return;
-    setState({ status: "loading" });
-    try {
-      const { data, error } = await apiClient.GET("/api/v1/imports/preview", {
-        params: { query: { supplier: token } },
-      });
-      if (error) throw error;
-      setState({ status: "preview", data: data as PreviewData });
-    } catch {
-      setState({ status: "error", phase: "preview" });
-    }
-  }, [token]);
+  const { data: preview, error: previewError, isLoading } = $api.useQuery(
+    "get",
+    "/api/v1/imports/preview",
+    { params: { query: { supplier: token! } } },
+    { enabled: !!token },
+  );
 
   useEffect(() => {
     if (!token) {
       router.replace("/meal-plan");
-      return;
     }
-    loadPreview();
-  }, [token, router, loadPreview]);
+  }, [token, router]);
 
   async function handleImport() {
     if (!token) return;
     setState({ status: "importing" });
     try {
-      const { data, error } = await apiClient.POST("/api/v1/imports/", {
+      const { data, error, response } = await apiClient.POST("/api/v1/imports/", {
         body: { supplier: token },
       });
-      if (error) throw error;
+      if (error) {
+        setState({ status: "error", phase: "import", requestId: response.headers.get("X-Request-ID") ?? undefined, traceId: response.headers.get("X-Trace-ID") ?? undefined });
+        return;
+      }
       await queryClient.invalidateQueries({
         queryKey: ["get", "/api/v1/meal-plans"],
       });
@@ -86,6 +90,8 @@ function ImportContent() {
     }
   }
 
+  const showCenter = isLoading || state.status === "importing" || state.status === "error" || state.status === "done" || previewError;
+
   return (
     <div className="flex flex-1 flex-col">
       <TopBar showBack onBack={() => router.push("/meal-plan")} />
@@ -97,12 +103,12 @@ function ImportContent() {
         </span>
       </div>
 
-      <main className={`flex flex-1 flex-col ${state.status === "loading" || state.status === "importing" || state.status === "error" || state.status === "done" ? "items-center justify-center" : ""}`}>
-        {state.status === "loading" && <Spinner />}
+      <main className={`flex flex-1 flex-col ${showCenter ? "items-center justify-center" : ""}`}>
+        {isLoading && <Spinner />}
 
-        {state.status === "preview" && (
+        {preview && state.status === "idle" && (
           <ul>
-            {state.data.items.map((item, i) => (
+            {preview.items.map((item, i) => (
               <MealPlanItem key={i} name={item.name} mode="view" />
             ))}
           </ul>
@@ -121,28 +127,44 @@ function ImportContent() {
           </div>
         )}
 
-        {state.status === "error" && (
+        {(state.status === "error" || (previewError && state.status === "idle")) && (
           <div className="flex flex-col items-center gap-4">
             <p className="text-xs text-red-600 tracking-wider">
-              {state.phase === "preview"
-                ? "Could not load import preview"
-                : "Import failed"}
+              {state.status === "error" && state.phase === "import"
+                ? "Import failed"
+                : "Could not load import preview"}
             </p>
+            {state.status === "error" && (state.requestId || state.traceId) && (
+              <ul className="text-xs text-gray-400 font-mono">
+                {state.requestId && <li>req: {state.requestId}</li>}
+                {state.traceId && <li>trace: {state.traceId}</li>}
+              </ul>
+            )}
             <button
-              onClick={state.phase === "preview" ? loadPreview : handleImport}
+              onClick={state.status === "error" && state.phase === "import" ? handleImport : () => queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/imports/preview"] })}
               className="border-2 border-black px-6 py-3 text-base font-bold tracking-label uppercase"
             >
               Retry
             </button>
+            {state.status === "error" && (
+              <a
+                href={buildIssueUrl(state.phase, state.requestId, state.traceId)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-gray-400 underline"
+              >
+                Report issue
+              </a>
+            )}
           </div>
         )}
       </main>
 
       <div className="sticky bottom-0">
-        {state.status === "preview" && (
+        {preview && state.status === "idle" && (
           <button
             onClick={handleImport}
-            disabled={state.data.total === 0}
+            disabled={preview.total === 0}
             className="flex w-full items-center justify-center p-3 border-t border-black bg-black text-2xl font-bold tracking-label uppercase leading-6 text-white disabled:bg-neutral-400"
           >
             Import
