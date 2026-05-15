@@ -4,10 +4,12 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRequiredAuth } from "@/lib/auth";
+import { extractRequestIds } from "@/lib/errors";
 import { $api } from "@/lib/api/hooks";
 import apiClient from "@/lib/api/client";
 import { TopBar } from "@/components/top-bar";
 import { MealPlanItem } from "@/components/meal-plan-item";
+import { ErrorBody } from "@/components/error-body";
 import { Icon } from "@/components/icon";
 import { Spinner } from "@/components/spinner";
 
@@ -23,23 +25,7 @@ type ImportState =
   | { status: "idle" }
   | { status: "importing" }
   | { status: "done"; persist: number; skip: number }
-  | { status: "error"; phase: "preview" | "import"; requestId?: string; traceId?: string };
-
-function buildIssueUrl(phase: string, requestId?: string, traceId?: string) {
-  const description = `Import ${phase} failed.`;
-  const reproduce = [
-    `1. Open the import page`,
-    `2. Error occurred during: ${phase}`,
-    requestId && `- Request ID: \`${requestId}\``,
-    traceId && `- Trace ID: \`${traceId}\``,
-  ].filter(Boolean).join("\n");
-  const params = new URLSearchParams({
-    template: "bug_report.yml",
-    description,
-    reproduce,
-  });
-  return `https://github.com/dostarora97/cartwise/issues/new?${params}`;
-}
+  | { status: "error"; message: string; requestId?: string; traceId?: string };
 
 function ImportContent() {
   useRequiredAuth();
@@ -71,7 +57,8 @@ function ImportContent() {
         body: { supplier: token },
       });
       if (error) {
-        setState({ status: "error", phase: "import", requestId: response.headers.get("X-Request-ID") ?? undefined, traceId: response.headers.get("X-Trace-ID") ?? undefined });
+        const ids = extractRequestIds(response);
+        setState({ status: "error", message: "Import failed", ...ids });
         return;
       }
       await queryClient.invalidateQueries({
@@ -86,7 +73,7 @@ function ImportContent() {
         skip: data!.intents_applied.skip ?? 0,
       });
     } catch {
-      setState({ status: "error", phase: "import" });
+      setState({ status: "error", message: "Import failed" });
     }
   }
 
@@ -128,35 +115,12 @@ function ImportContent() {
         )}
 
         {(state.status === "error" || (previewError && state.status === "idle")) && (
-          <div className="flex flex-col items-center gap-4">
-            <p className="text-xs text-red-600 tracking-wider">
-              {state.status === "error" && state.phase === "import"
-                ? "Import failed"
-                : "Could not load import preview"}
-            </p>
-            {state.status === "error" && (state.requestId || state.traceId) && (
-              <ul className="text-xs text-gray-400 font-mono">
-                {state.requestId && <li>req: {state.requestId}</li>}
-                {state.traceId && <li>trace: {state.traceId}</li>}
-              </ul>
-            )}
-            <button
-              onClick={state.status === "error" && state.phase === "import" ? handleImport : () => queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/imports/preview"] })}
-              className="border-2 border-black px-6 py-3 text-base font-bold tracking-label uppercase"
-            >
-              Retry
-            </button>
-            {state.status === "error" && (
-              <a
-                href={buildIssueUrl(state.phase, state.requestId, state.traceId)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-gray-400 underline"
-              >
-                Report issue
-              </a>
-            )}
-          </div>
+          <ErrorBody
+            message={state.status === "error" ? state.message : "Could not load import preview"}
+            requestId={state.status === "error" ? state.requestId : undefined}
+            traceId={state.status === "error" ? state.traceId : undefined}
+            onRetry={state.status === "error" ? handleImport : () => queryClient.invalidateQueries({ queryKey: ["get", "/api/v1/imports/preview"] })}
+          />
         )}
       </main>
 
