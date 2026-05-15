@@ -11,7 +11,7 @@ from .read_context import ReadContext
 
 @dataclass
 class ImportResult:
-    supplier_id: str
+    supplier: str
     intents_applied: dict[str, int] = field(
         default_factory=lambda: {"persist": 0, "skip": 0, "delete": 0}
     )
@@ -23,7 +23,7 @@ class ImportOrchestrator:
         self._read_ctx = read_ctx
 
     async def run(self, supplier: DataSupplier) -> ImportResult:
-        result = ImportResult(supplier_id=supplier.supplier_id)
+        result = ImportResult(supplier=supplier.supplier)
 
         async for item in supplier.fetch():
             intents = await item.resolve_intents(self._read_ctx)

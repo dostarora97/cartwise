@@ -12,9 +12,9 @@ class PreviewResponse(BaseModel):
 
 
 class ImportRequest(BaseModel):
-    supplier_id: str
+    supplier: str
 
 
 class ImportResultResponse(BaseModel):
-    supplier_id: str
+    supplier: str
     intents_applied: dict[str, int]

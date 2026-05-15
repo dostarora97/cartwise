@@ -21,14 +21,14 @@ router = APIRouter(prefix="/imports", tags=["imports"])
 
 
 @router.get("/preview", response_model=PreviewResponse)
-async def preview_import(supplier_id: str, current_user: CurrentUser):
-    client, _ = resolve_supplier_client(supplier_id)
+async def preview_import(supplier: str, current_user: CurrentUser):
+    client, _ = resolve_supplier_client(supplier)
     return await client.preview()
 
 
 @router.post("/", response_model=ImportResultResponse)
 async def run_import(body: ImportRequest, session: SessionDep, current_user: CurrentUser):
-    client, _ = resolve_supplier_client(body.supplier_id)
+    client, _ = resolve_supplier_client(body.supplier)
 
     plan = await _get_or_create_plan(session, current_user.id)
 
@@ -40,8 +40,8 @@ async def run_import(body: ImportRequest, session: SessionDep, current_user: Cur
     max_rank = max_rank_result.scalar_one()
     rank_counter = itertools.count(start=max_rank + 1)
 
-    supplier = ConnectorSupplier(
-        supplier_id=body.supplier_id,
+    supplier_obj = ConnectorSupplier(
+        supplier=body.supplier,
         client=client,
         user_id=current_user.id,
         meal_plan_id=plan.id,
@@ -49,11 +49,9 @@ async def run_import(body: ImportRequest, session: SessionDep, current_user: Cur
     )
     read_ctx = ReadContext(session)
     orchestrator = ImportOrchestrator(session, read_ctx)
-    result = await orchestrator.run(supplier)
+    result = await orchestrator.run(supplier_obj)
 
-    return ImportResultResponse(
-        supplier_id=result.supplier_id, intents_applied=result.intents_applied
-    )
+    return ImportResultResponse(supplier=result.supplier, intents_applied=result.intents_applied)
 
 
 async def _get_or_create_plan(session, user_id: uuid.UUID) -> MealPlan:

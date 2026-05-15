@@ -585,13 +585,13 @@ export interface components {
         };
         /** ImportRequest */
         ImportRequest: {
-            /** Supplier Id */
-            supplier_id: string;
+            /** Supplier */
+            supplier: string;
         };
         /** ImportResultResponse */
         ImportResultResponse: {
-            /** Supplier Id */
-            supplier_id: string;
+            /** Supplier */
+            supplier: string;
             /** Intents Applied */
             intents_applied: {
                 [key: string]: number;
@@ -1772,7 +1772,7 @@ export interface operations {
     preview_import_api_v1_imports_preview_get: {
         parameters: {
             query: {
-                supplier_id: string;
+                supplier: string;
             };
             header?: never;
             path?: never;
