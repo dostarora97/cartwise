@@ -90,4 +90,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         )
 
         response.headers["X-Request-ID"] = request_id
+
+        trace_id = trace.get_current_span().get_span_context().trace_id
+        if trace_id:
+            response.headers["X-Trace-ID"] = format(trace_id, "032x")
+
         return response

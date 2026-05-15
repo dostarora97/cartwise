@@ -36,6 +36,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Request-ID", "X-Trace-ID"],
 )
 
 # Dev-only: slow down API responses to test loading states
