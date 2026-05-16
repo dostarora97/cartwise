@@ -47,11 +47,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchAppUser = useCallback(async (accessToken: string) => {
     try {
       setError(false);
-      const { data, error: apiError } = await apiClient.GET("/api/v1/auth/me", {
+      const result = await apiClient.GET("/api/v1/auth/me", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
-      if (!apiError && data) {
-        setAppUser(data as unknown as AppUser);
+      const status = result.response.status;
+      if (!result.error && result.data) {
+        setAppUser(result.data as unknown as AppUser);
+      } else if (status === 404) {
+        document.cookie = `${ONBOARDED_COOKIE}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+        setAppUser(null);
+        window.location.href = "/onboarding";
       } else {
         setAppUser(null);
         setError(true);
