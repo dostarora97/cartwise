@@ -24,7 +24,7 @@ export function TopBar({ showBack = false, onBack, rightAction }: TopBarProps) {
         <img
           src={appUser.avatar_url}
           alt=""
-          className="h-9 w-9 rounded-full object-cover"
+          className="h-full w-full object-cover"
         />
       ) : (
         <Icon name="account_circle" size={36} />
