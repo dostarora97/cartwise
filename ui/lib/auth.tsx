@@ -56,7 +56,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (status === 404) {
         document.cookie = `${ONBOARDED_COOKIE}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
         setAppUser(null);
-        window.location.href = "/onboarding";
+        if (!window.location.pathname.startsWith("/onboarding")) {
+          window.location.href = "/onboarding";
+        }
       } else {
         setAppUser(null);
         setError(true);
