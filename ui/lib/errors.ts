@@ -5,6 +5,7 @@ export interface ErrorContext {
   status?: number;
   stack?: string;
   pageUrl?: string;
+  build?: string;
 }
 
 export type ApiError = Pick<ErrorContext, "message" | "requestId" | "traceId" | "status">;
@@ -34,6 +35,7 @@ export function buildIssueUrl(ctx: ErrorContext): string {
     ctx.pageUrl && `**Page:** ${ctx.pageUrl}`,
     ctx.requestId && `**Request ID:** \`${ctx.requestId}\``,
     ctx.traceId && `**Trace ID:** \`${ctx.traceId}\``,
+    ctx.build && `**Build:** \`${ctx.build}\``,
     ctx.stack && `**Stack:**\n\`\`\`\n${ctx.stack}\n\`\`\``,
   ]
     .filter(Boolean)

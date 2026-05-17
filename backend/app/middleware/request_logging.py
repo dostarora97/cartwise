@@ -5,6 +5,7 @@ Adds a request ID to every request and logs request/response details.
 Logs mutation request/response bodies for observability.
 """
 
+import os
 import time
 
 import structlog
@@ -19,6 +20,7 @@ logger = structlog.get_logger()
 
 _MAX_BODY_BYTES = 10_240  # 10KB
 _MUTATION_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+_GIT_COMMIT = os.environ.get("GIT_COMMIT", "dev")
 
 
 def _truncate_body(raw: bytes) -> str:
@@ -90,6 +92,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         )
 
         response.headers["X-Request-ID"] = request_id
+        response.headers["X-App-Version"] = _GIT_COMMIT
 
         trace_id = trace.get_current_span().get_span_context().trace_id
         if trace_id:
