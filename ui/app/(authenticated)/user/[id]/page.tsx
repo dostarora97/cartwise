@@ -10,6 +10,8 @@ import { Icon } from "@/components/icon";
 import { ErrorBody } from "@/components/error-body";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 
+const GIT_SHA = process.env.NEXT_PUBLIC_GIT_SHA;
+
 export default function UserPage() {
   const { appUser, signOut, refreshAppUser } = useRequiredAuth();
   const router = useRouter();
@@ -201,6 +203,11 @@ export default function UserPage() {
           </button>
           {settingsOpen && (
             <div className="flex flex-col gap-3 p-3 border-x border-b border-black">
+              {GIT_SHA && (
+                <p className="text-xs text-gray-400 font-mono tracking-wider">
+                  build: {GIT_SHA.slice(0, 7)}
+                </p>
+              )}
               <a
                 href="https://github.com/dostarora97/cartwise/issues/new/choose"
                 target="_blank"
