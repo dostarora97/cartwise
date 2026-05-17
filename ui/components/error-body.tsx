@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation";
 import { type ErrorContext, buildIssueUrl } from "@/lib/errors";
 
+const GIT_SHA = process.env.NEXT_PUBLIC_GIT_SHA;
+
 interface ErrorBodyProps {
   message: string;
   requestId?: string;
@@ -22,12 +24,14 @@ export function ErrorBody({ message, requestId, traceId, status, stack, onRetry 
     status,
     stack,
     pageUrl: typeof window !== "undefined" ? window.location.href : pathname,
+    build: GIT_SHA,
   };
 
   const meta = [
     requestId && `req: ${requestId}`,
     traceId && `trace: ${traceId}`,
     status && `status: ${status}`,
+    GIT_SHA && `build: ${GIT_SHA.slice(0, 7)}`,
   ].filter(Boolean) as string[];
 
   return (

@@ -41,6 +41,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_GIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA ?? revision,
+  },
   turbopack: {
     resolveAlias: {
       "../build/polyfills/polyfill-module": "./lib/empty-polyfill.js",

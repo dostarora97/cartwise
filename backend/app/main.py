@@ -1,5 +1,7 @@
+import os
 from contextlib import asynccontextmanager
 
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -12,10 +14,13 @@ from app.routes import auth, imports, meal_plans, menu_items, orders, users
 from app.services.seed import reconcile_fixtures
 from app.tracing import setup_tracing
 
+GIT_COMMIT = os.environ.get("GIT_COMMIT", "dev")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
+    structlog.contextvars.bind_contextvars(git_commit=GIT_COMMIT)
     setup_tracing(app)
     await reconcile_fixtures()
     yield
@@ -36,7 +41,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["X-Request-ID", "X-Trace-ID"],
+    expose_headers=["X-Request-ID", "X-Trace-ID", "X-App-Version"],
 )
 
 # Dev-only: slow down API responses to test loading states
@@ -72,4 +77,4 @@ app.mount("/internal", internal_app)
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    return {"status": "ok", "version": GIT_COMMIT}

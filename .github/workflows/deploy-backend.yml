@@ -54,6 +54,8 @@ jobs:
           context: ./backend
           push: true
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}
+          build-args: |
+            GIT_COMMIT=${{ github.sha }}
 
       - name: Deploy to Cloud Run
         run: |
